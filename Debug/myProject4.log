@@ -1,0 +1,3 @@
+﻿  main.cpp
+d:\димона\универ\прога\projects\game\myproject4\myproject4\main.cpp(18): warning C4244: инициализация: преобразование "sf::Int64" в "float", возможна потеря данных
+  myProject4.vcxproj -> D:\Димона\Универ\Прога\Projects\Game\myProject4\Debug\myProject4.exe
