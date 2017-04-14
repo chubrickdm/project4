@@ -9,6 +9,7 @@ using namespace std;
 using namespace sf;
 
 enum StateList {menu, mode, admin, player, backToMenu, setting, exitt};
+String adOrPlMode = "";
 
 #define W_WIN 700 //ширина окна
 #define H_WIN 500 //высота окна
@@ -57,10 +58,9 @@ class Button{
 	String name;
 	StateList state;
 public:
-	Button (Image &image, String tmpT, Font &font, int X, int Y, int W, int H){ //конструктор с именем
-		x = X; y = Y; w = W; h = H; drawThis = true; 
-		name = tmpT; buttPressed = false; state = menu;
-		buttClick = false;
+	Button (Image &image, String tmpT, String Name, Font &font, int X, int Y, int W, int H){ //конструктор с именем
+		x = X; y = Y; w = W; h = H; 
+		name = Name; buttPressed = false; buttClick = false; 
 		texture.loadFromImage (image); 
 		sprite.setTexture (texture);
 		sprite.setTextureRect (IntRect (0, 0, w, h));
@@ -72,8 +72,17 @@ public:
 		tmp = x + 50 - (tmp / 2) * 12;
 		text -> setPosition (tmp, y - 5);
 
-		if (tmpT == "Player" || tmpT == "Admin" || tmpT == "Back"){
+		if (Name == "Go!" || Name == "Mode" || Name == "Setting" || Name == "Exit"){
+			drawThis = true;; state = menu;
+		}
+		if (Name == "PlayerMode" || Name == "AdminMode" || Name == "BackToMenu"){
 			drawThis = false; state = mode;
+		}
+		if (Name == "BackToModeAd" || Name == "OpenAd" || Name == "SaveAd"){
+			drawThis = false; state = admin;
+		}
+		if (Name == "BackToModePl" || Name == "OpenPl"){
+			drawThis = false; state = player;
 		}
 	}
 
@@ -89,24 +98,29 @@ public:
 	void checkCursor (Vector2i mousePosWin){
 		buttClick = false;
 		if ((mousePosWin.x >= x) && (mousePosWin.x <= x + w) && (mousePosWin.y >= y) && (mousePosWin.y <= y + h)){
-			if (Mouse::isButtonPressed (Mouse::Left)){
-				buttPressed = true; 
-			}
+			if (Mouse::isButtonPressed (Mouse::Left))
+				buttPressed = true;
 			else{
 				if (buttPressed)
 					buttClick = true; 
 				buttPressed = false;
 			}
-			sprite.setTextureRect (IntRect (0, 60, w, h));
+			sprite.setTextureRect (IntRect (0, h, w, h));
 		}
 		else{
 			buttPressed = false; 
 			sprite.setTextureRect (IntRect (0, 0, w, h));
 		}
+
+		if (buttClick && (name == "AdminMode" || name == "PlayerMode"))
+			adOrPlMode = name;
+
+		if (name == adOrPlMode)
+			sprite.setTextureRect (IntRect (0, h * 2, w, h));
 	}
 };
 
-void control (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **Arr, int &NumWall, Image &wallImage){
+void control (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **ArrWall, int &NumWall, Image &wallImage){
 	int tmpX, tmpY, tmpX2, tmpY2;
 	int tmp;
 	if (Mouse::isButtonPressed (Mouse::Left)){
@@ -118,21 +132,21 @@ void control (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **Arr,
 				tmpX2 = tmpX / EDGE; tmpY2 = tmpY / EDGE;
 				if (CoordWall [tmpY2 - INDENTATION / EDGE][tmpX2 - INDENTATION / EDGE]){
 					for (int i = 0; i < NumWall; i++)
-						if (Arr [i] -> x == tmpX && Arr [i] -> y == tmpY){
-							Arr [i] -> drawThis = false;
+						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY){
+							ArrWall [i] -> drawThis = false;
 							CoordWall [tmpY2 - INDENTATION / EDGE][tmpX2 - INDENTATION / EDGE] = false;
 						}
 				}
 				else{
 					bool tmpB = true;
 					for (int i = 0; i < NumWall; i++){
-						if (Arr [i] -> x == tmpX && Arr [i] -> y == tmpY){
-							Arr [i] -> drawThis = true;
+						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY){
+							ArrWall [i] -> drawThis = true;
 							tmpB = false;
 						}
 					}
 					if (tmpB)
-						Arr [NumWall++] = new Wall (wallImage, tmpX, tmpY, EDGE, EDGE);
+						ArrWall [NumWall++] = new Wall (wallImage, tmpX, tmpY, EDGE, EDGE);
 					CoordWall [tmpY2 - INDENTATION / EDGE][tmpX2 - INDENTATION / EDGE] = true;
 				}
 			}
@@ -147,13 +161,13 @@ void control (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **Arr,
 		ofstream outF (tmpC);
 		int tmp = 0;
 		for (int i = 0; i < NumWall; i++){
-			if (Arr [i] -> drawThis)
+			if (ArrWall [i] -> drawThis)
 				tmp++;
 		}
 		outF << tmp << endl;
 		for (int i = 0; i < NumWall; i++){
-			if (Arr [i] -> drawThis)
-				outF << Arr [i] -> x << " " << Arr [i] -> y << endl;
+			if (ArrWall [i] -> drawThis)
+				outF << ArrWall [i] -> x << " " << ArrWall [i] -> y << endl;
 		}
 	}
 	if (Keyboard::isKeyPressed (Keyboard::LControl) && Keyboard::isKeyPressed (Keyboard::I)){
@@ -162,21 +176,21 @@ void control (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **Arr,
 		cin >> tmpC;
 		if (NumWall != 0){
 			for (int i = 0; i < NumWall; i++)
-				Arr [i] -> ~Wall ();
+				ArrWall [i] -> ~Wall ();
 				}
 		ifstream inF (tmpC);
 		inF >> NumWall;
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY;
-			Arr [i] = new Wall (wallImage, tmpX, tmpY, EDGE, EDGE);
-			Arr [i] -> drawThis = true;
+			ArrWall [i] = new Wall (wallImage, tmpX, tmpY, EDGE, EDGE);
+			ArrWall [i] -> drawThis = true;
 		}
 	}
 }
 
 int main (){
 	RenderWindow window (VideoMode (W_WIN, H_WIN), "LABYRINTH PRO"); //создание окна
-
+////////////////////////////////////////////////////////////////////////////////////////////
 	VertexArray lines (Lines, (NUM_H_LINE + NUM_V_LINE + 2) * 2); //массив на 600 линий
 	int i = 0; //i-счетчик линий занесенных в массив
     for (; i < NUM_V_LINE * 2; i += 2){ //создание вертикальных линий
@@ -187,16 +201,16 @@ int main (){
         lines [i].position = Vector2f (INDENTATION, EDGE * k / 2 + INDENTATION);
         lines [i + 1].position = Vector2f (W_WIN - INDENTATION, EDGE * k / 2 + INDENTATION);
 	}
-
+////////////////////////////////////////////////////////////////////////////////////////////
 
 	StateList state = menu;
 
-
+////////////////////////////////////////////////////////////////////////////////////////////
 	Image wallImage; //загрузка спрайта стен
 	wallImage.loadFromFile ("wall.png");
 	
 	int NumWall = 0;
-	Wall *Arr [1000];
+	Wall *ArrWall [1000];
 	bool **CoordWall;
 	//cout << NUM_H_LINE << "-horizont " << NUM_V_LINE << "-vertical" << endl;
 	CoordWall = new bool* [NUM_H_LINE];
@@ -205,8 +219,7 @@ int main (){
 		for (int j = 0; j < NUM_V_LINE; j++)
 			CoordWall [i][j] = false;
 	}
-
-
+////////////////////////////////////////////////////////////////////////////////////////////
 	Font font; //шрифт
 	font.loadFromFile ("modeka.otf");
 
@@ -214,14 +227,25 @@ int main (){
 	buttonImage.loadFromFile ("button.png");
 
 	int NumButton = 0;
-	Button *button [10];
-	button [NumButton++] = new Button (buttonImage, "Go!", font, 300, 100, 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Mode", font, 300, 150, 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Setting", font, 300, 200, 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Exit", font, 300, 250, 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Player", font, 300, 100, 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Admin", font, 300, 150, 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Back", font, 300, 200, 120, 30);
+	Button *button [30];
+	button [NumButton++] = new Button (buttonImage, "Go!", "Go!", font, 300, 100, 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Mode", "Mode", font, 300, 150, 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Setting", "Setting", font, 300, 200, 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, 300, 250, 120, 30);
+
+	button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, 300, 100, 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Admin", "AdminMode", font, 300, 150, 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Back", "BackToMenu", font, 300, 200, 120, 30);
+
+	button [NumButton++] = new Button (buttonImage, "Back", "BackToModeAd", font, 85, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, 85 * 2 + 120, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, 120 * 2 + 85 * 3, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+
+	button [NumButton++] = new Button (buttonImage, "Back", "BackToModePl", font, 153, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Open", "OpenPl", font, 153 * 2 + 120, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+	
+	cout << NumButton << endl;
+////////////////////////////////////////////////////////////////////////////////////////////
 
 	Clock clock; //время
 
@@ -243,48 +267,86 @@ int main (){
 
 		switch (state){
 			case admin:
-				control (mousePosWin, timer, CoordWall, Arr, NumWall, wallImage);
+				control (mousePosWin, timer, CoordWall, ArrWall, NumWall, wallImage);
 				break;
+				
 			case player:
 				if (Keyboard::isKeyPressed (Keyboard::LControl) && Keyboard::isKeyPressed (Keyboard::I))
-					control (mousePosWin, timer, CoordWall, Arr, NumWall, wallImage);
+					control (mousePosWin, timer, CoordWall, ArrWall, NumWall, wallImage);
 				break;
+				
 			case menu:
 				for (int i = 0; i < NumButton; i++)
 					if (button [i] -> drawThis){
 						button [i] -> checkCursor (mousePosWin);
-						if (button [i] -> buttClick && button [i] -> name == "Mode")
+						if (button [i] -> buttClick && button [i] -> name == "Mode"){
 							state = mode; 
+							for (int i = 0; i < NumButton; i++)
+								if (button [i] -> state == mode)
+									button [i] -> drawThis = true;
+								else
+									button [i] -> drawThis = false;
+						}
+						if (button [i] -> buttClick && button [i] -> name == "Mode"){
+							state = mode; 
+							for (int i = 0; i < NumButton; i++)
+								if (button [i] -> state == mode)
+									button [i] -> drawThis = true;
+								else
+									button [i] -> drawThis = false;
+						}
+						if (button [i] -> buttClick && button [i] -> name == "Go!"){
+							if (adOrPlMode == "AdminMode"){
+								state = admin; 
+								for (int i = 0; i < NumButton; i++)
+									if (button [i] -> state == admin)
+										button [i] -> drawThis = true;
+									else
+										button [i] -> drawThis = false;
+							}
+							if (adOrPlMode == "PlayerMode"){
+								state = player;
+								for (int i = 0; i < NumButton; i++)
+									if (button [i] -> state == player)
+										button [i] -> drawThis = true;
+									else
+										button [i] -> drawThis = false;
+							}
+						}
 						if (button [i] -> buttClick && button [i] -> name == "Exit")
 							state = exitt;
 					}
 				break;
 			case mode:
-				for (int i = 0; i < NumButton; i++){
-					if (button [i] -> state == mode)
-						button [i] -> drawThis = true;
-					else
-						button [i] -> drawThis = false;
-				}
 				for (int i = 0; i < NumButton; i++)
 					if (button [i] -> drawThis){
 						button [i] -> checkCursor (mousePosWin);
-						if (button [i] -> buttClick && button [i] -> name == "Admin")
+						/*if (button [i] -> buttClick && button [i] -> name == "Admin"){
 							state = admin;
-						if (button [i] -> buttClick && button [i] -> name == "Player")
+							for (int i = 0; i < NumButton; i++)
+								if (button [i] -> state == admin)
+									button [i] -> drawThis = true;
+								else
+									button [i] -> drawThis = false;
+						}
+						if (button [i] -> buttClick && button [i] -> name == "Player"){
 							state = player;
-						if (button [i] -> buttClick && button [i] -> name == "Back")
-							state = backToMenu;
+							for (int i = 0; i < NumButton; i++)
+								if (button [i] -> state == player)
+									button [i] -> drawThis = true;
+								else
+									button [i] -> drawThis = false;
+						}*/
+						if (button [i] -> buttClick && button [i] -> name == "BackToMenu"){
+							for (int i = 0; i < NumButton; i++){
+								if (button [i] -> state == mode)
+									button [i] -> drawThis = false;
+								if (button [i] -> state == menu)
+									button [i] ->drawThis = true;
+							}
+							state = menu;
+						}
 					}
-				break;
-			case backToMenu:
-				for (int i = 0; i < NumButton; i++){
-					if (button [i] -> state == mode)
-						button [i] -> drawThis = false;
-					else
-						button [i] -> drawThis = true;
-				}
-				state = menu;
 				break;
 			case exitt:
 				window.close ();
@@ -295,13 +357,12 @@ int main (){
 		if (state == admin || state == player){
 			window.draw (lines); //рисую массив линий
 			for (int j = 0; j < NumWall; j++)
-				if (Arr [j] -> drawThis)
-					window.draw (Arr [j] -> sprite);
+				if (ArrWall [j] -> drawThis)
+					window.draw (ArrWall [j] -> sprite);
 		}
-		if (state == menu || state == mode || state == backToMenu || state == exitt)
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> drawThis)
-					button [i] -> draw (window);
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis)
+				button [i] -> draw (window);
 		window.display ();
 	}
 	return 0;
