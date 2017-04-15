@@ -22,6 +22,7 @@ struct Coordinate{ //координаты
 enum StateList {menu, mode, admin, player, backToMenu, setting, exitt}; //основное перечесление которое отвечает за состо€ние игры
 String AdOrPlMode = ""; //строка хран€ща€ им€ текущего мода игры (игрок или админ)
 Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
+bool lvlComplete = false;
 
 class Wall{ //класс стены
 public:
@@ -94,9 +95,11 @@ public:
 		if (Name == "BackToMenuAd" || Name == "OpenAd" || Name == "SaveAd"){ //треть€ группа-когда мы редактируем карты в режиме админ
 			drawThis = false; state = admin;
 		}
-		if (Name == "BackToMenuPl" || Name == "OpenPl"){ //четверета€ группа-когда мы играем 
+		if (Name == "BackToMenuPl" || Name == "HelpPl"){ //четверета€ группа-когда мы играем 
 			drawThis = false; state = player;
 		}
+		if (Name == "lvl1Complete")
+			drawThis = false;
 	}
 
 	void draw (RenderWindow &window){ //функци€ рисовани€ кнопки и текста которые будет поверх кнопки
@@ -133,9 +136,82 @@ public:
 	}
 };
 
+class Player{
+public:
+	int x, y; //координаты
+	int tmpX, tmpY;
+	int w, h; //ширина, высота
+	float speed;
+	Texture texture; //текстура
+	Sprite sprite; //спрайт
+	String name; //им€
+	bool playerMove;
+public:
+	Player (Image &image, int X, int Y, int W, int H){ //конструктор без имени
+		x = X; y = Y; w = W; h = H; name = "Player"; tmpX = x; tmpY = y;
+		texture.loadFromImage (image); speed = 0.012; playerMove = false;
+		sprite.setTexture (texture);
+		sprite.setTextureRect (IntRect (0, 0, w, h));
+		sprite.setPosition (x, y);
+	}
+
+	void update (bool **CoordWall){
+		if (Keyboard::isKeyPressed (Keyboard::W) && !playerMove){
+			if (y != INDENTATION){
+				tmpY = y - EDGE; playerMove = true;
+			}
+		}
+		else
+			if (Keyboard::isKeyPressed (Keyboard::S) && !playerMove){
+				if (y != H_WIN - INDENTATION - EDGE){
+					tmpY = y + EDGE; playerMove = true;
+				}
+			}
+			else
+				if (Keyboard::isKeyPressed (Keyboard::A) && !playerMove){
+					if (x != INDENTATION){
+						tmpX = x - EDGE; playerMove = true;
+					}
+				}
+				else
+					if (Keyboard::isKeyPressed (Keyboard::D) && !playerMove){
+						if (x != W_WIN - INDENTATION - EDGE){
+							tmpX = x + EDGE; playerMove = true;
+						}
+					}
+		
+		if (!CoordWall [tmpX / EDGE - INDENTATION / EDGE][tmpY / EDGE - INDENTATION / EDGE] && playerMove){
+			if (x < tmpX)
+				x += 1;
+			else 
+				x -= 1;
+			if (y < tmpY)
+				y += 1;
+			else 
+				y -= 1;
+			if (x == tmpX && y == tmpY)
+				playerMove = false;
+		}
+		else{
+			tmpX = x; tmpY = y;
+		}
+		if (x == Finish.x && y == Finish.y)
+			lvlComplete = true;
+		sprite.setPosition (x, y);
+	}
+
+	void changeCoord (int x2, int y2){
+		x = x2; y = y2; sprite.setPosition (x, y);
+	}
+
+	FloatRect getRect (){ //функци€ возвращающа€ пр€моугольник, нужно дл€ проверки пересечени€ спрайтов
+		return FloatRect(x, y, w, h); //возвращает пр€моугольник
+	}
+};
+
 void createWalls (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **ArrWall, int &NumWall, Image &wallImage){
 	int tmpX, tmpY, tmpX2, tmpY2;
-	int tmp;
+	int tmp; bool wallDeleted = false;
 	if (Mouse::isButtonPressed (Mouse::Left)){
 		if (mousePosWin.x >= INDENTATION && mousePosWin.x <= W_WIN -INDENTATION && mousePosWin.y >= INDENTATION && mousePosWin.y <= H_WIN - INDENTATION){
 			if (timer > 200){
@@ -148,6 +224,8 @@ void createWalls (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY){
 							ArrWall [i] -> drawThis = false;
 							CoordWall [tmpX2 - INDENTATION / EDGE][tmpY2 - INDENTATION / EDGE] = false;
+							wallDeleted = true;
+							break;
 						}
 				}
 				if(Keyboard::isKeyPressed (Keyboard::LControl)){
@@ -170,7 +248,7 @@ void createWalls (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **
 							Finish.x = tmpX; Finish.y = tmpY;
 					}
 					else{
-						if (!CoordWall [tmpX2 - INDENTATION / EDGE][tmpY2 - INDENTATION / EDGE]){
+						if (!CoordWall [tmpX2 - INDENTATION / EDGE][tmpY2 - INDENTATION / EDGE] && !wallDeleted){
 							bool tmpB = true;
 							for (int i = 0; i < NumWall; i++){
 								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY){
@@ -262,6 +340,8 @@ void openSpecificFile (Wall **ArrWall, int &NumWall, Image &wallImage, bool **Co
 		if (strcmp (tmpC, "Start") == 0){
 			Start.x = tmpX; Start.y = tmpY;
 			ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE);
+			ArrWall [i] -> drawThis = false;
+			CoordWall [tmpX / EDGE - INDENTATION / EDGE][tmpY / EDGE - INDENTATION / EDGE] = false;
 		}
 		if (strcmp (tmpC, "Finish") == 0){
 			Finish.x = tmpX; Finish.y = tmpY;
@@ -294,6 +374,9 @@ int main (){
 	Start.x = INDENTATION; Start.y = H_WIN - INDENTATION;
 	Finish.x = W_WIN - INDENTATION; Finish.y = INDENTATION;
 	StateList state = menu;
+	Image playerImage;
+	playerImage.loadFromFile ("player.png");
+	Player pl (playerImage, Start.x, Start.y, EDGE, EDGE);
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 	Image wallImage; //загрузка спрайта стен
@@ -332,7 +415,9 @@ int main (){
 	button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, 120 * 2 + 85 * 3, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
 
 	button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, 153, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
-	button [NumButton++] = new Button (buttonImage, "Open", "OpenPl", font, 153 * 2 + 120, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+	button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, 153 * 2 + 120, H_WIN - (30 + (INDENTATION - 30) / 2), 120, 30);
+
+	button [NumButton++] = new Button (buttonImage, "End lvl", "lvl1Complete", font, (W_WIN - 120) / 2, (INDENTATION - 30) / 2, 120, 30);
 	
 	cout << NumButton << endl;
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -377,6 +462,7 @@ int main (){
 				break;
 				
 			case player:
+				pl.update (CoordWall);
 				for (int i = 0; i < NumButton; i++)
 					if (button [i] -> drawThis){
 						button [i] -> checkCursor (mousePosWin);
@@ -391,9 +477,12 @@ int main (){
 									button [i] -> drawThis = false;
 						}
 					}
+					if (lvlComplete)////////////////////////////////////////////////////////////////////
+						button [NumButton - 1] -> drawThis = true;//////////////////////////////////////
 				break;
 				
 			case menu:
+				button [NumButton - 1] -> drawThis = false; /////////////////////////////////////////////
 				for (int i = 0; i < NumButton; i++)
 					if (button [i] -> drawThis){
 						button [i] -> checkCursor (mousePosWin);
@@ -427,6 +516,7 @@ int main (){
 								char nameFile [30];
 								strcpy_s (nameFile, "lvl1.txt");
 								openSpecificFile (ArrWall, NumWall, wallImage, CoordWall, nameFile);
+								pl.changeCoord (Start.x, Start.y);
 								for (int i = 0; i < NumButton; i++)
 									if (button [i] -> state == player)
 										button [i] -> drawThis = true;
@@ -467,6 +557,8 @@ int main (){
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis)
 				button [i] -> draw (window);
+		if (state == player)
+			window.draw (pl.sprite);
 		window.display ();
 	}
 	return 0;

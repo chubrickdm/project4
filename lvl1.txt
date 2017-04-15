@@ -1,7 +1,8 @@
-6
-620 420 Wall
-620 60 Wall
-60 60 Wall
-60 420 Wall
-440 220 Finish
-260 280 Start
+7
+120 420 Wall
+120 380 Wall
+100 380 Wall
+80 380 Wall
+60 380 Wall
+320 400 Finish
+120 400 Start
