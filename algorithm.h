@@ -31,11 +31,10 @@ struct Cell{
 	}
 };
 
-//struct QueueFull{ };
-//struct QueueEmpty{ };
+Cell st;
 
 int NumAnsw = 0;
-Cell Arr [100];
+Cell Arr [1000];
 
 class Queue{
 private:
@@ -122,26 +121,39 @@ void input (char **&labyrinth, int **&dir, Cell &start, Cell &finish, Cell &size
 	dir [start.row][start.col] = -3;
 }
 
-int basicMethod (char **&labyrinth, int **&dir, const Cell &start, const Cell &finish, const Cell &size){
+void outputSearch (bool **labyrinth, const Cell &start, const Cell &finish, const Cell &size){
+	NumAnsw = 0;
+	int **dir;
+	dir = new int* [size.row];
+	for (int i = 0; i < size.row; i++){
+		dir [i] = new int [size.col]; 
+		for (int j = 0; j < size.col; j++)
+			dir [i][j] = 0;
+	}
+	dir [finish.row][finish.col] = 0;
+	//dir [start.row][start.col] = -3;
+	dir [st.row][st.col] = -3;
+	///////////////////////////////////////////////////
 	int answer = size.row * size.col; 
 	Queue q (answer); answer = 0;
 	Cell tmpc; //tmpc-элемент извлеченный из очереди; tmpc2-элемент положенный в очередь
-	q.addLast (start);
+	//q.addLast (start);
+	q.addLast (st);
 	tmpc = q.delFirst ();
 	while (tmpc != finish){
-	    if ((tmpc.col != 0) && (dir [tmpc.row][tmpc.col - 1] == 0) && (labyrinth [tmpc.row][tmpc.col - 1] == '.')){
+	    if ((tmpc.col != 0) && (dir [tmpc.row][tmpc.col - 1] == 0) && (!labyrinth [tmpc.row][tmpc.col - 1])){
 			dir [tmpc.row][--tmpc.col] = -1;
 			q.addLast(tmpc); tmpc.col++;
     	}
-    	if ((tmpc.col != size.col - 1) && (dir [tmpc.row][tmpc.col + 1] == 0) && (labyrinth [tmpc.row][tmpc.col + 1] == '.')){
+    	if ((tmpc.col != size.col - 1) && (dir [tmpc.row][tmpc.col + 1] == 0) && (!labyrinth [tmpc.row][tmpc.col + 1])){
 			dir [tmpc.row][++tmpc.col] = 1;
 		    q.addLast(tmpc); tmpc.col--;
     	}
-    	if ((tmpc.row != 0) && (dir[tmpc.row - 1][tmpc.col] == 0) && (labyrinth [tmpc.row - 1][tmpc.col] == '.')){
+    	if ((tmpc.row != 0) && (dir[tmpc.row - 1][tmpc.col] == 0) && (!labyrinth [tmpc.row - 1][tmpc.col])){
 			dir [--tmpc.row][tmpc.col] = -2;
 			q.addLast(tmpc); tmpc.row++;
     	}
-    	if ((tmpc.row != size.row - 1) && (dir [tmpc.row + 1][tmpc.col] == 0) && (labyrinth [tmpc.row + 1][tmpc.col] == '.')){
+    	if ((tmpc.row != size.row - 1) && (dir [tmpc.row + 1][tmpc.col] == 0) && (!labyrinth [tmpc.row + 1][tmpc.col])){
 			dir [++tmpc.row][tmpc.col] = 2;
 			q.addLast(tmpc); tmpc.row--;
     	}
@@ -153,7 +165,7 @@ int basicMethod (char **&labyrinth, int **&dir, const Cell &start, const Cell &f
     
 	if (answer != -1){
     	tmpc = finish;
-	    while (tmpc != start){
+	    while (tmpc != st){
 			if (dir [tmpc.row][tmpc.col] == -1){ Arr [NumAnsw++] = tmpc; tmpc.col++; }
 	    	else
 				if (dir [tmpc.row][tmpc.col] == 1){ Arr [NumAnsw++] = tmpc; tmpc.col--; }
@@ -165,21 +177,7 @@ int basicMethod (char **&labyrinth, int **&dir, const Cell &start, const Cell &f
 	    	answer++;
 	    }
 	}
-	Arr [NumAnsw++] = start;
-
-	return answer;
-}
-
-int main (){
-	char **labyrinth;
-	int **dir, answer;
-	Cell start, finish, size;
-	input (labyrinth, dir, start, finish, size);
-	answer = basicMethod (labyrinth, dir, start, finish, size);
-	cout << answer;
-	cout << endl;
-	for (int i = 0; i < NumAnsw; i++)
-		cout << Arr [i];
-	system ("pause");
-	return 0;
+	Arr [NumAnsw++] = st;
+	//for (int i = 0; i < NumAnsw; i++)
+	//	cout << Arr [i];
 }

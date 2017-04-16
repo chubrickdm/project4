@@ -3,7 +3,7 @@
 #include <iostream> //для сяутов и синов
 #include <fstream> //для работы с файлами
 #include "forMcText.h" //взял библиотеку по ссылке kychka-pc.ru/wiki/svobodnaya-baza-znanij-sfml/test/sistemnyj-modul-system-module/potoki-threads/sfsound-sfmusic
-//#include "algorithm.h" //написанная мной функция для нахождения минимального пути в лабиринте (поиск в ширину) или волновой поиск
+#include "algorithm.h" //написанная мной функция для нахождения минимального пути в лабиринте (поиск в ширину) или волновой поиск
 using namespace std;
 using namespace sf;
 
@@ -20,7 +20,7 @@ struct Coordinate{ //координаты
 };
 
 enum StateList {menu, mode, admin, player, backToMenu, setting, exitt}; //основное перечесление которое отвечает за состояние игры
-String AdOrPlMode = ""; //строка хранящая имя текущего мода игры (игрок или админ)
+String AdOrPlMode = "PlayerMode"; //строка хранящая имя текущего мода игры (игрок или админ)
 Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 bool lvlComplete = false;
 
@@ -45,6 +45,8 @@ public:
 			sprite.setTextureRect (IntRect (0, h, w, h));
 		if (name == "Start") //откуда игрок будет начинать, сделано для удобства создания карт, что б админ видел где игрок начинает и где заканчиват
 			sprite.setTextureRect (IntRect (0, h * 2, w, h));
+		if (name == "HelpWall")
+			sprite.setTextureRect (IntRect (0, h * 3, w, h));
 	}
 
 	Wall (Image &image, int X, int Y, int W, int H){ //конструктор без имени
@@ -197,6 +199,8 @@ public:
 		}
 		if (x == Finish.x && y == Finish.y)
 			lvlComplete = true;
+		else
+			lvlComplete = false;
 		sprite.setPosition (x, y);
 	}
 
@@ -265,7 +269,7 @@ void createWalls (Vector2i &mousePosWin, float &timer, bool **CoordWall, Wall **
 		}
 	}
 }
-///////////////////////////////////когда открываем файл надо заполнить CoordWall
+
 void saveFile (Wall **ArrWall, int &NumWall){
 	cout << "Enter name of file which you want save:" << endl;
 	char tmpC [50];
@@ -377,6 +381,7 @@ int main (){
 	Image playerImage;
 	playerImage.loadFromFile ("player.png");
 	Player pl (playerImage, Start.x, Start.y, EDGE, EDGE);
+	Wall *helpWall [500];
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 	Image wallImage; //загрузка спрайта стен
@@ -466,8 +471,6 @@ int main (){
 				for (int i = 0; i < NumButton; i++)
 					if (button [i] -> drawThis){
 						button [i] -> checkCursor (mousePosWin);
-						if (button [i] -> buttClick && button [i] -> name == "OpenPl")
-							openFile (ArrWall, NumWall, wallImage, CoordWall);
 						if (button [i] -> buttClick && button [i] -> name == "BackToMenuPl"){
 							state = menu;
 							for (int i = 0; i < NumButton; i++)
@@ -476,7 +479,22 @@ int main (){
 								else
 									button [i] -> drawThis = false;
 						}
+						if (button [i] -> buttClick && button [i] -> name == "HelpPl"){
+							Cell fn, sizeMap;
+							sizeMap.col = (H_WIN - 2 * INDENTATION) / EDGE;
+							sizeMap.row = (W_WIN - 2 * INDENTATION) / EDGE;
+							st.col = pl.y / EDGE - INDENTATION / EDGE;
+							st.row = pl.x / EDGE - INDENTATION / EDGE;
+							fn.col = Finish.y / EDGE - INDENTATION / EDGE;
+							fn.row = Finish.x / EDGE - INDENTATION / EDGE;
+							//cout << "size: " << sizeMap.col << " " << sizeMap.row << endl;
+							//cout << "player: " << st.col << " " << st.row << endl;
+							//cout << "end: " << fn.col << " " << fn.row << endl;
+							outputSearch (CoordWall, st, fn, sizeMap);
+						}
 					}
+					for (int i = 0; i < NumAnsw; i++)
+						helpWall [i] = new Wall (wallImage, "HelpWall", Arr [i].row * EDGE + INDENTATION, Arr [i].col * EDGE + INDENTATION, EDGE, EDGE);
 					if (lvlComplete)////////////////////////////////////////////////////////////////////
 						button [NumButton - 1] -> drawThis = true;//////////////////////////////////////
 				break;
@@ -559,6 +577,9 @@ int main (){
 				button [i] -> draw (window);
 		if (state == player)
 			window.draw (pl.sprite);
+		if (state == player)
+			for (int i = 0; i < NumAnsw; i++)
+				window.draw (helpWall [i] -> sprite);
 		window.display ();
 	}
 	return 0;
