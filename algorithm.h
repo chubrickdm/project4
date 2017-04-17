@@ -1,14 +1,14 @@
-//»спользу€ циклическую очередь (FIFO) написать алгоритм выхода из лабиринта
+//»спользу€ циклическую очередь алгоритм выхода из лабиринта
 #include <iostream>
 #include <fstream>
 using namespace std;
 
-struct Cell{
-	int row; //строка
-	int col; //столбец
+struct Coordinate{
+	int y; //строка row
+	int x; //столбец col
 
-	friend ostream& operator<<(ostream &os, const Cell &tmp){
-		os << tmp.row << "  " << tmp.col << endl;
+	friend ostream& operator<<(ostream &os, const Coordinate &tmp){
+		os << tmp.x << "  " << tmp.y << endl;
 		return os;
 	}
 	
@@ -17,28 +17,26 @@ struct Cell{
 		return is;
 	}*/
 
-	Cell& operator= (const Cell &tmp){
-		row = tmp.row;
-		col = tmp.col;
+	Coordinate& operator= (const Coordinate &tmp){
+		x = tmp.x;
+		y = tmp.y;
 		return *this;
 	}
 
-	bool operator!=(const Cell &tmp){
-		if ((row == tmp.row) && (col == tmp.col))
+	bool operator!=(const Coordinate &tmp){
+		if ((y == tmp.y) && (x == tmp.x))
 			return false;
 		else
 			return true;
 	}
 };
 
-Cell st;
-
 int NumAnsw = 0;
-Cell Arr [1000];
+Coordinate Arr [1000];
 
 class Queue{
 private:
-	Cell *C; 
+	Coordinate *C; 
 	int size;
 	int first, last; //индекс реального первого и последнего элемента 
 	int n; //реальное количество элементов в очереди
@@ -46,20 +44,20 @@ public:
 	Queue (){
 		first = -1; last = -1; //очередь пуста€
 		n = 0; size = 100;
-		C = new Cell [size];
+		C = new Coordinate [size];
 	}
 
 	Queue (int tmpSize){
 		first = -1; last = -1;
 		n = 0; size = tmpSize;
-		C = new Cell [size];
+		C = new Coordinate [size];
 	}
 
 	Queue (const Queue &tmp){
 		if (C != NULL) delete [] C;
 		first = tmp.first; last = tmp.last;
 		n = tmp.n; size = tmp.size;
-		C = new Cell [size];
+		C = new Coordinate [size];
 		for (int i = 0; i < size; i++)
 			C[i] = tmp.C[i];
 	}
@@ -70,7 +68,7 @@ public:
 
 //--------------------------------------------------------------
 
-	void addLast (const Cell &tmp){
+	void addLast (const Coordinate &tmp){
 		if (n >= size) return;
 		if (n == 0){
 			first = 0; last = 0;
@@ -82,11 +80,11 @@ public:
 		}
 	}
 
-	Cell delFirst (){
-		Cell tmp;
+	Coordinate delFirst (){
+		Coordinate tmp;
 		if (n == 0){
-			tmp.col = -1; 
-			tmp.row = -1;
+			tmp.x = -1; 
+			tmp.y = -1;
 			return tmp;
 		}
 		if (n == 1){
@@ -101,83 +99,61 @@ public:
 	}
 };
 
-void input (char **&labyrinth, int **&dir, Cell &start, Cell &finish, Cell &size){
-	int n, m;
-	ifstream in ("input.txt");
-	in >> n; dir = new int* [n]; labyrinth = new char* [n];
-	in >> m; size.row = n; size.col = m;
-	for (int i = 0; i < n; i++){
-		dir [i] = new int [m]; labyrinth [i] = new char [m];
-	}
-	in >> start.row >> start.col >> finish.row >> finish.col;
-	start.row--; start.col--; finish.row--; finish.col--;
-	for (int i = 0; i < n; i++){
-		in >> labyrinth [i];
-	    //cout << labyrinth[i] << endl;
-		for (int j = 0; j < m; j++)
-			dir [i][j] = 0;
-	}
-	dir [finish.row][finish.col] = 0;
-	dir [start.row][start.col] = -3;
-}
-
-void outputSearch (bool **labyrinth, const Cell &start, const Cell &finish, const Cell &size){
+void outputSearch (bool **labyrinth, const Coordinate &start, const Coordinate &finish, const Coordinate &size){
 	NumAnsw = 0;
 	int **dir;
-	dir = new int* [size.row];
-	for (int i = 0; i < size.row; i++){
-		dir [i] = new int [size.col]; 
-		for (int j = 0; j < size.col; j++)
+	dir = new int* [size.y];
+	for (int i = 0; i < size.y; i++){
+		dir [i] = new int [size.x]; 
+		for (int j = 0; j < size.x; j++)
 			dir [i][j] = 0;
 	}
-	dir [finish.row][finish.col] = 0;
-	//dir [start.row][start.col] = -3;
-	dir [st.row][st.col] = -3;
+	dir [finish.y][finish.x] = 0;
+	dir [start.y][start.x] = -3;
 	///////////////////////////////////////////////////
-	int answer = size.row * size.col; 
+	int answer = size.y * size.x; 
 	Queue q (answer); answer = 0;
-	Cell tmpc; //tmpc-элемент извлеченный из очереди; tmpc2-элемент положенный в очередь
-	//q.addLast (start);
-	q.addLast (st);
+	Coordinate tmpc; //tmpc-элемент извлеченный из очереди; tmpc2-элемент положенный в очередь
+	q.addLast (start);
 	tmpc = q.delFirst ();
 	while (tmpc != finish){
-	    if ((tmpc.col != 0) && (dir [tmpc.row][tmpc.col - 1] == 0) && (!labyrinth [tmpc.row][tmpc.col - 1])){
-			dir [tmpc.row][--tmpc.col] = -1;
-			q.addLast(tmpc); tmpc.col++;
+	    if ((tmpc.x != 0) && (dir [tmpc.y][tmpc.x - 1] == 0) && (!labyrinth [tmpc.y][tmpc.x - 1])){
+			dir [tmpc.y][--tmpc.x] = -1;
+			q.addLast(tmpc); tmpc.x++;
     	}
-    	if ((tmpc.col != size.col - 1) && (dir [tmpc.row][tmpc.col + 1] == 0) && (!labyrinth [tmpc.row][tmpc.col + 1])){
-			dir [tmpc.row][++tmpc.col] = 1;
-		    q.addLast(tmpc); tmpc.col--;
+    	if ((tmpc.x != size.x - 1) && (dir [tmpc.y][tmpc.x + 1] == 0) && (!labyrinth [tmpc.y][tmpc.x + 1])){
+			dir [tmpc.y][++tmpc.x] = 1;
+		    q.addLast(tmpc); tmpc.x--;
     	}
-    	if ((tmpc.row != 0) && (dir[tmpc.row - 1][tmpc.col] == 0) && (!labyrinth [tmpc.row - 1][tmpc.col])){
-			dir [--tmpc.row][tmpc.col] = -2;
-			q.addLast(tmpc); tmpc.row++;
+    	if ((tmpc.y != 0) && (dir[tmpc.y - 1][tmpc.x] == 0) && (!labyrinth [tmpc.y - 1][tmpc.x])){
+			dir [--tmpc.y][tmpc.x] = -2;
+			q.addLast(tmpc); tmpc.y++;
     	}
-    	if ((tmpc.row != size.row - 1) && (dir [tmpc.row + 1][tmpc.col] == 0) && (!labyrinth [tmpc.row + 1][tmpc.col])){
-			dir [++tmpc.row][tmpc.col] = 2;
-			q.addLast(tmpc); tmpc.row--;
+    	if ((tmpc.y != size.y - 1) && (dir [tmpc.y + 1][tmpc.x] == 0) && (!labyrinth [tmpc.y + 1][tmpc.x])){
+			dir [++tmpc.y][tmpc.x] = 2;
+			q.addLast(tmpc); tmpc.y--;
     	}
 		tmpc = q.delFirst (); 
-		if ((tmpc.row == -1) && (tmpc.col == -1)){
+		if ((tmpc.y == -1) && (tmpc.x == -1)){
 			answer = -1; tmpc = finish;
 		}
 	}
     
 	if (answer != -1){
     	tmpc = finish;
-	    while (tmpc != st){
-			if (dir [tmpc.row][tmpc.col] == -1){ Arr [NumAnsw++] = tmpc; tmpc.col++; }
+	    while (tmpc != start){
+			if (dir [tmpc.y][tmpc.x] == -1){ Arr [NumAnsw++] = tmpc; tmpc.x++; }
 	    	else
-				if (dir [tmpc.row][tmpc.col] == 1){ Arr [NumAnsw++] = tmpc; tmpc.col--; }
+				if (dir [tmpc.y][tmpc.x] == 1){ Arr [NumAnsw++] = tmpc; tmpc.x--; }
 	    		else
-					if (dir [tmpc.row][tmpc.col] == -2){ Arr [NumAnsw++] = tmpc; tmpc.row++; }
+					if (dir [tmpc.y][tmpc.x] == -2){ Arr [NumAnsw++] = tmpc; tmpc.y++; }
 		    		else
-						if (dir [tmpc.row][tmpc.col] == 2){ Arr [NumAnsw++] = tmpc; tmpc.row--; }
+						if (dir [tmpc.y][tmpc.x] == 2){ Arr [NumAnsw++] = tmpc; tmpc.y--; }
 			//cout << tmpc << endl;
 	    	answer++;
 	    }
 	}
-	Arr [NumAnsw++] = st;
+	Arr [NumAnsw++] = start;
 	//for (int i = 0; i < NumAnsw; i++)
 	//	cout << Arr [i];
 }
