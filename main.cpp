@@ -48,7 +48,7 @@ public:
 		texture.loadFromImage (image); 
 		sprite.setTexture (texture);
 		sprite.setTextureRect (IntRect (0, 0, w, h));
-		sprite.setPosition (x, y);
+		sprite.setPosition ((float) x, (float) y);
 	}
 };
 
@@ -84,9 +84,9 @@ public:
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
 		text -> changeSize (30); //размер текста
 		text -> add (tmpT);
-		float tmp = tmpT.getSize (); //получаем длинну текста в символах
+		float tmp = (float) tmpT.getSize (); //получаем длинну текста в символах
 		tmp = x + 50 - (tmp / 2) * 12; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
-		text -> setPosition (tmp, y - 5); //распологаем текст по кнопке
+		text -> setPosition ((float) tmp, (float) y - 5); //распологаем текст по кнопке
 
 		if (Name == "Go!" || Name == "Mode" || Name == "Setting" || Name == "Exit"){ //первая группа-меню, отображается при запуске игры
 			drawThis = true; state = menu;
@@ -189,11 +189,11 @@ public:
 			lvlComplete = true;
 		else
 			lvlComplete = false; 
-		sprite.setPosition (x, y); //устанавливаем позицию игрока
+		sprite.setPosition ((float) x, (float) y); //устанавливаем позицию игрока
 	}
 
 	void changeCoord (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
-		x = x2; y = y2; sprite.setPosition (x, y);
+		x = x2; y = y2; sprite.setPosition ((float) x, (float) y);
 		tmpX = x; tmpY = y;
 	}
 };
@@ -204,12 +204,17 @@ public:
 public:
 	PlayerBackground (Image &image, int X, int Y, int W, int H) : Body (image, "PlayerBackground", X, Y, W, H){
 		drawThis = false;
-		sprite.setOrigin (w / 2, h / 2);
+		sprite.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
 	void changeCoord (int x2, int y2){
+		x = x2 + EDGE / 2; y = y2 + EDGE / 2;
+		sprite.setPosition ((float) x, (float) y);
+	}
+
+	void changeCoord (int x2, int y2, bool fictiv){
 		x = x2; y = y2;
-		sprite.setPosition (x, y);
+		sprite.setPosition ((float) x, (float) y);
 	}
 };
 
@@ -231,6 +236,7 @@ public:
 	static Vector2f posMouse; //координаты мыши относ. карты
 	static Player *pl;
 	static PlayerBackground *plBackground;
+	static PlayerBackground *plBackground2;
 
 	static RenderWindow *window;
 	
@@ -269,12 +275,12 @@ public:
 		lines = VertexArray (Lines, (NUM_H_LINE + NUM_V_LINE + 2) * 2); //массив линий
 		int i = 0; //i-счетчик линий занесенных в массив
 		for (; i < NUM_V_LINE * 2; i += 2){ //создание вертикальных линий
-			lines [i].position = Vector2f (GLOB_IND_W + i * EDGE / 2, GLOB_IND_H);
-			lines [i + 1].position = Vector2f (GLOB_IND_W + i * EDGE / 2, GLOB_IND_H + NUM_CELL_Y * EDGE);
+			lines [i].position = Vector2f ((float) GLOB_IND_W + i * EDGE / 2, (float) GLOB_IND_H);
+			lines [i + 1].position = Vector2f ((float) GLOB_IND_W + i * EDGE / 2, (float) GLOB_IND_H + NUM_CELL_Y * EDGE);
 		}
 		for (int k = 0; i < (NUM_H_LINE + NUM_V_LINE) * 2; i += 2, k += 2){ //создание горизонтальных линий
-			lines [i].position = Vector2f (GLOB_IND_W, EDGE * k / 2 + GLOB_IND_H);
-			lines [i + 1].position = Vector2f (GLOB_IND_W + NUM_CELL_X * EDGE, EDGE * k / 2 + GLOB_IND_H);
+			lines [i].position = Vector2f ((float) GLOB_IND_W, (float) EDGE * k / 2 + GLOB_IND_H);
+			lines [i + 1].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE, (float) EDGE * k / 2 + GLOB_IND_H);
 		}
 	}
 
@@ -292,7 +298,12 @@ public:
 
 		Image backgroundImage;
 		backgroundImage.loadFromFile ("background.png");
-		plBackground = new PlayerBackground (backgroundImage, 0, 0, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE);
+		plBackground = new PlayerBackground (backgroundImage, 0, 0, 2560, 1280);
+
+		Image backgroundImage2;
+		backgroundImage2.loadFromFile ("background2.png");
+		plBackground2 = new PlayerBackground (backgroundImage2, 0, 0, GLOBAL_W, GLOBAL_H);
+		plBackground2 -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2, 0);
 	}
 
 	void initializeWall (){
@@ -316,11 +327,17 @@ public:
 				if (ArrWall [j] -> drawThis)
 					window[0].draw (ArrWall [j] -> sprite);
 		}
+		if (plBackground -> drawThis)
+			window -> draw (plBackground -> sprite);
+		window -> draw (plBackground2 -> sprite);
+		if (state == admin || state == player){
+			for (int j = 0; j < NumWall; j++) //рисую стены
+				if (ArrWall [j] -> name == "Finish")
+					window[0].draw (ArrWall [j] -> sprite);
+		}
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
 			if (button [i] -> drawThis)
 				button [i] -> draw (window[0]);
-		//if (plBackground -> drawThis)
-		//	window -> draw (plBackground -> sprite);
 		if (state == player){
 			window[0].draw (pl[0].sprite); //рисую игрока
 			for (int i = 0; i < NumAnsw; i++) //рисую вспомогательные стены
@@ -339,8 +356,8 @@ public:
 		if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE)){
 			if (timer > 200){
 				timer = 0;	
-				tmpX = posMouse.x; tmp = tmpX % EDGE; tmpX -= tmp; 
-				tmpY = posMouse.y; tmp = tmpY % EDGE; tmpY -= tmp; 
+				tmpX = (int) posMouse.x; tmp = tmpX % EDGE; tmpX -= tmp; 
+				tmpY = (int) posMouse.y; tmp = tmpY % EDGE; tmpY -= tmp; 
 				tmpX2 = (tmpX - GLOB_IND_W) / EDGE; tmpY2 = (tmpY - GLOB_IND_H) / EDGE;
 				if (CoordWall [tmpX2][tmpY2]){ //проверяем на наличие стены, туда куда мы хотим поставить
 					for (int i = 0; i < NumWall; i++)
@@ -495,6 +512,7 @@ VertexArray System::lines;
 Image System::wallImage; //загрузка спрайта стен
 Player* System::pl;
 PlayerBackground* System::plBackground;
+PlayerBackground* System::plBackground2;
 float System::timer;
 float System::time;
 
@@ -546,7 +564,7 @@ public:
 						if (timer > 2000){ //20 000 = 5 секунд реального времени, 40 000=15, 80 000=30
 							timer = 0;
 							Coordinate fn, sizeMap, st;
-							sizeMap.x = NUM_CELL_Y; ///////////////////////////////////ДА, ЗДЕСЬ ВСЁ ПРАВИЛЬНО, ОСИ ПЕРЕОРИЕНТИРОВАННЫ!!!
+							sizeMap.x = NUM_CELL_Y; ///////////////////////////////////ДА, ЗДЕСЬ ВСЁ ПРАВИЛЬНО, ОСИ ПЕРЕОРИЕНТИРОВАННЫ КАК У ЕВРЕЯ!!!
 							sizeMap.y = NUM_CELL_X;
 							st.x = (pl [0].y - GLOB_IND_H) / EDGE;
 							st.y = (pl [0].x - GLOB_IND_W) / EDGE;
@@ -556,7 +574,7 @@ public:
 
 							cout << endl << NumAnsw << endl;
 							int tmp = NumAnsw;
-							//NumAnsw = NumAnsw / 5; 
+							NumAnsw = NumAnsw / 4; 
 							int j;
 							//cout << NumAnsw << endl;
 							for (int i = 0; i < NumAnsw; i++){
@@ -651,7 +669,7 @@ int main (){
 	Basic.initializeWall ();
 
 	while (Basic.window[0].isOpen ()){
-		Basic.time = Basic.clock.getElapsedTime ().asMicroseconds(); //время каждый раз обновляется
+		Basic.time = (float) Basic.clock.getElapsedTime ().asMicroseconds(); //время каждый раз обновляется
 		Basic.clock.restart ();
 		Basic.time = Basic.time / 800;
 		Basic.timer += Basic.time;

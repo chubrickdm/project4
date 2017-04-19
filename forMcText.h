@@ -44,8 +44,8 @@ void mcText::add(sf::String str, sf::Color color)
 	text.setString(t->str);
 
 	// Как всё гениально и просто, я аж сам офигел когда придумал
-	t->w = text.getLocalBounds().width;
-	t->h = text.getLocalBounds().height;
+	t->w = (int) text.getLocalBounds().width;
+	t->h = (int) text.getLocalBounds().height;
 	t->dx = dx;
 	dx += t->w;
 	t->dy = dy;
@@ -58,7 +58,7 @@ void mcText::add(sf::String str, sf::Color color)
 		t->dy = dy;
 	}
 
-	text.move(t->dx, t->dy);
+	text.move ((float) t->dx, (float) t->dy);
 
 	vecInfo.push_back(t);
 	vecText.push_back(text);
@@ -75,7 +75,7 @@ void mcText::add2(sf::String str)
 	//распределяем слова по строкам (учитывая ограничение)
 	vecStrings = scanString(limitW, vecWords, &text);
 	//добавляем строки в основной вектор строк
-	for(int i=0; i<vecStrings.size(); i++)
+	for(int i=0; i<(int)vecStrings.size(); i++)
 	{
 		add(vecStrings[i]);
 		enter();
@@ -106,7 +106,7 @@ void mcText::move(float dx, float dy)
 // переместить весь текст в координаты x:y
 void mcText::setPosition(float x, float y)
 {
-	for(int i=0; i<vecText.size(); i++)
+	for(int i=0; i<(int)vecText.size(); i++)
 		vecText[i].setPosition(x + vecInfo[i]->dx, y + vecInfo[i]->dy);
 }
 // отрисовать во входящем окне
@@ -121,7 +121,7 @@ std::vector<sf::String> mcText::scanWords(sf::String str)
 	std::vector<sf::String> vecStr;
 	sf::String buff;
 
-	for(int i=0; i<str.getSize(); i++)
+	for(int i=0; i<(int) str.getSize(); i++)
 		if(str[i] != ' ')
 			buff += str[i];
 		else
@@ -140,7 +140,7 @@ std::vector<sf::String> mcText::scanString(int w, std::vector<sf::String> vecWor
 	sf::String buff;
 	sf::String buff2;
 
-	for(int i=0; i<vecWords_.size(); i++)
+	for(int i=0; i<(int)vecWords_.size(); i++)
 	{
 		buff = buff2;
 		if(buff2 == "")
