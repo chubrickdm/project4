@@ -6,16 +6,20 @@ d:\димона\универ\прога\projects\game\myproject4\myproject4\forM
 d:\димона\универ\прога\projects\game\myproject4\myproject4\forMcText.h(109): warning C4018: <: несоответствие типов со знаком и без знака
 d:\димона\универ\прога\projects\game\myproject4\myproject4\forMcText.h(124): warning C4018: <: несоответствие типов со знаком и без знака
 d:\димона\универ\прога\projects\game\myproject4\myproject4\forMcText.h(143): warning C4018: <: несоответствие типов со знаком и без знака
-main.cpp(39): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(75): warning C4244: инициализация: преобразование "size_t" в "float", возможна потеря данных
-main.cpp(77): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(182): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(186): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(241): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(242): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(245): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(246): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-main.cpp(601): warning C4244: =: преобразование "sf::Int64" в "float", возможна потеря данных
+main.cpp(51): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(87): warning C4244: инициализация: преобразование "size_t" в "float", возможна потеря данных
+main.cpp(89): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(192): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(196): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(207): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(212): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(272): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(273): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(276): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(277): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+main.cpp(342): warning C4244: =: преобразование "float" в "int", возможна потеря данных
+main.cpp(343): warning C4244: =: преобразование "float" в "int", возможна потеря данных
+main.cpp(654): warning C4244: =: преобразование "sf::Int64" в "float", возможна потеря данных
   Создание кода
   Создание кода завершено
   myProject4.vcxproj -> D:\Димона\Универ\Прога\Projects\Game\myProject4\Release\myProject4.exe

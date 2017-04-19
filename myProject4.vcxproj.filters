@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Заголовочные файлы\Text">
+      <UniqueIdentifier>{5011cd41-eb3a-4140-bbf6-4edac30e3328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\GamePlay">
+      <UniqueIdentifier>{ce7d9fef-4001-42cb-8354-c8abd442eb61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -20,14 +26,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="algorithm.h">
-      <Filter>Файлы ресурсов</Filter>
+    <ClInclude Include="forMcText.h">
+      <Filter>Заголовочные файлы\Text</Filter>
     </ClInclude>
     <ClInclude Include="mcText.h">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Заголовочные файлы\Text</Filter>
     </ClInclude>
-    <ClInclude Include="forMcText.h">
-      <Filter>Файлы ресурсов</Filter>
+    <ClInclude Include="algorithm.h">
+      <Filter>Заголовочные файлы\GamePlay</Filter>
+    </ClInclude>
+    <ClInclude Include="view.h">
+      <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,8 +2,8 @@
 using namespace sf;
  
 View view;
-View setPlayerCoordinateForView(float x,float y) { 
+View setCoordinateForView (float x, float y) { 
 	float tempX = x, tempY = y;
-	view.setCenter(tempX, tempY); //следим за игроком
+	view.setCenter (tempX, tempY); //следим за игроком
 	return view;
 }

@@ -113,7 +113,7 @@ void outputSearch (bool **labyrinth, const Coordinate &start, const Coordinate &
 	///////////////////////////////////////////////////
 	int answer = size.y * size.x; 
 	Queue q (answer); answer = 0;
-	Coordinate tmpc; //tmpc-элемент извлеченный из очереди; tmpc2-элемент положенный в очередь
+	Coordinate tmpc; //tmpc-
 	q.addLast (start);
 	tmpc = q.delFirst ();
 	while (tmpc != finish){

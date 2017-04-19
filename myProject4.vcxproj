@@ -78,6 +78,7 @@
     <ClInclude Include="algorithm.h" />
     <ClInclude Include="forMcText.h" />
     <ClInclude Include="mcText.h" />
+    <ClInclude Include="view.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
