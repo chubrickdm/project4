@@ -6,6 +6,7 @@
 #include "algorithm.h" //написанная мной функция для нахождения минимального пути в лабиринте (поиск в ширину) или волновой поиск
 #include <Windows.h>
 #include "view.h"
+#include <string.h>
 using namespace std;
 using namespace sf;
 //GetSystemMetrics(0); //ширина экрана 
@@ -29,11 +30,14 @@ using namespace sf;
 
 
 
-enum StateList {menu, mode, admin, player, backToMenu, setting, exitt}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, backToMenu, setting, exitt, reqPass}; //основное перечесление которое отвечает за состояние игры
 String AdOrPlMode = "PlayerMode"; //строка хранящая имя текущего мода игры (игрок или админ)
 Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 bool lvlComplete = false; //показывает завершен ли первый уровень
 StateList state;
+int CurrentLVL = 1;
+bool PassEnter = false;
+char Pass [30] = "";
 
 class Body{
 public:
@@ -75,6 +79,7 @@ public:
 
 class Button : public Body{ //класс кнопок
 public:
+	int value;
 	bool drawThis, buttPressed, buttClick; //рисовать ли кнопку, нажата ли кнопка и кликнули ли по кнопке. Клик- это нажать и отпустить кнопку когда курсор мыши на кнопке
 	mcText *text; //текст который выводится на кнопке
 	StateList state; //каждая кнопка кроме имени имеет группу к которой она относится
@@ -92,7 +97,33 @@ public:
 			drawThis = true; state = menu;
 		}
 		if (Name == "PlayerMode" || Name == "AdminMode" || Name == "BackToMenu"){ //вторая группа-когда в меню нажали кнопку Mode
-			drawThis = false; state = mode;
+			drawThis = false; state = mode; 
+		}
+		if (name == "RequestPass"){
+			drawThis = false; state = reqPass; text -> setPosition ((float) tmp - 20, (float) y - 5);
+		}
+		if (name == "EnterPass"){
+			drawThis = false; state = reqPass; text -> setPosition ((float) x, (float) y - 5); //распологаем текст по кнопке
+			if (tmpT == "0")
+				value = 0;
+			if (tmpT == "1")
+				value = 1;
+			if (tmpT == "2")
+				value = 2;
+			if (tmpT == "3")
+				value = 3;
+			if (tmpT == "4")
+				value = 4;
+			if (tmpT == "5")
+				value = 5;
+			if (tmpT == "6")
+				value = 6;
+			if (tmpT == "7")
+				value = 7;
+			if (tmpT == "8")
+				value = 8;
+			if (tmpT == "9")
+				value = 9;
 		}
 		if (Name == "BackToMenuAd" || Name == "OpenAd" || Name == "SaveAd"){ //третья группа-когда мы редактируем карты в режиме админ
 			drawThis = false; state = admin;
@@ -105,7 +136,8 @@ public:
 	}
 
 	void draw (RenderWindow &window){ //функция рисования кнопки и текста который будет поверх кнопки
-		window.draw (sprite);
+		if (name != "RequestPass")
+			window.draw (sprite);
 		text -> draw (&window);
 	}
 
@@ -222,12 +254,12 @@ class System{
 public:
 	static Image wallImage; //загрузка спрайта стен
 	static int NumWall; //количество стен
-	static Wall *ArrWall [1000]; //массив стен
+	static Wall *ArrWall [10000]; //массив стен
 	static bool **CoordWall; //координаты стен
-	static Wall *helpWall [1000];
+	static Wall *helpWall [10000];
 
 	static int NumButton; //количество кнопок
-	static Button *button [30]; //массив кнопок
+	static Button *button [70]; //массив кнопок
 	static Font font; //шрифт
 
 	static VertexArray lines;
@@ -239,7 +271,7 @@ public:
 	static PlayerBackground *plBackground2;
 
 	static RenderWindow *window;
-	
+
 	static float timer;
 	static float time;
 
@@ -260,6 +292,7 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Admin", "AdminMode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 50, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenu", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Enter 4 numbers", "RequestPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
 
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuAd", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 3 * 120) / 4, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 3 * 120) / 2 + 120, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
@@ -268,7 +301,18 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 2 * 120) / 3, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + 2 * (W_WIN - 2 * 120) / 3 + 120, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 
-		button [NumButton++] = new Button (buttonImage, "End lvl", "lvl1Complete", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "0", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "1", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "2", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "3", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "4", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "5", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "6", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "7", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "8", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "9", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
+
+		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
 	}
 
 	void initializeLine (){
@@ -320,31 +364,35 @@ public:
 
 	void draw (){
 		window [0].setView (view); //обновляем камеру
-		window[0].clear (Color (40, 36, 62));
+		window [0].clear (Color (40, 36, 62));
 		if (state == admin || state == player){
 			window[0].draw (lines); //рисую массив линий
 			for (int j = 0; j < NumWall; j++) //рисую стены
 				if (ArrWall [j] -> drawThis)
-					window[0].draw (ArrWall [j] -> sprite);
+					window [0].draw (ArrWall [j] -> sprite);
 		}
-		if (plBackground -> drawThis)
+		if (plBackground -> drawThis) //фон
 			window -> draw (plBackground -> sprite);
-		window -> draw (plBackground2 -> sprite);
+		window -> draw (plBackground2 -> sprite); //фон
 		if (state == admin || state == player){
 			for (int j = 0; j < NumWall; j++) //рисую стены
-				if (ArrWall [j] -> name == "Finish")
-					window[0].draw (ArrWall [j] -> sprite);
+				if (ArrWall [j] -> name == "Finish" && ArrWall [j] -> drawThis)
+					window [0].draw (ArrWall [j] -> sprite);
 		}
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
 			if (button [i] -> drawThis)
 				button [i] -> draw (window[0]);
 		if (state == player){
-			window[0].draw (pl[0].sprite); //рисую игрока
+			window [0].draw (pl [0].sprite); //рисую игрока
 			for (int i = 0; i < NumAnsw; i++) //рисую вспомогательные стены
 				window[0].draw (helpWall [i] -> sprite);
 		}
+		if (state == reqPass)
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> name == "RequestPass" || button [i] -> name == "EnterPass")
+					button [i] -> draw (*window);
 			
-		window[0].display ();
+		window [0].display ();
 	}
 
 	void createWalls (){
@@ -470,6 +518,10 @@ public:
 			for (int i = 0; i < NumWall; i++)
 				ArrWall [i] -> ~Wall ();
 		}
+		for (int i = 0; i < NUM_CELL_X; i++)
+			for (int j = 0; j < NUM_CELL_Y; j++)
+				CoordWall [i][j] = false;
+		NumAnsw = 0;
 		ifstream inF (nameFile);
 		inF >> NumWall;
 		for (int i = 0; i < NumWall; i++){
@@ -497,12 +549,12 @@ public:
 };
 
 
-Wall* System::helpWall [1000];
+Wall* System::helpWall [10000];
 int System::NumWall; //количество стен
-Wall* System::ArrWall [1000]; //массив стен
+Wall* System::ArrWall [10000]; //массив стен
 bool** System::CoordWall; //координаты стен
 int System::NumButton; //количество кнопок
-Button* System::button [30]; //массив кнопок
+Button* System::button [70]; //массив кнопок
 Font System::font; //шрифт
 Clock System::clock; //время
 Vector2i System::mousePosWin; //координаты мыши относ. окна
@@ -560,6 +612,19 @@ public:
 							else
 								button [i] -> drawThis = false;
 					}
+					if (button [i] -> buttClick && button [i] -> name == "lvlComplete"){
+						if (CurrentLVL < 2){
+							CurrentLVL++;
+							char tmpC [30], *tmpC2;
+							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
+							char nameFile [30] = "lvl";
+							strcat (nameFile, tmpC2);
+							strcat (nameFile, ".txt");
+							cout << nameFile << endl;
+							openSpecificFile (nameFile);
+							pl [0].changeCoord (Start.x, Start.y);
+						}
+					}
 					if (button [i] -> buttClick && button [i] -> name == "HelpPl"){
 						if (timer > 2000){ //20 000 = 5 секунд реального времени, 40 000=15, 80 000=30
 							timer = 0;
@@ -574,7 +639,7 @@ public:
 
 							cout << endl << NumAnsw << endl;
 							int tmp = NumAnsw;
-							NumAnsw = NumAnsw / 4; 
+							NumAnsw = NumAnsw / 7; 
 							int j;
 							//cout << NumAnsw << endl;
 							for (int i = 0; i < NumAnsw; i++){
@@ -586,11 +651,16 @@ public:
 					}
 				}
 					
-				if (lvlComplete)
-					button [NumButton - 1] -> drawThis = true;
-				else
-					button [NumButton - 1] -> drawThis = false;
-
+				if (lvlComplete){
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> name == "lvlComplete")
+							button [NumButton - 1] -> drawThis = true;
+				}
+				else{
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> name == "lvlComplete")
+							button [NumButton - 1] -> drawThis = false;
+				}
 				break;
 
 		case menu:////////////////////////////////////////////////////////////////
@@ -608,6 +678,7 @@ public:
 					}
 					if (button [i] -> buttClick && button [i] -> name == "Go!"){
 						if (AdOrPlMode == "AdminMode"){
+							openSpecificFile ("empty.txt");
 							state = admin; 
 							for (int i = 0; i < NumButton; i++)
 								if (button [i] -> state == admin)
@@ -647,7 +718,48 @@ public:
 								button [i] -> drawThis = false;
 					}
 				}
+            if (AdOrPlMode == "AdminMode" && !PassEnter)
+				state = reqPass;
 				break;
+		case reqPass://////////////////////////////////////////////////////////////////
+			cout << Pass << endl;
+			if (strlen (Pass) == 4 && !PassEnter)
+				if (strcmp (Pass, "4329") == 0){
+					state = mode; PassEnter = true;
+					AdOrPlMode = "AdminMode"; strcpy (Pass, "");
+				}
+				else{
+					state = mode; PassEnter = false;
+					AdOrPlMode = "PlayerMode"; strcpy (Pass, "");
+				}
+
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> name == "RequestPass" || button [i] -> name == "EnterPass"){
+					button [i] -> checkCursor (posMouse);
+					if (button [i] -> buttClick && button [i] -> name == "EnterPass"){
+						if (button [i] -> value == 0)
+							strcat (Pass, "0");
+						if (button [i] -> value == 1)
+							strcat (Pass, "1");
+						if (button [i] -> value == 2)
+							strcat (Pass, "2");
+						if (button [i] -> value == 3)
+							strcat (Pass, "3");
+						if (button [i] -> value == 4)
+							strcat (Pass, "4");
+						if (button [i] -> value == 5)
+							strcat (Pass, "5");
+						if (button [i] -> value == 6)
+							strcat (Pass, "6");
+						if (button [i] -> value == 7)
+							strcat (Pass, "7");
+						if (button [i] -> value == 8)
+							strcat (Pass, "8");
+						if (button [i] -> value == 9)
+							strcat (Pass, "9");
+					}
+				}
+			break;
 		case exitt://///////////////////////////////////////////////////////////////////
 			window[0].close ();
 			break;
