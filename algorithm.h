@@ -99,42 +99,42 @@ public:
 	}
 };
 
-void outputSearch (bool **labyrinth, const Coordinate &start, const Coordinate &finish, const Coordinate &size){
+void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish, const Coordinate &size){
 	NumAnsw = 0;
 	int **dir;
-	dir = new int* [size.y];
-	for (int i = 0; i < size.y; i++){
-		dir [i] = new int [size.x]; 
-		for (int j = 0; j < size.x; j++)
+	dir = new int* [size.x];
+	for (int i = 0; i < size.x; i++){
+		dir [i] = new int [size.y]; 
+		for (int j = 0; j < size.y; j++)
 			dir [i][j] = 0;
 	}
-	dir [finish.y][finish.x] = 0;
-	dir [start.y][start.x] = -3;
+	dir [finish.x][finish.y] = 0;
+	dir [start.x][start.y] = -3;
 	///////////////////////////////////////////////////
-	int answer = size.y * size.x; 
+	int answer = size.x * size.y; 
 	Queue q (answer); answer = 0;
 	Coordinate tmpc; //tmpc-
 	q.addLast (start);
 	tmpc = q.delFirst ();
 	while (tmpc != finish){
-	    if ((tmpc.x != 0) && (dir [tmpc.y][tmpc.x - 1] == 0) && (!labyrinth [tmpc.y][tmpc.x - 1])){
-			dir [tmpc.y][--tmpc.x] = -1;
-			q.addLast(tmpc); tmpc.x++;
-    	}
-    	if ((tmpc.x != size.x - 1) && (dir [tmpc.y][tmpc.x + 1] == 0) && (!labyrinth [tmpc.y][tmpc.x + 1])){
-			dir [tmpc.y][++tmpc.x] = 1;
-		    q.addLast(tmpc); tmpc.x--;
-    	}
-    	if ((tmpc.y != 0) && (dir[tmpc.y - 1][tmpc.x] == 0) && (!labyrinth [tmpc.y - 1][tmpc.x])){
-			dir [--tmpc.y][tmpc.x] = -2;
+	    if ((tmpc.y != 0) && (dir [tmpc.x][tmpc.y - 1] == 0) && (!labyrinth [tmpc.x][tmpc.y - 1])){
+			dir [tmpc.x][--tmpc.y] = -1;
 			q.addLast(tmpc); tmpc.y++;
     	}
-    	if ((tmpc.y != size.y - 1) && (dir [tmpc.y + 1][tmpc.x] == 0) && (!labyrinth [tmpc.y + 1][tmpc.x])){
-			dir [++tmpc.y][tmpc.x] = 2;
-			q.addLast(tmpc); tmpc.y--;
+    	if ((tmpc.y != size.y - 1) && (dir [tmpc.x][tmpc.y + 1] == 0) && (!labyrinth [tmpc.x][tmpc.y + 1])){
+			dir [tmpc.x][++tmpc.y] = 1;
+		    q.addLast(tmpc); tmpc.y--;
+    	}
+    	if ((tmpc.x != 0) && (dir[tmpc.x - 1][tmpc.y] == 0) && (!labyrinth [tmpc.x - 1][tmpc.y])){
+			dir [--tmpc.x][tmpc.y] = -2;
+			q.addLast(tmpc); tmpc.x++;
+    	}
+    	if ((tmpc.x != size.x - 1) && (dir [tmpc.x + 1][tmpc.y] == 0) && (!labyrinth [tmpc.x + 1][tmpc.y])){
+			dir [++tmpc.x][tmpc.y] = 2;
+			q.addLast(tmpc); tmpc.x--;
     	}
 		tmpc = q.delFirst (); 
-		if ((tmpc.y == -1) && (tmpc.x == -1)){
+		if ((tmpc.x == -1) && (tmpc.y == -1)){
 			answer = -1; tmpc = finish;
 		}
 	}
@@ -142,18 +142,15 @@ void outputSearch (bool **labyrinth, const Coordinate &start, const Coordinate &
 	if (answer != -1){
     	tmpc = finish;
 	    while (tmpc != start){
-			if (dir [tmpc.y][tmpc.x] == -1){ Arr [NumAnsw++] = tmpc; tmpc.x++; }
+			if (dir [tmpc.x][tmpc.y] == -1){ Arr [NumAnsw++] = tmpc; tmpc.y++; }
 	    	else
-				if (dir [tmpc.y][tmpc.x] == 1){ Arr [NumAnsw++] = tmpc; tmpc.x--; }
+				if (dir [tmpc.x][tmpc.y] == 1){ Arr [NumAnsw++] = tmpc; tmpc.y--; }
 	    		else
-					if (dir [tmpc.y][tmpc.x] == -2){ Arr [NumAnsw++] = tmpc; tmpc.y++; }
+					if (dir [tmpc.x][tmpc.y] == -2){ Arr [NumAnsw++] = tmpc; tmpc.x++; }
 		    		else
-						if (dir [tmpc.y][tmpc.x] == 2){ Arr [NumAnsw++] = tmpc; tmpc.y--; }
-			//cout << tmpc << endl;
+						if (dir [tmpc.x][tmpc.y] == 2){ Arr [NumAnsw++] = tmpc; tmpc.x--; }
 	    	answer++;
 	    }
 	}
 	Arr [NumAnsw++] = start;
-	//for (int i = 0; i < NumAnsw; i++)
-	//	cout << Arr [i];
 }

@@ -9,8 +9,6 @@
 #include <string.h>
 using namespace std;
 using namespace sf;
-//GetSystemMetrics(0); //ширина экрана 
-//GetSystemMetrics(1); //высота экрана
 
 #define GLOBAL_W 2240
 #define GLOBAL_H 1280
@@ -102,8 +100,11 @@ public:
 		if (name == "RequestPass"){
 			drawThis = false; state = reqPass; text -> setPosition ((float) tmp - 20, (float) y - 5);
 		}
-		if (name == "EnterPass"){
-			drawThis = false; state = reqPass; text -> setPosition ((float) x, (float) y - 5); //распологаем текст по кнопке
+		if (name == "Edit"){
+			drawThis = false; state = reqPass;
+		}
+		if (name == "EnterNum"){
+			drawThis = false; state = reqPass; text -> setPosition ((float) x + 3, (float) y - 5); //распологаем текст по кнопке
 			if (tmpT == "0")
 				value = 0;
 			if (tmpT == "1")
@@ -301,16 +302,18 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 2 * 120) / 3, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + 2 * (W_WIN - 2 * 120) / 3 + 120, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 
-		button [NumButton++] = new Button (buttonImage, "0", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "1", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "2", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "3", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "4", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 200, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "5", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "6", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "7", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "8", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
-		button [NumButton++] = new Button (buttonImage, "9", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 250, 24, 30);
+		button [NumButton++] = new Button (buttonImage, "0", "EnterNum", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "1", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "2", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "3", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "4", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "5", "EnterNum", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "6", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "7", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "8", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "9", "EnterNum", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
+
+		button [NumButton++] = new Button (buttonImage, "", "Edit", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
 
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
 	}
@@ -387,10 +390,10 @@ public:
 			for (int i = 0; i < NumAnsw; i++) //рисую вспомогательные стены
 				window[0].draw (helpWall [i] -> sprite);
 		}
-		if (state == reqPass)
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> name == "RequestPass" || button [i] -> name == "EnterPass")
-					button [i] -> draw (*window);
+		//if (state == reqPass)
+		//	for (int i = 0; i < NumButton; i++)
+		//		if (button [i] -> name == "RequestPass" || button [i] -> name == "EnterPass")
+		//			button [i] -> draw (*window);
 			
 		window [0].display ();
 	}
@@ -484,6 +487,9 @@ public:
 			for (int i = 0; i < NumWall; i++)
 				ArrWall [i] -> ~Wall ();
 		}
+		for (int i = 0; i < NUM_CELL_X; i++)
+			for (int j = 0; j < NUM_CELL_Y; j++)
+				CoordWall [i][j] = false;
 		cout << "Enter name of file which you want open:" << endl;
 		cin >> tmpC;
 		ifstream inF (tmpC);
@@ -620,7 +626,7 @@ public:
 							char nameFile [30] = "lvl";
 							strcat (nameFile, tmpC2);
 							strcat (nameFile, ".txt");
-							cout << nameFile << endl;
+							//cout << nameFile << endl;
 							openSpecificFile (nameFile);
 							pl [0].changeCoord (Start.x, Start.y);
 						}
@@ -629,23 +635,27 @@ public:
 						if (timer > 2000){ //20 000 = 5 секунд реального времени, 40 000=15, 80 000=30
 							timer = 0;
 							Coordinate fn, sizeMap, st;
-							sizeMap.x = NUM_CELL_Y; ///////////////////////////////////ДА, ЗДЕСЬ ВСЁ ПРАВИЛЬНО, ОСИ ПЕРЕОРИЕНТИРОВАННЫ КАК У ЕВРЕЯ!!!
-							sizeMap.y = NUM_CELL_X;
-							st.x = (pl [0].y - GLOB_IND_H) / EDGE;
-							st.y = (pl [0].x - GLOB_IND_W) / EDGE;
-							fn.x = (Finish.y - GLOB_IND_H) / EDGE;
-							fn.y = (Finish.x - GLOB_IND_W) / EDGE;
+							sizeMap.x = NUM_CELL_X;
+							sizeMap.y = NUM_CELL_Y;
+							st.x = (pl [0].x - GLOB_IND_W) / EDGE;
+							st.y = (pl [0].y - GLOB_IND_H) / EDGE;
+							fn.x = (Finish.x - GLOB_IND_W) / EDGE;
+							fn.y = (Finish.y - GLOB_IND_H) / EDGE;
 							outputSearch (CoordWall, st, fn, sizeMap);
 
-							cout << endl << NumAnsw << endl;
+							//cout << endl << NumAnsw << endl;
 							int tmp = NumAnsw;
-							NumAnsw = NumAnsw / 7; 
+							if (NumAnsw >= 60) 
+								NumAnsw = 20;
+							else
+								if (NumAnsw >= 30 && NumAnsw < 60) 
+									NumAnsw = 10;
+								else
+									NumAnsw = 0;
 							int j;
-							//cout << NumAnsw << endl;
 							for (int i = 0; i < NumAnsw; i++){
 								j = tmp - i - 1;
-								//cout << j << " ";
-								helpWall [i] = new Wall (wallImage, "HelpWall", Arr [j].y * EDGE + GLOB_IND_W, Arr [j].x * EDGE + GLOB_IND_H, EDGE, EDGE);
+								helpWall [i] = new Wall (wallImage, "HelpWall", Arr [j].x * EDGE + GLOB_IND_W, Arr [j].y * EDGE + GLOB_IND_H, EDGE, EDGE);
 							}
 						}
 					}
@@ -718,45 +728,54 @@ public:
 								button [i] -> drawThis = false;
 					}
 				}
-            if (AdOrPlMode == "AdminMode" && !PassEnter)
+            if (AdOrPlMode == "AdminMode" && !PassEnter){
 				state = reqPass;
+				for (int i = 0; i < NumButton; i++)
+					if (button [i] -> state == reqPass)
+						button [i] -> drawThis = true;
+					else
+						button [i] -> drawThis = false;
+				
+			}
 				break;
 		case reqPass://////////////////////////////////////////////////////////////////
-			cout << Pass << endl;
-			if (strlen (Pass) == 4 && !PassEnter)
-				if (strcmp (Pass, "4329") == 0){
-					state = mode; PassEnter = true;
-					AdOrPlMode = "AdminMode"; strcpy (Pass, "");
-				}
-				else{
-					state = mode; PassEnter = false;
-					AdOrPlMode = "PlayerMode"; strcpy (Pass, "");
-				}
-
+			char tmpC [30];
 			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> name == "RequestPass" || button [i] -> name == "EnterPass"){
+				if (button [i] -> state == reqPass){
 					button [i] -> checkCursor (posMouse);
-					if (button [i] -> buttClick && button [i] -> name == "EnterPass"){
-						if (button [i] -> value == 0)
-							strcat (Pass, "0");
-						if (button [i] -> value == 1)
-							strcat (Pass, "1");
-						if (button [i] -> value == 2)
-							strcat (Pass, "2");
-						if (button [i] -> value == 3)
-							strcat (Pass, "3");
-						if (button [i] -> value == 4)
-							strcat (Pass, "4");
-						if (button [i] -> value == 5)
-							strcat (Pass, "5");
-						if (button [i] -> value == 6)
-							strcat (Pass, "6");
-						if (button [i] -> value == 7)
-							strcat (Pass, "7");
-						if (button [i] -> value == 8)
-							strcat (Pass, "8");
-						if (button [i] -> value == 9)
-							strcat (Pass, "9");
+					if (button [i] -> buttClick && button [i] -> name == "EnterNum" && (strlen (Pass) < 4)){
+						_itoa (button [i] -> value, tmpC, 10);
+						strcat (Pass, tmpC);
+					}
+					if (button [i] -> name == "Edit"){
+						button [i] -> text -> clear ();
+						button [i] -> text -> changeSize (30); //размер текста
+						button [i] -> text -> add (Pass);
+						float tmp = (float)  strlen (Pass); //получаем длинну текста в символах
+						tmp = button [i] -> x + 50 - (tmp / 2) * 12; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
+						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
+					}
+					if (button [i] -> buttClick && button [i] -> name == "Edit"){
+						if (strlen (Pass) == 4 && !PassEnter){
+							if (strcmp (Pass, "4329") == 0){
+								state = mode; PassEnter = true;
+								AdOrPlMode = "AdminMode"; strcpy (Pass, "");
+								for (int i = 0; i < NumButton; i++)
+									if (button [i] -> state == mode)
+										button [i] -> drawThis = true;
+									else
+										button [i] -> drawThis = false;
+							}
+							else{
+								state = mode; PassEnter = false;
+								AdOrPlMode = "PlayerMode"; strcpy (Pass, "");
+								for (int i = 0; i < NumButton; i++)
+									if (button [i] -> state == mode)
+										button [i] -> drawThis = true;
+									else
+										button [i] -> drawThis = false;
+							}
+						}
 					}
 				}
 			break;
@@ -772,8 +791,8 @@ Menu GameMenu;
 int main (){
 	view.reset (FloatRect (0, 0, W_WIN, H_WIN)); //создание камеры
 	setCoordinateForView (GLOBAL_W / 2, GLOBAL_H / 2); //двигаем камеру с игроком
-	cout << NUM_H_LINE << "-horizont " << NUM_V_LINE << "-vertical" << endl;
-	cout << W_WIN << "-W_WIN " << H_WIN << "-H_WIN"<<endl;
+	//cout << NUM_H_LINE << "-horizont " << NUM_V_LINE << "-vertical" << endl;
+	//cout << W_WIN << "-W_WIN " << H_WIN << "-H_WIN"<<endl;
 	Basic.window = new RenderWindow (VideoMode (W_WIN, H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen*/); //создание окна
 	Basic.initialize ();
 	Basic.initializeButton ();

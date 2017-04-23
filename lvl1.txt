@@ -1,4 +1,4 @@
-965
+967
 1320 640 Finish
 1340 640 Wall
 1340 620 Wall
@@ -607,13 +607,8 @@
 520 440 Wall
 500 440 Wall
 480 440 Wall
-500 320 Wall
-500 340 Wall
 500 360 Wall
 520 380 Wall
-500 380 Wall
-480 380 Wall
-500 420 Wall
 560 460 Wall
 560 480 Wall
 560 500 Wall
@@ -921,7 +916,6 @@
 960 880 Wall
 920 880 Wall
 900 880 Wall
-880 880 Wall
 860 840 Wall
 860 880 Wall
 840 880 Wall
@@ -964,3 +958,11 @@
 1560 500 Wall
 1360 640 Start
 1060 380 Wall
+960 920 Wall
+480 320 Wall
+480 340 Wall
+480 360 Wall
+520 360 Wall
+520 320 Wall
+520 340 Wall
+520 400 Wall
