@@ -110,7 +110,7 @@ public:
 		if (name == "BackToMenuPl" || name == "HelpPl"){ //четверетая группа-когда мы играем 
 			drawThis = false; state = player;
 		}
-		if (name == "lvl1Complete") //если первый уровень закончился, появляется кнопка извещающая об этом
+		if (name == "lvlComplete") //если первый уровень закончился, появляется кнопка извещающая об этом
 			drawThis = false;
 		if (name == "SelectStatic"){
 			drawThis = false; state = selectLVL; text -> setPosition ((float) x - 19, (float) y - 5);
@@ -661,6 +661,7 @@ public:
 								button [i] -> drawThis = true;
 							else
 								button [i] -> drawThis = false;
+						lvlComplete = false;
 					}
 					if (button [i] -> buttClick && button [i] -> name == "lvlComplete"){
 						if (CurrentLVL < 4){
@@ -711,12 +712,12 @@ public:
 				if (lvlComplete){
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> name == "lvlComplete")
-							button [NumButton - 1] -> drawThis = true;
+							button [i] -> drawThis = true;
 				}
 				else{
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> name == "lvlComplete")
-							button [NumButton - 1] -> drawThis = false;
+							button [i] -> drawThis = false;
 				}
 				break;
 
