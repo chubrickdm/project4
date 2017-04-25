@@ -28,7 +28,7 @@ using namespace sf;
 
 
 
-enum StateList {menu, mode, admin, player, backToMenu, setting, exitt, reqPass, selectLVL}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, backToMenu, setting, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL}; //основное перечесление которое отвечает за состояние игры
 String AdOrPlMode = "PlayerMode"; //строка хранящая имя текущего мода игры (игрок или админ)
 Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 bool lvlComplete = false; //показывает завершен ли первый уровень
@@ -103,6 +103,12 @@ public:
 		}
 		if (name == "Edit"){
 			drawThis = false; state = reqPass;
+		}
+		if (name == "EditLVL"){
+			state = AdSelectLVL; drawThis = false;
+		}
+		if (name == "AdSaveLVL"){
+			state = AdSaveLVL; drawThis = false;
 		}
 		if (name == "BackToMenuAd" || name == "OpenAd" || name == "SaveAd"){ //третья группа-когда мы редактируем карты в режиме админ
 			drawThis = false; state = admin;
@@ -306,7 +312,7 @@ public:
 	static float timer;
 	static float time;
 
-	
+    static char fileNameAd [50];
 public:
 	void initializeButton (){
 		font.loadFromFile ("modeka.otf");
@@ -323,7 +329,7 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Admin", "AdminMode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 50, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenu", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Enter 4 numbers", "RequestPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Enter 4 characters", "RequestPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
 
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuAd", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 3 * 120) / 4, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 3 * 120) / 2 + 120, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
@@ -332,7 +338,7 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 2 * 120) / 3, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + 2 * (W_WIN - 2 * 120) / 3 + 120, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 
-		button [NumButton++] = new Button (buttonImage, "0", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
+		/*button [NumButton++] = new Button (buttonImage, "0", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
 		button [NumButton++] = new Button (buttonImage, "1", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
 		button [NumButton++] = new Button (buttonImage, "2", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
 		button [NumButton++] = new Button (buttonImage, "3", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
@@ -341,7 +347,8 @@ public:
 		button [NumButton++] = new Button (buttonImage, "6", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
 		button [NumButton++] = new Button (buttonImage, "7", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
 		button [NumButton++] = new Button (buttonImage, "8", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "9", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
+		button [NumButton++] = new Button (buttonImage, "9", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 250, 23, 30);*/
+
 
 		button [NumButton++] = new Button (buttonImage, "", "Edit", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
 
@@ -353,6 +360,9 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Select LVL", "SelectStatic", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
 
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
+
+		button [NumButton++] = new Button (buttonImage, "", "EditLVL", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "", "AdSaveLVL", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
 
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
 	}
@@ -393,6 +403,8 @@ public:
 
 		ifstream inF ("player.txt");
 		inF >> PassedLVL;
+
+		strcpy (fileNameAd, "");
 	}
 
 	void initializeWall (){
@@ -410,7 +422,7 @@ public:
 	void draw (){
 		window [0].setView (view); //обновляем камеру
 		window [0].clear (Color (40, 36, 62));
-		if (state == admin || state == player){
+		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL){
 			window[0].draw (lines); //рисую массив линий
 			for (int j = 0; j < NumWall; j++) //рисую стены
 				if (ArrWall [j] -> drawThis)
@@ -499,10 +511,7 @@ public:
 	}
 }
 
-	void saveFile (){
-		cout << "Enter name of file which you want save:" << endl;
-		char tmpC [50];
-		cin >> tmpC;
+	void saveFile (char *tmpC){
 		ofstream outF (tmpC);
 		int tmp = 0;
 		for (int i = 0; i < NumWall; i++){
@@ -522,9 +531,10 @@ public:
 		}
 	}
 
-	void openFile (){
-		int tmpX, tmpY;
+	void openFileAd (char *tmpName){
 		char tmpC [50];
+		strcpy (tmpC, tmpName);
+		int tmpX, tmpY;
 		if (NumWall != 0){
 			for (int i = 0; i < NumWall; i++)
 				ArrWall [i] -> ~Wall ();
@@ -532,11 +542,8 @@ public:
 		for (int i = 0; i < NUM_CELL_X; i++)
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				CoordWall [i][j] = false;
-		cout << "Enter name of file which you want open:" << endl;
-		cin >> tmpC;
 		ifstream inF (tmpC);
 
-		//inF >> Start.x >> Start.y >> Finish.x >> Finish.y ;
 		inF >> NumWall;
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
@@ -594,6 +601,174 @@ public:
 			}
 		}
 	}
+
+	void inputKeyboard (char *tmpC, bool fictiv){
+		timer += time;
+		if (timer > 250){
+			timer = 0;
+			if (strlen (tmpC) < 9 && !fictiv){
+				if (Keyboard::isKeyPressed (Keyboard::A))
+					strcat (tmpC, "a");
+				if (Keyboard::isKeyPressed (Keyboard::B))
+					strcat (tmpC, "b");
+				if (Keyboard::isKeyPressed (Keyboard::C))
+					strcat (tmpC, "c");
+				if (Keyboard::isKeyPressed (Keyboard::D))
+					strcat (tmpC, "d");
+				if (Keyboard::isKeyPressed (Keyboard::E))
+					strcat (tmpC, "e");
+				if (Keyboard::isKeyPressed (Keyboard::F))
+					strcat (tmpC, "f");
+				if (Keyboard::isKeyPressed (Keyboard::G))
+					strcat (tmpC, "g");
+				if (Keyboard::isKeyPressed (Keyboard::H))
+					strcat (tmpC, "h");
+				if (Keyboard::isKeyPressed (Keyboard::I))
+					strcat (tmpC, "i");
+				if (Keyboard::isKeyPressed (Keyboard::J))
+					strcat (tmpC, "j");
+				if (Keyboard::isKeyPressed (Keyboard::K))
+					strcat (tmpC, "k");
+				if (Keyboard::isKeyPressed (Keyboard::L))
+					strcat (tmpC, "l");
+				if (Keyboard::isKeyPressed (Keyboard::M))
+					strcat (tmpC, "m");
+				if (Keyboard::isKeyPressed (Keyboard::N))
+					strcat (tmpC, "n");
+				if (Keyboard::isKeyPressed (Keyboard::O))
+					strcat (tmpC, "o");
+				if (Keyboard::isKeyPressed (Keyboard::P))
+					strcat (tmpC, "p");
+				if (Keyboard::isKeyPressed (Keyboard::Q))
+					strcat (tmpC, "q");
+				if (Keyboard::isKeyPressed (Keyboard::R))
+					strcat (tmpC, "r");
+				if (Keyboard::isKeyPressed (Keyboard::S))
+					strcat (tmpC, "s");
+				if (Keyboard::isKeyPressed (Keyboard::T))
+					strcat (tmpC, "t");
+				if (Keyboard::isKeyPressed (Keyboard::U))
+					strcat (tmpC, "u");
+				if (Keyboard::isKeyPressed (Keyboard::V))
+					strcat (tmpC, "v");
+				if (Keyboard::isKeyPressed (Keyboard::W))
+					strcat (tmpC, "w");
+				if (Keyboard::isKeyPressed (Keyboard::X))
+					strcat (tmpC, "x");
+				if (Keyboard::isKeyPressed (Keyboard::Y))
+					strcat (tmpC, "y");
+				if (Keyboard::isKeyPressed (Keyboard::Z))
+					strcat (tmpC, "z");
+				if (Keyboard::isKeyPressed (Keyboard::Period))
+					strcat (tmpC, ".");
+				if (Keyboard::isKeyPressed (Keyboard::Num0))
+					strcat (tmpC, "0");
+				if (Keyboard::isKeyPressed (Keyboard::Num1))
+					strcat (tmpC, "1");
+				if (Keyboard::isKeyPressed (Keyboard::Num2))
+					strcat (tmpC, "2");
+				if (Keyboard::isKeyPressed (Keyboard::Num3))
+					strcat (tmpC, "3");
+				if (Keyboard::isKeyPressed (Keyboard::Num4))
+					strcat (tmpC, "4");
+				if (Keyboard::isKeyPressed (Keyboard::Num5))
+					strcat (tmpC, "5");
+				if (Keyboard::isKeyPressed (Keyboard::Num6))
+					strcat (tmpC, "6");
+				if (Keyboard::isKeyPressed (Keyboard::Num7))
+					strcat (tmpC, "7");
+				if (Keyboard::isKeyPressed (Keyboard::Num8))
+					strcat (tmpC, "8");
+				if (Keyboard::isKeyPressed (Keyboard::Num9))
+					strcat (tmpC, "9");
+			}
+			if (strlen (tmpC) < 4 && fictiv){
+				if (Keyboard::isKeyPressed (Keyboard::A))
+					strcat (tmpC, "a");
+				if (Keyboard::isKeyPressed (Keyboard::B))
+					strcat (tmpC, "b");
+				if (Keyboard::isKeyPressed (Keyboard::C))
+					strcat (tmpC, "c");
+				if (Keyboard::isKeyPressed (Keyboard::D))
+					strcat (tmpC, "d");
+				if (Keyboard::isKeyPressed (Keyboard::E))
+					strcat (tmpC, "e");
+				if (Keyboard::isKeyPressed (Keyboard::F))
+					strcat (tmpC, "f");
+				if (Keyboard::isKeyPressed (Keyboard::G))
+					strcat (tmpC, "g");
+				if (Keyboard::isKeyPressed (Keyboard::H))
+					strcat (tmpC, "h");
+				if (Keyboard::isKeyPressed (Keyboard::I))
+					strcat (tmpC, "i");
+				if (Keyboard::isKeyPressed (Keyboard::J))
+					strcat (tmpC, "j");
+				if (Keyboard::isKeyPressed (Keyboard::K))
+					strcat (tmpC, "k");
+				if (Keyboard::isKeyPressed (Keyboard::L))
+					strcat (tmpC, "l");
+				if (Keyboard::isKeyPressed (Keyboard::M))
+					strcat (tmpC, "m");
+				if (Keyboard::isKeyPressed (Keyboard::N))
+					strcat (tmpC, "n");
+				if (Keyboard::isKeyPressed (Keyboard::O))
+					strcat (tmpC, "o");
+				if (Keyboard::isKeyPressed (Keyboard::P))
+					strcat (tmpC, "p");
+				if (Keyboard::isKeyPressed (Keyboard::Q))
+					strcat (tmpC, "q");
+				if (Keyboard::isKeyPressed (Keyboard::R))
+					strcat (tmpC, "r");
+				if (Keyboard::isKeyPressed (Keyboard::S))
+					strcat (tmpC, "s");
+				if (Keyboard::isKeyPressed (Keyboard::T))
+					strcat (tmpC, "t");
+				if (Keyboard::isKeyPressed (Keyboard::U))
+					strcat (tmpC, "u");
+				if (Keyboard::isKeyPressed (Keyboard::V))
+					strcat (tmpC, "v");
+				if (Keyboard::isKeyPressed (Keyboard::W))
+					strcat (tmpC, "w");
+				if (Keyboard::isKeyPressed (Keyboard::X))
+					strcat (tmpC, "x");
+				if (Keyboard::isKeyPressed (Keyboard::Y))
+					strcat (tmpC, "y");
+				if (Keyboard::isKeyPressed (Keyboard::Z))
+					strcat (tmpC, "z");
+				if (Keyboard::isKeyPressed (Keyboard::Period))
+					strcat (tmpC, ".");
+				if (Keyboard::isKeyPressed (Keyboard::Num0))
+					strcat (tmpC, "0");
+				if (Keyboard::isKeyPressed (Keyboard::Num1))
+					strcat (tmpC, "1");
+				if (Keyboard::isKeyPressed (Keyboard::Num2))
+					strcat (tmpC, "2");
+				if (Keyboard::isKeyPressed (Keyboard::Num3))
+					strcat (tmpC, "3");
+				if (Keyboard::isKeyPressed (Keyboard::Num4))
+					strcat (tmpC, "4");
+				if (Keyboard::isKeyPressed (Keyboard::Num5))
+					strcat (tmpC, "5");
+				if (Keyboard::isKeyPressed (Keyboard::Num6))
+					strcat (tmpC, "6");
+				if (Keyboard::isKeyPressed (Keyboard::Num7))
+					strcat (tmpC, "7");
+				if (Keyboard::isKeyPressed (Keyboard::Num8))
+					strcat (tmpC, "8");
+				if (Keyboard::isKeyPressed (Keyboard::Num9))
+					strcat (tmpC, "9");
+			}
+			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){
+				int i = strlen (tmpC);
+				if (i > 0){
+					char tmpC2 [50];
+					strcpy (tmpC2, tmpC);
+					strncpy (tmpC, tmpC2, i - 1);
+					tmpC [i - 1] = '\0';
+				}
+			}
+		}
+	}
 };
 
 
@@ -615,6 +790,7 @@ PlayerBackground* System::plBackground;
 PlayerBackground* System::plBackground2;
 float System::timer;
 float System::time;
+char System::fileNameAd [50];
 
 System Basic;
 
@@ -627,10 +803,18 @@ public:
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> drawThis){
 					button [i] -> checkCursor (posMouse);
-					if (button [i] -> buttClick && button [i] -> name == "SaveAd")
-						saveFile ();
-					if (button [i] -> buttClick && button [i] -> name == "OpenAd")
-						openFile ();
+					if (button [i] -> buttClick && button [i] -> name == "SaveAd"){
+						state = AdSaveLVL;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == AdSaveLVL)
+								button [i] -> drawThis = true;
+					}
+					if (button [i] -> buttClick && button [i] -> name == "OpenAd"){
+						state = AdSelectLVL;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == AdSelectLVL)
+								button [i] -> drawThis = true;
+					}
 					if (button [i] -> buttClick && button [i] -> name == "BackToMenuAd"){
 						state = menu;
 						for (int i = 0; i < NumButton; i++)
@@ -642,6 +826,60 @@ public:
 				}
 				break;
 				
+		case AdSelectLVL:////////////////////////////////////////////////////////////
+			inputKeyboard (fileNameAd, 0);
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> state == AdSelectLVL){
+					button [i] -> checkCursor (posMouse);
+					if (button [i] -> name == "EditLVL"){
+						button [i] -> text -> clear ();
+						button [i] -> text -> changeSize (30); //размер текста
+						button [i] -> text -> add (fileNameAd);
+						float tmp = (float)  strlen (fileNameAd); //получаем длинну текста в символах
+						tmp = button [i] -> x + 50 - (tmp / 2) * 8; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
+						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
+					}
+					if (button [i] -> buttClick && button [i] -> name == "EditLVL"){
+						if (strlen (fileNameAd) > 0){
+							state = admin;
+							for (int i = 0; i < NumButton; i++)
+								if (button [i] -> state == admin)
+									button [i] -> drawThis = true;
+								else
+									button [i] -> drawThis = false;
+							openFileAd (fileNameAd);
+						}
+					}
+				}
+			break;
+
+		case AdSaveLVL:////////////////////////////////////////////////////////////
+			inputKeyboard (fileNameAd, 0);
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> state == AdSaveLVL){
+					button [i] -> checkCursor (posMouse);
+					if (button [i] -> name == "AdSaveLVL"){
+						button [i] -> text -> clear ();
+						button [i] -> text -> changeSize (30); //размер текста
+						button [i] -> text -> add (fileNameAd);
+						float tmp = (float)  strlen (fileNameAd); //получаем длинну текста в символах
+						tmp = button [i] -> x + 50 - (tmp / 2) * 8; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
+						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
+					}
+					if (button [i] -> buttClick && button [i] -> name == "AdSaveLVL"){
+						if (strlen (fileNameAd) > 0){
+							state = admin;
+							for (int i = 0; i < NumButton; i++)
+								if (button [i] -> state == admin)
+									button [i] -> drawThis = true;
+								else
+									button [i] -> drawThis = false;
+							saveFile (fileNameAd);
+						}
+					}
+				}
+			break;
+
 		case player:////////////////////////////////////////////////////////////
 			timer += time;
 			pl [0].update (CoordWall);
@@ -665,6 +903,7 @@ public:
 					}
 					if (button [i] -> buttClick && button [i] -> name == "lvlComplete"){
 						if (CurrentLVL < 4){
+							timer = 0;
 							ofstream outF ("player.txt");
 							
 							outF << CurrentLVL;
@@ -783,20 +1022,17 @@ public:
 			}
 				break;
 		case reqPass://////////////////////////////////////////////////////////////////
-			char tmpC [30];
+
+			inputKeyboard (Pass, 1);
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == reqPass){
 					button [i] -> checkCursor (posMouse);
-					if (button [i] -> buttClick && button [i] -> name == "EnterPass" && (strlen (Pass) < 4)){
-						_itoa (button [i] -> value, tmpC, 10);
-						strcat (Pass, tmpC);
-					}
 					if (button [i] -> name == "Edit"){
 						button [i] -> text -> clear ();
 						button [i] -> text -> changeSize (30); //размер текста
 						button [i] -> text -> add (Pass);
 						float tmp = (float)  strlen (Pass); //получаем длинну текста в символах
-						tmp = button [i] -> x + 50 - (tmp / 2) * 12; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
+						tmp = button [i] -> x + 50 - (tmp / 2) * 8; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
 						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 					}
 					if (button [i] -> buttClick && button [i] -> name == "Edit"){
@@ -822,6 +1058,46 @@ public:
 						}
 					}
 				}
+
+			//char tmpC [30];
+			//for (int i = 0; i < NumButton; i++)
+			//	if (button [i] -> state == reqPass){
+			//		button [i] -> checkCursor (posMouse);
+			//		if (button [i] -> buttClick && button [i] -> name == "EnterPass" && (strlen (Pass) < 4)){
+			//			_itoa (button [i] -> value, tmpC, 10);
+			//			strcat (Pass, tmpC);
+			//		}
+			//		if (button [i] -> name == "Edit"){
+			//			button [i] -> text -> clear ();
+			//			button [i] -> text -> changeSize (30); //размер текста
+			//			button [i] -> text -> add (Pass);
+			//			float tmp = (float)  strlen (Pass); //получаем длинну текста в символах
+			//			tmp = button [i] -> x + 50 - (tmp / 2) * 12; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
+			//			button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
+			//		}
+			//		if (button [i] -> buttClick && button [i] -> name == "Edit"){
+			//			if (strlen (Pass) == 4 && !PassEnter){
+			//				if (strcmp (Pass, "4329") == 0){
+			//					state = mode; PassEnter = true;
+			//					AdOrPlMode = "AdminMode"; strcpy (Pass, "");
+			//					for (int i = 0; i < NumButton; i++)
+			//						if (button [i] -> state == mode)
+			//							button [i] -> drawThis = true;
+			//						else
+			//							button [i] -> drawThis = false;
+			//				}
+			//				else{
+			//					state = mode; PassEnter = false;
+			//					AdOrPlMode = "PlayerMode"; strcpy (Pass, "");
+			//					for (int i = 0; i < NumButton; i++)
+			//						if (button [i] -> state == mode)
+			//							button [i] -> drawThis = true;
+			//						else
+			//							button [i] -> drawThis = false;
+			//				}
+			//			}
+			//		}
+			//	}
 			break;
 		case selectLVL://////////////////////////////////////////////////////////////////
 			char tmpC2 [30];
