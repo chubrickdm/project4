@@ -28,7 +28,7 @@ using namespace sf;
 
 
 
-enum StateList {menu, mode, admin, player, backToMenu, setting, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL}; //основное перечесление которое отвечает за состояние игры
 String AdOrPlMode = "PlayerMode"; //строка хранящая имя текущего мода игры (игрок или админ)
 Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 bool lvlComplete = false; //показывает завершен ли первый уровень
@@ -92,7 +92,7 @@ public:
 		tmp = x + 50 - (tmp / 2) * 12; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
 		text -> setPosition ((float) tmp, (float) y - 5); //распологаем текст по кнопке
 
-		if (name == "Go!" || name == "Mode" || name == "Setting" || name == "Exit"){ //первая группа-меню, отображается при запуске игры
+		if (name == "Go!" || name == "Mode" || name == "Settings" || name == "Exit"){ //первая группа-меню, отображается при запуске игры
 			drawThis = true; state = menu;
 		}
 		if (name == "PlayerMode" || name == "AdminMode" || name == "BackToMenu"){ //вторая группа-когда в меню нажали кнопку Mode
@@ -124,7 +124,12 @@ public:
 		if (name == "BackToMenuSel"){
 			drawThis = false; state = selectLVL;
 		}
-		if (name == "EnterPass"){
+		if (name == "BackToMenuSet" || name == "Volume" || name == "BackMusicSlider"){
+			drawThis = false; state = settings;
+			if (name == "BackMusicSlider")
+				sprite.setTextureRect (IntRect (0, 2 * h, w, h));
+		}
+		/*if (name == "EnterPass"){
 			drawThis = false; state = reqPass; text -> setPosition ((float) x + 3, (float) y - 5); //распологаем текст по кнопке
 			if (tmpT == "0")
 				value = 0;
@@ -146,7 +151,7 @@ public:
 				value = 8;
 			if (tmpT == "9")
 				value = 9;
-		}
+		}*/
 		if (name == "SelectLVL"){
 			drawThis = false; state = selectLVL; text -> setPosition ((float) x + 3, (float) y - 5); //распологаем текст по кнопке
 			if (tmpT == "0")
@@ -306,8 +311,13 @@ public:
 	static Player *pl;
 	static PlayerBackground *plBackground;
 	static PlayerBackground *plBackground2;
+	
+	static Music backgroundMusic;
+	static float volumBackMusic;
 
 	static RenderWindow *window;
+
+	static Event event;
 
 	static float timer;
 	static float time;
@@ -323,8 +333,12 @@ public:
 		NumButton = 0;
 		button [NumButton++] = new Button (buttonImage, "Go!", "Go!", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Mode", "Mode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 50, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Setting", "Setting", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
+
+		button [NumButton++] = new Button (buttonImage, "Volume", "Volume", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "", "BackMusicSlider", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 20, 30);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSet", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
 
 		button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Admin", "AdminMode", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 50, 120, 30);
@@ -337,18 +351,6 @@ public:
 
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + (W_WIN - 2 * 120) / 3, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, GLOB_IND_W - (W_WIN - NUM_CELL_X * EDGE) / 2 + 2 * (W_WIN - 2 * 120) / 3 + 120, ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2 + GLOB_IND_H + NUM_CELL_Y * EDGE, 120, 30);
-
-		/*button [NumButton++] = new Button (buttonImage, "0", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "1", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "2", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "3", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "4", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 200, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "5", "EnterPass", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "6", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 24, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "7", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 48, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "8", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 72, GLOB_IND_H + EDGE * 7 + 250, 23, 30);
-		button [NumButton++] = new Button (buttonImage, "9", "EnterPass", font, GLOBAL_W / 2 - 120 / 2 + 96, GLOB_IND_H + EDGE * 7 + 250, 23, 30);*/
-
 
 		button [NumButton++] = new Button (buttonImage, "", "Edit", font, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
 
@@ -405,6 +407,12 @@ public:
 		inF >> PassedLVL;
 
 		strcpy (fileNameAd, "");
+
+		volumBackMusic = 100;
+		backgroundMusic.openFromFile ("deadbolt.ogg");
+		backgroundMusic.play (); 
+		backgroundMusic.setLoop (true);
+		backgroundMusic.setVolume (volumBackMusic);
 	}
 
 	void initializeWall (){
@@ -603,170 +611,53 @@ public:
 	}
 
 	void inputKeyboard (char *tmpC, bool fictiv){
-		timer += time;
-		if (timer > 250){
-			timer = 0;
-			if (strlen (tmpC) < 9 && !fictiv){
-				if (Keyboard::isKeyPressed (Keyboard::A))
-					strcat (tmpC, "a");
-				if (Keyboard::isKeyPressed (Keyboard::B))
-					strcat (tmpC, "b");
-				if (Keyboard::isKeyPressed (Keyboard::C))
-					strcat (tmpC, "c");
-				if (Keyboard::isKeyPressed (Keyboard::D))
-					strcat (tmpC, "d");
-				if (Keyboard::isKeyPressed (Keyboard::E))
-					strcat (tmpC, "e");
-				if (Keyboard::isKeyPressed (Keyboard::F))
-					strcat (tmpC, "f");
-				if (Keyboard::isKeyPressed (Keyboard::G))
-					strcat (tmpC, "g");
-				if (Keyboard::isKeyPressed (Keyboard::H))
-					strcat (tmpC, "h");
-				if (Keyboard::isKeyPressed (Keyboard::I))
-					strcat (tmpC, "i");
-				if (Keyboard::isKeyPressed (Keyboard::J))
-					strcat (tmpC, "j");
-				if (Keyboard::isKeyPressed (Keyboard::K))
-					strcat (tmpC, "k");
-				if (Keyboard::isKeyPressed (Keyboard::L))
-					strcat (tmpC, "l");
-				if (Keyboard::isKeyPressed (Keyboard::M))
-					strcat (tmpC, "m");
-				if (Keyboard::isKeyPressed (Keyboard::N))
-					strcat (tmpC, "n");
-				if (Keyboard::isKeyPressed (Keyboard::O))
-					strcat (tmpC, "o");
-				if (Keyboard::isKeyPressed (Keyboard::P))
-					strcat (tmpC, "p");
-				if (Keyboard::isKeyPressed (Keyboard::Q))
-					strcat (tmpC, "q");
-				if (Keyboard::isKeyPressed (Keyboard::R))
-					strcat (tmpC, "r");
-				if (Keyboard::isKeyPressed (Keyboard::S))
-					strcat (tmpC, "s");
-				if (Keyboard::isKeyPressed (Keyboard::T))
-					strcat (tmpC, "t");
-				if (Keyboard::isKeyPressed (Keyboard::U))
-					strcat (tmpC, "u");
-				if (Keyboard::isKeyPressed (Keyboard::V))
-					strcat (tmpC, "v");
-				if (Keyboard::isKeyPressed (Keyboard::W))
-					strcat (tmpC, "w");
-				if (Keyboard::isKeyPressed (Keyboard::X))
-					strcat (tmpC, "x");
-				if (Keyboard::isKeyPressed (Keyboard::Y))
-					strcat (tmpC, "y");
-				if (Keyboard::isKeyPressed (Keyboard::Z))
-					strcat (tmpC, "z");
-				if (Keyboard::isKeyPressed (Keyboard::Period))
-					strcat (tmpC, ".");
-				if (Keyboard::isKeyPressed (Keyboard::Num0))
-					strcat (tmpC, "0");
-				if (Keyboard::isKeyPressed (Keyboard::Num1))
-					strcat (tmpC, "1");
-				if (Keyboard::isKeyPressed (Keyboard::Num2))
-					strcat (tmpC, "2");
-				if (Keyboard::isKeyPressed (Keyboard::Num3))
-					strcat (tmpC, "3");
-				if (Keyboard::isKeyPressed (Keyboard::Num4))
-					strcat (tmpC, "4");
-				if (Keyboard::isKeyPressed (Keyboard::Num5))
-					strcat (tmpC, "5");
-				if (Keyboard::isKeyPressed (Keyboard::Num6))
-					strcat (tmpC, "6");
-				if (Keyboard::isKeyPressed (Keyboard::Num7))
-					strcat (tmpC, "7");
-				if (Keyboard::isKeyPressed (Keyboard::Num8))
-					strcat (tmpC, "8");
-				if (Keyboard::isKeyPressed (Keyboard::Num9))
-					strcat (tmpC, "9");
-			}
-			if (strlen (tmpC) < 4 && fictiv){
-				if (Keyboard::isKeyPressed (Keyboard::A))
-					strcat (tmpC, "a");
-				if (Keyboard::isKeyPressed (Keyboard::B))
-					strcat (tmpC, "b");
-				if (Keyboard::isKeyPressed (Keyboard::C))
-					strcat (tmpC, "c");
-				if (Keyboard::isKeyPressed (Keyboard::D))
-					strcat (tmpC, "d");
-				if (Keyboard::isKeyPressed (Keyboard::E))
-					strcat (tmpC, "e");
-				if (Keyboard::isKeyPressed (Keyboard::F))
-					strcat (tmpC, "f");
-				if (Keyboard::isKeyPressed (Keyboard::G))
-					strcat (tmpC, "g");
-				if (Keyboard::isKeyPressed (Keyboard::H))
-					strcat (tmpC, "h");
-				if (Keyboard::isKeyPressed (Keyboard::I))
-					strcat (tmpC, "i");
-				if (Keyboard::isKeyPressed (Keyboard::J))
-					strcat (tmpC, "j");
-				if (Keyboard::isKeyPressed (Keyboard::K))
-					strcat (tmpC, "k");
-				if (Keyboard::isKeyPressed (Keyboard::L))
-					strcat (tmpC, "l");
-				if (Keyboard::isKeyPressed (Keyboard::M))
-					strcat (tmpC, "m");
-				if (Keyboard::isKeyPressed (Keyboard::N))
-					strcat (tmpC, "n");
-				if (Keyboard::isKeyPressed (Keyboard::O))
-					strcat (tmpC, "o");
-				if (Keyboard::isKeyPressed (Keyboard::P))
-					strcat (tmpC, "p");
-				if (Keyboard::isKeyPressed (Keyboard::Q))
-					strcat (tmpC, "q");
-				if (Keyboard::isKeyPressed (Keyboard::R))
-					strcat (tmpC, "r");
-				if (Keyboard::isKeyPressed (Keyboard::S))
-					strcat (tmpC, "s");
-				if (Keyboard::isKeyPressed (Keyboard::T))
-					strcat (tmpC, "t");
-				if (Keyboard::isKeyPressed (Keyboard::U))
-					strcat (tmpC, "u");
-				if (Keyboard::isKeyPressed (Keyboard::V))
-					strcat (tmpC, "v");
-				if (Keyboard::isKeyPressed (Keyboard::W))
-					strcat (tmpC, "w");
-				if (Keyboard::isKeyPressed (Keyboard::X))
-					strcat (tmpC, "x");
-				if (Keyboard::isKeyPressed (Keyboard::Y))
-					strcat (tmpC, "y");
-				if (Keyboard::isKeyPressed (Keyboard::Z))
-					strcat (tmpC, "z");
-				if (Keyboard::isKeyPressed (Keyboard::Period))
-					strcat (tmpC, ".");
-				if (Keyboard::isKeyPressed (Keyboard::Num0))
-					strcat (tmpC, "0");
-				if (Keyboard::isKeyPressed (Keyboard::Num1))
-					strcat (tmpC, "1");
-				if (Keyboard::isKeyPressed (Keyboard::Num2))
-					strcat (tmpC, "2");
-				if (Keyboard::isKeyPressed (Keyboard::Num3))
-					strcat (tmpC, "3");
-				if (Keyboard::isKeyPressed (Keyboard::Num4))
-					strcat (tmpC, "4");
-				if (Keyboard::isKeyPressed (Keyboard::Num5))
-					strcat (tmpC, "5");
-				if (Keyboard::isKeyPressed (Keyboard::Num6))
-					strcat (tmpC, "6");
-				if (Keyboard::isKeyPressed (Keyboard::Num7))
-					strcat (tmpC, "7");
-				if (Keyboard::isKeyPressed (Keyboard::Num8))
-					strcat (tmpC, "8");
-				if (Keyboard::isKeyPressed (Keyboard::Num9))
-					strcat (tmpC, "9");
-			}
-			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){
-				int i = strlen (tmpC);
-				if (i > 0){
-					char tmpC2 [50];
-					strcpy (tmpC2, tmpC);
-					strncpy (tmpC, tmpC2, i - 1);
-					tmpC [i - 1] = '\0';
-				}
-			}
+		if (event.type == Event::KeyPressed){
+			if ((strlen (tmpC) < 9 && !fictiv) || (strlen (tmpC) < 4 && fictiv))
+				if (Keyboard::isKeyPressed (Keyboard::A))                     strcat (tmpC, "a");
+				else if (Keyboard::isKeyPressed (Keyboard::B))                strcat (tmpC, "b");
+				else if (Keyboard::isKeyPressed (Keyboard::C))                strcat (tmpC, "c");
+				else if (Keyboard::isKeyPressed (Keyboard::D))                strcat (tmpC, "d");
+				else if (Keyboard::isKeyPressed (Keyboard::E))                strcat (tmpC, "e");
+				else if (Keyboard::isKeyPressed (Keyboard::F))                strcat (tmpC, "f");
+				else if (Keyboard::isKeyPressed (Keyboard::G))                strcat (tmpC, "g");
+				else if (Keyboard::isKeyPressed (Keyboard::H))                strcat (tmpC, "h");
+				else if (Keyboard::isKeyPressed (Keyboard::I))                strcat (tmpC, "i");
+				else if (Keyboard::isKeyPressed (Keyboard::J))                strcat (tmpC, "j");
+				else if (Keyboard::isKeyPressed (Keyboard::K))                strcat (tmpC, "k");
+				else if (Keyboard::isKeyPressed (Keyboard::L))                strcat (tmpC, "l");
+				else if (Keyboard::isKeyPressed (Keyboard::M))                strcat (tmpC, "m");
+				else if (Keyboard::isKeyPressed (Keyboard::N))                strcat (tmpC, "n");
+				else if (Keyboard::isKeyPressed (Keyboard::O))                strcat (tmpC, "o");
+				else if (Keyboard::isKeyPressed (Keyboard::P))                strcat (tmpC, "p");
+				else if (Keyboard::isKeyPressed (Keyboard::Q))                strcat (tmpC, "q");
+				else if (Keyboard::isKeyPressed (Keyboard::R))                strcat (tmpC, "r");
+				else if (Keyboard::isKeyPressed (Keyboard::S))                strcat (tmpC, "s");
+				else if (Keyboard::isKeyPressed (Keyboard::T))                strcat (tmpC, "t");
+				else if (Keyboard::isKeyPressed (Keyboard::U))                strcat (tmpC, "u");
+				else if (Keyboard::isKeyPressed (Keyboard::V))                strcat (tmpC, "v");
+				else if (Keyboard::isKeyPressed (Keyboard::W))                strcat (tmpC, "w");
+				else if (Keyboard::isKeyPressed (Keyboard::X))                strcat (tmpC, "x");
+				else if (Keyboard::isKeyPressed (Keyboard::Y))                strcat (tmpC, "y");
+				else if (Keyboard::isKeyPressed (Keyboard::Z))                strcat (tmpC, "z");
+				else if (Keyboard::isKeyPressed (Keyboard::Period))           strcat (tmpC, ".");
+				else if (Keyboard::isKeyPressed (Keyboard::Num0))             strcat (tmpC, "0");
+				else if (Keyboard::isKeyPressed (Keyboard::Num1))             strcat (tmpC, "1");
+				else if (Keyboard::isKeyPressed (Keyboard::Num2))             strcat (tmpC, "2");
+				else if (Keyboard::isKeyPressed (Keyboard::Num3))             strcat (tmpC, "3");
+				else if (Keyboard::isKeyPressed (Keyboard::Num4))             strcat (tmpC, "4");
+				else if (Keyboard::isKeyPressed (Keyboard::Num5))             strcat (tmpC, "5");
+				else if (Keyboard::isKeyPressed (Keyboard::Num6))             strcat (tmpC, "6");
+				else if (Keyboard::isKeyPressed (Keyboard::Num7))             strcat (tmpC, "7");
+				else if (Keyboard::isKeyPressed (Keyboard::Num8))             strcat (tmpC, "8");
+				else if (Keyboard::isKeyPressed (Keyboard::Num9))             strcat (tmpC, "9");
+				else if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       int i = strlen (tmpC);
+					                                                          if (i > 0){
+																				  char tmpC2 [50];
+																				  strcpy (tmpC2, tmpC);
+																				  strncpy (tmpC, tmpC2, i - 1);
+																				  tmpC [i - 1] = '\0';
+																			  }
+				                                                      }
 		}
 	}
 };
@@ -791,6 +682,9 @@ PlayerBackground* System::plBackground2;
 float System::timer;
 float System::time;
 char System::fileNameAd [50];
+Music System::backgroundMusic;
+float System::volumBackMusic;
+Event System::event;
 
 System Basic;
 
@@ -798,7 +692,7 @@ class Menu : public System{
 public:
 	void update (){
 		switch (state){
-		case admin:///////////////////////////////////////////////////////
+/*////*/case admin:///////////////////////////////////////////////////////
 			createWalls ();
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> drawThis){
@@ -826,7 +720,7 @@ public:
 				}
 				break;
 				
-		case AdSelectLVL:////////////////////////////////////////////////////////////
+/*////*/case AdSelectLVL:////////////////////////////////////////////////////////////
 			inputKeyboard (fileNameAd, 0);
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == AdSelectLVL){
@@ -839,7 +733,7 @@ public:
 						tmp = button [i] -> x + 50 - (tmp / 2) * 8; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
 						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 					}
-					if (button [i] -> buttClick && button [i] -> name == "EditLVL"){
+					if ((button [i] -> buttClick && button [i] -> name == "EditLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
 						if (strlen (fileNameAd) > 0){
 							state = admin;
 							for (int i = 0; i < NumButton; i++)
@@ -853,7 +747,7 @@ public:
 				}
 			break;
 
-		case AdSaveLVL:////////////////////////////////////////////////////////////
+/*////*/case AdSaveLVL:////////////////////////////////////////////////////////////
 			inputKeyboard (fileNameAd, 0);
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == AdSaveLVL){
@@ -866,7 +760,7 @@ public:
 						tmp = button [i] -> x + 50 - (tmp / 2) * 8; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
 						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 					}
-					if (button [i] -> buttClick && button [i] -> name == "AdSaveLVL"){
+					if ((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
 						if (strlen (fileNameAd) > 0){
 							state = admin;
 							for (int i = 0; i < NumButton; i++)
@@ -880,7 +774,7 @@ public:
 				}
 			break;
 
-		case player:////////////////////////////////////////////////////////////
+/*////*/case player:////////////////////////////////////////////////////////////
 			timer += time;
 			pl [0].update (CoordWall);
 			plBackground -> changeCoord (pl [0]. x, pl [0].y);
@@ -960,7 +854,7 @@ public:
 				}
 				break;
 
-		case menu:////////////////////////////////////////////////////////////////
+/*////*/case menu:////////////////////////////////////////////////////////////////
 			button [NumButton - 1] -> drawThis = false; 
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> drawThis){
@@ -994,11 +888,36 @@ public:
 									button [i] -> drawThis = false;
 						}
 					}
+					if (button [i] -> buttClick && button [i] -> name == "Settings"){
+						state = settings;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == settings)
+								button [i] -> drawThis = true;
+							else
+								button [i] -> drawThis = false;
+					}
 					if (button [i] -> buttClick && button [i] -> name == "Exit")
 						state = exitt;
 				}
 				break;
-		case mode:///////////////////////////////////////////////////////////////////////
+				
+/*////*/case settings:///////////////////////////////////////////////////////////////////////
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> drawThis){
+					if (button [i] -> name != "BackMusicSlider")
+						button [i] -> checkCursor (posMouse);
+					if (button [i] -> buttClick && button [i] -> name == "BackToMenuSet"){
+						state = menu;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == menu)
+								button [i] -> drawThis = true;
+							else
+								button [i] -> drawThis = false;
+					}
+				}
+			break;
+
+/*////*/case mode:///////////////////////////////////////////////////////////////////////
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> drawThis){
 					button [i] -> checkCursor (posMouse);
@@ -1021,7 +940,7 @@ public:
 				
 			}
 				break;
-		case reqPass://////////////////////////////////////////////////////////////////
+/*////*/case reqPass://////////////////////////////////////////////////////////////////
 
 			inputKeyboard (Pass, 1);
 			for (int i = 0; i < NumButton; i++)
@@ -1035,7 +954,7 @@ public:
 						tmp = button [i] -> x + 50 - (tmp / 2) * 8; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
 						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 					}
-					if (button [i] -> buttClick && button [i] -> name == "Edit"){
+					if ((button [i] -> buttClick && button [i] -> name == "Edit") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
 						if (strlen (Pass) == 4 && !PassEnter){
 							if (strcmp (Pass, "4329") == 0){
 								state = mode; PassEnter = true;
@@ -1058,48 +977,8 @@ public:
 						}
 					}
 				}
-
-			//char tmpC [30];
-			//for (int i = 0; i < NumButton; i++)
-			//	if (button [i] -> state == reqPass){
-			//		button [i] -> checkCursor (posMouse);
-			//		if (button [i] -> buttClick && button [i] -> name == "EnterPass" && (strlen (Pass) < 4)){
-			//			_itoa (button [i] -> value, tmpC, 10);
-			//			strcat (Pass, tmpC);
-			//		}
-			//		if (button [i] -> name == "Edit"){
-			//			button [i] -> text -> clear ();
-			//			button [i] -> text -> changeSize (30); //размер текста
-			//			button [i] -> text -> add (Pass);
-			//			float tmp = (float)  strlen (Pass); //получаем длинну текста в символах
-			//			tmp = button [i] -> x + 50 - (tmp / 2) * 12; //сдвигаем текст к центру кнопки (плохо работает, т.к. неизвестна ширина букв, мы считаем только количество букв, а не ширину текста)
-			//			button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
-			//		}
-			//		if (button [i] -> buttClick && button [i] -> name == "Edit"){
-			//			if (strlen (Pass) == 4 && !PassEnter){
-			//				if (strcmp (Pass, "4329") == 0){
-			//					state = mode; PassEnter = true;
-			//					AdOrPlMode = "AdminMode"; strcpy (Pass, "");
-			//					for (int i = 0; i < NumButton; i++)
-			//						if (button [i] -> state == mode)
-			//							button [i] -> drawThis = true;
-			//						else
-			//							button [i] -> drawThis = false;
-			//				}
-			//				else{
-			//					state = mode; PassEnter = false;
-			//					AdOrPlMode = "PlayerMode"; strcpy (Pass, "");
-			//					for (int i = 0; i < NumButton; i++)
-			//						if (button [i] -> state == mode)
-			//							button [i] -> drawThis = true;
-			//						else
-			//							button [i] -> drawThis = false;
-			//				}
-			//			}
-			//		}
-			//	}
 			break;
-		case selectLVL://////////////////////////////////////////////////////////////////
+/*////*/case selectLVL://////////////////////////////////////////////////////////////////
 			char tmpC2 [30];
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> drawThis){
@@ -1133,7 +1012,7 @@ public:
 					}
 				}
 			break;
-		case exitt://///////////////////////////////////////////////////////////////////
+/*////*/case exitt://///////////////////////////////////////////////////////////////////
 			window[0].close ();
 			break;
 		}
@@ -1162,12 +1041,13 @@ int main (){
 		Basic.mousePosWin = Mouse::getPosition (Basic.window[0]); //координаты мыши относ. окна
 		Basic.posMouse = Basic.window[0].mapPixelToCoords (Basic.mousePosWin); //координаты мыши относ. карты
 
-		Event event; //обработчик закрытия окна !нужно для корректного закрытия окна
-		while (Basic.window[0].pollEvent (event)){
-			if ((event.type == Event::Closed) || Keyboard::isKeyPressed (Keyboard::Escape)) //закрыть игру можно и ескейпом
+		//Event event; //обработчик закрытия окна !нужно для корректного закрытия окна
+		while (Basic.window[0].pollEvent (Basic.event)){
+			if ((Basic.event.type == Event::Closed) || Keyboard::isKeyPressed (Keyboard::Escape)) //закрыть игру можно и ескейпом
 				Basic.window[0].close (); 
+			GameMenu.update ();
+			
 		}		
-		GameMenu.update ();
 		Basic.draw ();
 	}
 	return 0;
