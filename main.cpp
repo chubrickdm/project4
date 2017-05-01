@@ -45,6 +45,9 @@ public:
 	static Clock clock; //время
 	static float timer;
 	static float time;
+
+	static Music backgroundMusic;
+	static float volumBackMusic;
 };
 
 Vector2i System::mousePosWin; //координаты мыши относ. окна
@@ -57,6 +60,10 @@ Event System::event;
 Clock System::clock; //время
 float System::timer;
 float System::time;
+
+Music System::backgroundMusic;
+float System::volumBackMusic;
+
 
 class Body : public System{
 public:
@@ -99,7 +106,6 @@ public:
 	}
 };
 
-
 class Background : public Body{
 	public:
 	bool drawThis;
@@ -123,7 +129,6 @@ public:
 		window -> draw (sprite);
 	}
 };
-
 
 class Player : public Body{
 public:
@@ -309,6 +314,45 @@ public:
 	void checkCursor (){ };
 };
 
+class ScrollBar : public BodyButton{
+public:
+	int leftBorder, rightBorder;
+	Vector2f posFirstPressed;
+public:
+	ScrollBar (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int tmpBordL, int tmpBordR) : 
+		    BodyButton (image, "", Name, Font, State, X, Y, W, H){ 
+        leftBorder = tmpBordL; rightBorder = tmpBordR;
+		if (name == "MusicSlider"){
+			if (volumBackMusic <= 100){
+				sprite.setPosition ((float) leftBorder + volumBackMusic, (float) y);
+				x = leftBorder + (int) volumBackMusic;
+			}
+			else{
+				sprite.setPosition  ((float) rightBorder, (float) y);
+				x = rightBorder;
+			}
+		}
+	}
+
+	void draw (){
+		window -> draw (sprite);
+	}
+
+	void checkCursor (){ 
+		if (posMouse.x >= leftBorder && posMouse.x <= rightBorder && posMouse.y >= y && posMouse.y <= y + h)
+			if (Mouse::isButtonPressed (Mouse::Left)){
+				sprite.setPosition ((float) posMouse.x, (float) y);
+				x = (int) posMouse.x; volumBackMusic = posMouse.x - leftBorder;
+				backgroundMusic.setVolume (volumBackMusic);
+				buttClick = true;
+			}
+		if ((posMouse.x >= x) && (posMouse.x <= x + w) && (posMouse.y >= y) && (posMouse.y <= y + h)) //если курсор мыши находится на кнопке
+			sprite.setTextureRect (IntRect (0, h, w, h)); //если наведен курсор на мышку, то кнопка меняет текстуру
+		else
+			sprite.setTextureRect (IntRect (0, 0, w, h));
+	}
+};
+
 
 
 class Game : public System{
@@ -337,10 +381,17 @@ public:
 	BodyButton *button [70]; //массив кнопок
 
 	char fileNameAd [50];
-
-	Music backgroundMusic;
-	float volumBackMusic;
 public:
+	void readInfo (){
+		ifstream inF ("player.txt");
+		inF >> PassedLVL >> volumBackMusic >> PassEnter;
+	}
+
+	void writeInfo (){
+		ofstream outF ("player.txt");
+		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << endl;
+	}
+
 	void draw (){
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
@@ -373,6 +424,7 @@ public:
 		window -> display ();
 	}
 
+
 	void initializeButton (){
 		Font font;
 		font.loadFromFile ("modeka.otf");
@@ -391,8 +443,8 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30, 0);
 
 		tmpS = settings;
-		button [NumButton++] = new Button (buttonImage, "Volume", "Volume", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30, 0);
-		button [NumButton++] = new Button (buttonImage, "", "BackMusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 20, 30, 0);
+		button [NumButton++] = new Static (buttonImage, "Volume", "Volume", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
+		button [NumButton++] = new ScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 15, 30, GLOBAL_W / 2 - 120 / 2, GLOBAL_W / 2 - 120 / 2 + 105);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSet", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30, 0);
 
 		tmpS = mode;
@@ -465,12 +517,10 @@ public:
 		plBackground2 = new Background (backgroundImage2, "PlayerBackground", 0, 0, GLOBAL_W, GLOBAL_H);
 		plBackground2 -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2, 0);
 
-		ifstream inF ("player.txt");
-		inF >> PassedLVL;
+		readInfo ();
 
 		strcpy (fileNameAd, "");
 
-		volumBackMusic = 100;
 		backgroundMusic.openFromFile ("deadbolt.ogg");
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
@@ -495,7 +545,6 @@ public:
 		CurrentLVL = 1;
 		PassEnter = false;
 		strcpy (Pass, "");
-		PassedLVL = 0;
 		state = menu;
 		timer = 0;
 		indexFinish = -1;
@@ -505,6 +554,7 @@ public:
 		initializeLine ();
 		initializeWall ();
 	}
+
 
 	void createWalls (){
 		int tmpX, tmpY, tmpX2, tmpY2;
@@ -580,7 +630,6 @@ public:
 
 				}	
 	}
-
 
 	void saveFile (char *tmpC){
 		ofstream outF (tmpC);
@@ -732,6 +781,7 @@ public:
 		}
 	}
 
+
 	void StateMenu (){
 		button [NumButton - 1] -> drawThis = false; 
 		for (int i = 0; i < NumButton; i++)
@@ -756,8 +806,7 @@ public:
 								button [i] -> drawThis = false;
 					}
 					if (AdOrPlMode == "PlayerMode"){
-						ifstream inF ("player.txt");
-						inF >> PassedLVL;
+						writeInfo ();
 						state = selectLVL;
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == selectLVL)
@@ -766,16 +815,16 @@ public:
 								button [i] -> drawThis = false;
 					}
 				}
-					if (button [i] -> buttClick && button [i] -> name == "Settings"){
-						state = settings;
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == settings)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
-					}
-					if (button [i] -> buttClick && button [i] -> name == "Exit")
-						state = exitt;
+				if (button [i] -> buttClick && button [i] -> name == "Settings"){
+					state = settings;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == settings)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+				}
+				if (button [i] -> buttClick && button [i] -> name == "Exit")
+					state = exitt;
 			}
 	}
 	void StateMode (){
@@ -791,7 +840,7 @@ public:
 							button [i] -> drawThis = false;
 				}
 			}
-		if (AdOrPlMode == "AdminMode" && !PassEnter){
+			if (AdOrPlMode == "AdminMode" && !PassEnter){
 				state = reqPass;
 				for (int i = 0; i < NumButton; i++)
 					if (button [i] -> state == reqPass)
@@ -838,8 +887,7 @@ public:
 				if (button [i] -> buttClick && button [i] -> name == "BackToMenuPl"){
 					timer = 0;
 					NumAnsw = 0;
-					ifstream inF ("player.txt");
-					inF >> PassedLVL;
+					writeInfo ();
 					state = selectLVL;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == selectLVL)
@@ -851,9 +899,9 @@ public:
 				if (button [i] -> buttClick && button [i] -> name == "lvlComplete"){
 					if (CurrentLVL < 4){
 						timer = 0;
-						ofstream outF ("player.txt");
-
-						outF << CurrentLVL;
+						if (PassedLVL < 4)
+							PassedLVL++;
+						writeInfo ();
 						CurrentLVL++;
 						char tmpC [30], *tmpC2;
 						tmpC2 = _itoa (CurrentLVL, tmpC, 10);
@@ -906,26 +954,24 @@ public:
 						button [i] -> drawThis = false;
 			}
 	}
-	void StateBackToMenu (){
-
-	}
 	void StateSettings (){
 		for (int i = 0; i < NumButton; i++)
-				if (button [i] -> drawThis){
-					if (button [i] -> name != "BackMusicSlider")
-						button [i] -> checkCursor ();
-					if (button [i] -> buttClick && button [i] -> name == "BackToMenuSet"){
-						state = menu;
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == menu)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
-					}
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (button [i] -> buttClick && button [i] -> name == "BackToMenuSet"){
+					state = menu;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == menu)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
 				}
+				if (button [i] -> buttClick && button [i] -> name == "MusicSlider")
+					writeInfo ();
+			}
 	}
 	void StateExitt (){
-		window[0].close ();
+		window -> close ();
 	}
 	void StateReqPass (){
 		inputKeyboard (Pass, 1);
@@ -943,6 +989,7 @@ public:
 				if ((button [i] -> buttClick && button [i] -> name == "Edit") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
 					if (strlen (Pass) == 4 && !PassEnter){
 						if (strcmp (Pass, "4329") == 0){
+							writeInfo ();
 							state = mode; PassEnter = true;
 							AdOrPlMode = "AdminMode"; strcpy (Pass, "");
 							for (int i = 0; i < NumButton; i++)
@@ -971,18 +1018,14 @@ public:
 				button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "SelectLVL"){
 					if (button [i] -> value <= PassedLVL + 1){
-						//cout << button [i] -> value << " " << i;
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
 						state = player;
 						char nameFile [30] = "lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
-						//cout << nameFile << endl;
 						openSpecificFile (nameFile);
-						//cout << Start.x << " " << Start.y << endl;
 						pl [0].changeCoord (Start.x, Start.y);
-						//plBackground -> drawThis = true;
 						plBackground -> changeCoord (Start.x, Start.y);
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == player)
@@ -1053,9 +1096,6 @@ public:
 					}
 				}
 	}
-	void StateCompleteLVL (){
-
-	}
 
 	void update (){
 		switch (state){
@@ -1070,9 +1110,6 @@ public:
 			break;
 		case player:
 			//StatePlayer ();
-			break;
-		case backToMenu:
-			StateBackToMenu ();
 			break;
 		case settings:
 			StateSettings ();
@@ -1092,9 +1129,6 @@ public:
 		case AdSaveLVL:
 			StateAdSaveLVL ();
 			break;
-		case completeLVL:
-			StateCompleteLVL ();
-			break;
 		}
 	}
 };
@@ -1106,6 +1140,7 @@ int main (){
 	System system;
 	Game game;
 	system.window = new RenderWindow (VideoMode (W_WIN, H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen*/); //создание окна
+	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
 		system.time = (float) system.clock.getElapsedTime ().asMicroseconds(); //время каждый раз обновляется
@@ -1116,13 +1151,20 @@ int main (){
 		system.mousePosWin = Mouse::getPosition (system.window [0]); //координаты мыши относ. окна
 		system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
 
+
 		while (system.window [0].pollEvent (system.event)){
 			if ((system.event.type == Event::Closed) || Keyboard::isKeyPressed (Keyboard::Escape)) //закрыть игру можно и ескейпом
 				system.window -> close (); 
+			isUpdate = true;
 			game.update ();
 		}		
 		if (game.state == player)
 			game.StatePlayer ();
+		if (!isUpdate)
+			game.update ();
+		isUpdate = false;
+
+
 		game.draw ();
 	}
 	return 0;
