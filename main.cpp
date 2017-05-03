@@ -1,5 +1,5 @@
-//#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp> //основная библиотека для работы с графикой и изображением
+#include <SFML/Audio.hpp>
 #include <iostream> //для сяутов и синов
 #include <fstream> //для работы с файлами
 #include "forMcText.h" //взял библиотеку по ссылке kychka-pc.ru/wiki/svobodnaya-baza-znanij-sfml/test/sistemnyj-modul-system-module/potoki-threads/sfsound-sfmusic
@@ -91,14 +91,17 @@ public:
 public:
 	Wall (Image &image, String Name, int X, int Y, int W, int H) : Body (image, Name, X, Y, W, H){ //конструктор с именем
 		drawThis = true; 
-		if (name == "Wall") //стена обычная
+		if (name == "Wall"){ //стена обычная
 			sprite.setTextureRect (IntRect (0, 0, w, h));
+			sprite.setOrigin (0, (float) h / 2);
+			sprite.setPosition ((float) x, (float) y);
+		}
 		if (name == "Finish") //куда надл игроку идти
-			sprite.setTextureRect (IntRect (0, h, w, h));
-		if (name == "Start") //откуда игрок будет начинать, сделано для удобства создания карт, что б админ видел где игрок начинает и где заканчиват
 			sprite.setTextureRect (IntRect (0, h * 2, w, h));
-		if (name == "HelpWall") //вспомогательные "стены" которые показывают правильный путь
+		if (name == "Start") //откуда игрок будет начинать, сделано для удобства создания карт, что б админ видел где игрок начинает и где заканчиват
 			sprite.setTextureRect (IntRect (0, h * 3, w, h));
+		if (name == "HelpWall") //вспомогательные "стены" которые показывают правильный путь
+			sprite.setTextureRect (IntRect (0, h * 4, w, h));
 	}
 
 	void draw (){ 
@@ -314,23 +317,18 @@ public:
 	void checkCursor (){ };
 };
 
-class ScrollBar : public BodyButton{
+class HorizontScrollBar : public BodyButton{
 public:
 	int leftBorder, rightBorder;
 	Vector2f posFirstPressed;
 public:
-	ScrollBar (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int tmpBordL, int tmpBordR) : 
+	HorizontScrollBar (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int tmpBordL, int tmpBordR) : 
 		    BodyButton (image, "", Name, Font, State, X, Y, W, H){ 
+		sprite.setOrigin ((float) w / 2, 0);
         leftBorder = tmpBordL; rightBorder = tmpBordR;
 		if (name == "MusicSlider"){
-			if (volumBackMusic <= 100){
-				sprite.setPosition ((float) leftBorder + volumBackMusic, (float) y);
-				x = leftBorder + (int) volumBackMusic;
-			}
-			else{
-				sprite.setPosition  ((float) rightBorder, (float) y);
-				x = rightBorder;
-			}
+			sprite.setPosition ((float) leftBorder + volumBackMusic, (float) y);
+			x = leftBorder + (int) volumBackMusic;
 		}
 	}
 
@@ -346,7 +344,8 @@ public:
 				backgroundMusic.setVolume (volumBackMusic);
 				buttClick = true;
 			}
-		if ((posMouse.x >= x) && (posMouse.x <= x + w) && (posMouse.y >= y) && (posMouse.y <= y + h)) //если курсор мыши находится на кнопке
+
+		if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y) && (posMouse.y <= y + h)) //если курсор мыши находится на кнопке
 			sprite.setTextureRect (IntRect (0, h, w, h)); //если наведен курсор на мышку, то кнопка меняет текстуру
 		else
 			sprite.setTextureRect (IntRect (0, 0, w, h));
@@ -381,6 +380,10 @@ public:
 	BodyButton *button [70]; //массив кнопок
 
 	char fileNameAd [50];
+
+	//Sound sndClickButt;
+	Music sndClickButt;
+
 public:
 	void readInfo (){
 		ifstream inF ("player.txt");
@@ -395,8 +398,11 @@ public:
 	void draw (){
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
+		if (state == player)
+			pl -> draw (); //рисую игрока
 		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL){
-			window -> draw (lines); //рисую массив линий
+			if (state == admin)
+				window -> draw (lines); //рисую массив линий
 			for (int j = 0; j < NumWall; j++) //рисую стены
 				if (ArrWall [j] -> drawThis)
 					ArrWall [j] -> draw ();
@@ -416,7 +422,7 @@ public:
 				button [i] -> draw ();
 
 		if (state == player){
-			pl -> draw (); //рисую игрока
+			//pl -> draw (); //рисую игрока
 			for (int i = 0; i < NumAnsw; i++) //рисую вспомогательные стены
 				helpWall [i] -> draw ();
 		}			
@@ -444,7 +450,7 @@ public:
 
 		tmpS = settings;
 		button [NumButton++] = new Static (buttonImage, "Volume", "Volume", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
-		button [NumButton++] = new ScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 15, 30, GLOBAL_W / 2 - 120 / 2, GLOBAL_W / 2 - 120 / 2 + 105);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 20, 30, GLOBAL_W / 2 - 120 / 2 + 10, GLOBAL_W / 2 - 120 / 2 + 110);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSet", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30, 0);
 
 		tmpS = mode;
@@ -525,10 +531,18 @@ public:
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
 		backgroundMusic.setVolume (volumBackMusic);
+
+		//SoundBuffer buffer; //создаём буфер для звука
+		//buffer.loadFromFile ("button-30.wav"); //загружаем в него звук
+		//sndClickButt = new Sound (buffer); //создаем звук и загружаем в него звук из буфера
+		//sndClickButt -> setVolume (100);
+		//sndClickButt.setBuffer (buffer);
+		//sndClickButt.setVolume (100);
+		sndClickButt.openFromFile ("button-30.wav");
 	}
 
 	void initializeWall (){
-		wallImage.loadFromFile ("wall.png");
+		wallImage.loadFromFile ("wall1.1.png");
 	
 		NumWall = 0; //количество стен
 		CoordWall = new bool* [NUM_CELL_X];
@@ -571,7 +585,9 @@ public:
 						for (int i = 0; i < NumWall; i++)
 							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
 								if (ArrWall [i] -> name != "Finish" && ArrWall [i] -> name != "Start"){
-									ArrWall [i] -> drawThis = false;
+									for (int j = i; j < NumWall - 1; j++)
+										ArrWall [j] =  ArrWall [j + 1];
+									NumWall--;
 									CoordWall [tmpX2][tmpY2] = false;
 									wallDeleted = true;
 									break;
@@ -624,7 +640,7 @@ public:
 							}
 						}
 						if (tmpB)
-							ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE);
+							ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE * 2);
 						CoordWall [tmpX2][tmpY2] = true;
 					}
 
@@ -669,7 +685,7 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0)
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE);
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE * 2);
 			if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX; Start.y = tmpY;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE);
@@ -706,7 +722,7 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0)
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE);
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE * 2);
 			if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX; Start.y = tmpY;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE);
@@ -879,7 +895,7 @@ public:
 	}
 	void StatePlayer (){
 		timer += time;
-		pl [0].update (CoordWall);
+		pl -> update (CoordWall);
 		plBackground -> changeCoord (pl [0]. x, pl [0].y);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
@@ -896,7 +912,7 @@ public:
 							button [i] -> drawThis = false;
 					lvlComplete = false;
 				}
-				if (button [i] -> buttClick && button [i] -> name == "lvlComplete"){
+				if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && Keyboard::isKeyPressed (Keyboard::Return))){
 					if (CurrentLVL < 4){
 						timer = 0;
 						if (PassedLVL < 4)
@@ -908,9 +924,8 @@ public:
 						char nameFile [30] = "lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
-						//cout << nameFile << endl;
 						openSpecificFile (nameFile);
-						pl [0].changeCoord (Start.x, Start.y);
+						pl -> changeCoord (Start.x, Start.y);
 					}
 				}
 				if (button [i] -> buttClick && button [i] -> name == "HelpPl"){
@@ -987,7 +1002,7 @@ public:
 					button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 				}
 				if ((button [i] -> buttClick && button [i] -> name == "Edit") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
-					if (strlen (Pass) == 4 && !PassEnter){
+					if (!PassEnter){
 						if (strcmp (Pass, "4329") == 0){
 							writeInfo ();
 							state = mode; PassEnter = true;
@@ -1157,6 +1172,8 @@ int main (){
 				system.window -> close (); 
 			isUpdate = true;
 			game.update ();
+			if (Mouse::isButtonPressed (Mouse::Left))
+				game.sndClickButt.play (); 
 		}		
 		if (game.state == player)
 			game.StatePlayer ();

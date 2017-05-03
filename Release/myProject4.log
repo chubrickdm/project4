@@ -1,5 +1,5 @@
 ﻿  main.cpp
-main.cpp(1140): warning C4101: system: неиспользованная локальная переменная
+main.cpp(1155): warning C4101: system: неиспользованная локальная переменная
   Создание кода
   Создание кода завершено
   myProject4.vcxproj -> D:\Димона\Универ\Прога\Projects\Game\myProject4\Release\myProject4.exe
