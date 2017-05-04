@@ -92,9 +92,9 @@ public:
 	Wall (Image &image, String Name, int X, int Y, int W, int H) : Body (image, Name, X, Y, W, H){ //конструктор с именем
 		drawThis = true; 
 		if (name == "Wall"){ //стена обычная
-			sprite.setTextureRect (IntRect (0, 0, w, h));
-			sprite.setOrigin (0, (float) h / 2);
-			sprite.setPosition ((float) x, (float) y);
+			sprite.setTextureRect (IntRect (0, h, w, h));
+			//sprite.setOrigin (0, (float) h / 2);
+			//sprite.setPosition ((float) x, (float) y);
 		}
 		if (name == "Finish") //куда надл игроку идти
 			sprite.setTextureRect (IntRect (0, h * 2, w, h));
@@ -308,6 +308,9 @@ public:
 		if (name == "SelectStatic"){
 			text -> setPosition ((float) x - 19, (float) y - 5);
 		}
+		if (name == "Quit game?"){
+			text -> setPosition ((float) x - 24, (float) y - 5);
+		}
 	}
 
 	void draw (){
@@ -337,13 +340,29 @@ public:
 	}
 
 	void checkCursor (){ 
-		if (posMouse.x >= leftBorder && posMouse.x <= rightBorder && posMouse.y >= y && posMouse.y <= y + h)
-			if (Mouse::isButtonPressed (Mouse::Left)){
-				sprite.setPosition ((float) posMouse.x, (float) y);
-				x = (int) posMouse.x; volumBackMusic = posMouse.x - leftBorder;
-				backgroundMusic.setVolume (volumBackMusic);
-				buttClick = true;
-			}
+		if (posMouse.x >= leftBorder && posMouse.x <= rightBorder)
+			if (posMouse.y >= y && posMouse.y <= y + h){
+				if (event.type == Event::MouseButtonPressed && !buttPressed){
+					sprite.setPosition ((float) posMouse.x, (float) y);
+					x = (int) posMouse.x; volumBackMusic = posMouse.x - leftBorder;
+					backgroundMusic.setVolume (volumBackMusic);
+					buttPressed = true;
+				}
+				if (buttPressed){
+					//cout << "update data scroll bar by move" << endl;
+					sprite.setPosition ((float) posMouse.x, (float) y);
+					x = (int) posMouse.x; volumBackMusic = posMouse.x - leftBorder;
+					backgroundMusic.setVolume (volumBackMusic);
+				}
+
+				if (event.type == Event::MouseButtonPressed)
+					buttClick = true;
+				else
+					buttClick = false;
+		}
+		if (event.type == Event::MouseButtonReleased)
+			buttPressed = false;
+
 
 		if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y) && (posMouse.y <= y + h)) //если курсор мыши находится на кнопке
 			sprite.setTextureRect (IntRect (0, h, w, h)); //если наведен курсор на мышку, то кнопка меняет текстуру
@@ -381,9 +400,10 @@ public:
 
 	char fileNameAd [50];
 
-	//Sound sndClickButt;
-	Music sndClickButt;
+	SoundBuffer buffer; //создаём буфер для звука
+	Sound sndClickButt;
 
+	bool escapeReleased;
 public:
 	void readInfo (){
 		ifstream inF ("player.txt");
@@ -398,8 +418,6 @@ public:
 	void draw (){
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
-		if (state == player)
-			pl -> draw (); //рисую игрока
 		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL){
 			if (state == admin)
 				window -> draw (lines); //рисую массив линий
@@ -422,7 +440,7 @@ public:
 				button [i] -> draw ();
 
 		if (state == player){
-			//pl -> draw (); //рисую игрока
+			pl -> draw (); //рисую игрока
 			for (int i = 0; i < NumAnsw; i++) //рисую вспомогательные стены
 				helpWall [i] -> draw ();
 		}			
@@ -448,6 +466,11 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30, 0);
 		button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30, 0);
 
+		tmpS = exitt;
+		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "No!", "QuitNo", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30, 0);
+		button [NumButton++] = new Button (buttonImage, "Yes.", "QuitYes", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 120, 30, 0);
+
 		tmpS = settings;
 		button [NumButton++] = new Static (buttonImage, "Volume", "Volume", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30);
 		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 20, 30, GLOBAL_W / 2 - 120 / 2 + 10, GLOBAL_W / 2 - 120 / 2 + 110);
@@ -472,12 +495,12 @@ public:
 		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
 
 		tmpS = selectLVL;
-		button [NumButton++] = new Button (buttonImage, "1", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 200, 29, 30, 1);
-		button [NumButton++] = new Button (buttonImage, "2", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 30, GLOB_IND_H + EDGE * 7 + 200, 29, 30, 2);
-		button [NumButton++] = new Button (buttonImage, "3", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 60, GLOB_IND_H + EDGE * 7 + 200, 29, 30, 3);
-		button [NumButton++] = new Button (buttonImage, "4", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 90, GLOB_IND_H + EDGE * 7 + 200, 29, 30, 4);
-		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 150, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 100, 120, 30, 0);
+		button [NumButton++] = new Button (buttonImage, "1", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7, 29, 30, 1);
+		button [NumButton++] = new Button (buttonImage, "2", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 30, GLOB_IND_H + EDGE * 7, 29, 30, 2);
+		button [NumButton++] = new Button (buttonImage, "3", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 60, GLOB_IND_H + EDGE * 7, 29, 30, 3);
+		button [NumButton++] = new Button (buttonImage, "4", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 90, GLOB_IND_H + EDGE * 7, 29, 30, 4);
+		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 - 50, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H + EDGE * 7 + 50, 120, 30, 0);
 
 		tmpS = AdSelectLVL;
 		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS, GLOBAL_W / 2 - 120 / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 120, 30);
@@ -532,17 +555,14 @@ public:
 		backgroundMusic.setLoop (true);
 		backgroundMusic.setVolume (volumBackMusic);
 
-		//SoundBuffer buffer; //создаём буфер для звука
-		//buffer.loadFromFile ("button-30.wav"); //загружаем в него звук
-		//sndClickButt = new Sound (buffer); //создаем звук и загружаем в него звук из буфера
-		//sndClickButt -> setVolume (100);
-		//sndClickButt.setBuffer (buffer);
-		//sndClickButt.setVolume (100);
-		sndClickButt.openFromFile ("button-30.wav");
+		buffer.loadFromFile ("button-30.wav"); //загружаем в него звук
+		sndClickButt.setBuffer (buffer);
+
+		escapeReleased = false;
 	}
 
 	void initializeWall (){
-		wallImage.loadFromFile ("wall1.1.png");
+		wallImage.loadFromFile ("wall.png");
 	
 		NumWall = 0; //количество стен
 		CoordWall = new bool* [NUM_CELL_X];
@@ -640,7 +660,7 @@ public:
 							}
 						}
 						if (tmpB)
-							ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE * 2);
+							ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE);
 						CoordWall [tmpX2][tmpY2] = true;
 					}
 
@@ -685,7 +705,7 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0)
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE * 2);
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE);
 			if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX; Start.y = tmpY;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE);
@@ -722,7 +742,7 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0)
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE * 2);
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE);
 			if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX; Start.y = tmpY;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE);
@@ -804,6 +824,7 @@ public:
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "Mode"){
+					sndClickButt.play (); 
 					state = mode; 
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == mode)
@@ -812,6 +833,7 @@ public:
 							button [i] -> drawThis = false;
 				}
 				if (button [i] -> buttClick && button [i] -> name == "Go!"){
+					sndClickButt.play (); 
 					if (AdOrPlMode == "AdminMode"){
 						openSpecificFile ("empty.txt");
 						state = admin; 
@@ -822,6 +844,7 @@ public:
 								button [i] -> drawThis = false;
 					}
 					if (AdOrPlMode == "PlayerMode"){
+						sndClickButt.play (); 
 						writeInfo ();
 						state = selectLVL;
 						for (int i = 0; i < NumButton; i++)
@@ -832,6 +855,7 @@ public:
 					}
 				}
 				if (button [i] -> buttClick && button [i] -> name == "Settings"){
+					sndClickButt.play (); 
 					state = settings;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == settings)
@@ -839,15 +863,23 @@ public:
 						else
 							button [i] -> drawThis = false;
 				}
-				if (button [i] -> buttClick && button [i] -> name == "Exit")
+				if ((button [i] -> buttClick && button [i] -> name == "Exit") || escapeReleased){
+					sndClickButt.play (); 
 					state = exitt;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == exitt)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+				}
 			}
 	}
 	void StateMode (){
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "BackToMenu"){
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenu") || escapeReleased){
+					sndClickButt.play (); 
 					state = menu;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == menu)
@@ -855,6 +887,8 @@ public:
 						else
 							button [i] -> drawThis = false;
 				}
+				if (button [i] -> buttClick && button [i] -> name == "AdminMode")
+					sndClickButt.play (); 
 			}
 			if (AdOrPlMode == "AdminMode" && !PassEnter){
 				state = reqPass;
@@ -872,18 +906,21 @@ public:
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "SaveAd"){
+					sndClickButt.play (); 
 					state = AdSaveLVL;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == AdSaveLVL)
 							button [i] -> drawThis = true;
 				}
 				if (button [i] -> buttClick && button [i] -> name == "OpenAd"){
+					sndClickButt.play (); 
 					state = AdSelectLVL;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == AdSelectLVL)
 							button [i] -> drawThis = true;
 				}
-				if (button [i] -> buttClick && button [i] -> name == "BackToMenuAd"){
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased){
+					sndClickButt.play (); 
 					state = menu;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == menu)
@@ -900,7 +937,8 @@ public:
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "BackToMenuPl"){
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuPl") || escapeReleased){
+					sndClickButt.play (); 
 					timer = 0;
 					NumAnsw = 0;
 					writeInfo ();
@@ -913,6 +951,7 @@ public:
 					lvlComplete = false;
 				}
 				if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && Keyboard::isKeyPressed (Keyboard::Return))){
+					sndClickButt.play (); 
 					if (CurrentLVL < 4){
 						timer = 0;
 						if (PassedLVL < 4)
@@ -929,6 +968,7 @@ public:
 					}
 				}
 				if (button [i] -> buttClick && button [i] -> name == "HelpPl"){
+					sndClickButt.play (); 
 					if (timer > 2000){ //20 000 = 5 секунд реального времени, 40 000=15, 80 000=30
 						timer = 0;
 						Coordinate fn, sizeMap, st;
@@ -973,7 +1013,9 @@ public:
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "BackToMenuSet"){
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSet") || escapeReleased){
+					sndClickButt.play (); 
+					writeInfo ();
 					state = menu;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == menu)
@@ -982,11 +1024,27 @@ public:
 							button [i] -> drawThis = false;
 				}
 				if (button [i] -> buttClick && button [i] -> name == "MusicSlider")
-					writeInfo ();
+					sndClickButt.play (); 
 			}
 	}
 	void StateExitt (){
-		window -> close ();
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if ((button [i] -> buttClick && button [i] -> name == "QuitNo")){
+					sndClickButt.play (); 
+					state = menu;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == menu)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+				}
+				if ((button [i] -> buttClick && button [i] -> name == "QuitYes") || escapeReleased){
+					sndClickButt.play (); 
+					window -> close ();
+				}
+			}
 	}
 	void StateReqPass (){
 		inputKeyboard (Pass, 1);
@@ -1003,6 +1061,7 @@ public:
 				}
 				if ((button [i] -> buttClick && button [i] -> name == "Edit") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
 					if (!PassEnter){
+						sndClickButt.play (); 
 						if (strcmp (Pass, "4329") == 0){
 							writeInfo ();
 							state = mode; PassEnter = true;
@@ -1032,6 +1091,7 @@ public:
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "SelectLVL"){
+					sndClickButt.play (); 
 					if (button [i] -> value <= PassedLVL + 1){
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
@@ -1049,7 +1109,8 @@ public:
 								button [i] -> drawThis = false;
 					}
 				}
-				if (button [i] -> buttClick && button [i] -> name == "BackToMenuSel"){
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased){
+					sndClickButt.play (); 
 					state = menu;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == menu)
@@ -1073,6 +1134,7 @@ public:
 						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 					}
 					if ((button [i] -> buttClick && button [i] -> name == "EditLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
+						sndClickButt.play (); 
 						if (strlen (fileNameAd) > 0){
 							state = admin;
 							for (int i = 0; i < NumButton; i++)
@@ -1099,6 +1161,7 @@ public:
 						button [i] -> text -> setPosition ((float) tmp, (float) button [i] -> y - 5); //распологаем текст по кнопке
 					}
 					if ((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
+						sndClickButt.play (); 
 						if (strlen (fileNameAd) > 0){
 							state = admin;
 							for (int i = 0; i < NumButton; i++)
@@ -1167,18 +1230,21 @@ int main (){
 		system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
 
 
-		while (system.window [0].pollEvent (system.event)){
-			if ((system.event.type == Event::Closed) || Keyboard::isKeyPressed (Keyboard::Escape)) //закрыть игру можно и ескейпом
+		while (system.window -> pollEvent (system.event)){
+			if (system.event.type == Event::Closed) //закрыть игру можно и ескейпом
 				system.window -> close (); 
 			isUpdate = true;
 			game.update ();
-			if (Mouse::isButtonPressed (Mouse::Left))
-				game.sndClickButt.play (); 
+			if (system.event.type == Event::KeyReleased && system.event.key.code == 36)
+				game.escapeReleased = true;
+			else
+				game.escapeReleased = false;
 		}		
 		if (game.state == player)
 			game.StatePlayer ();
-		if (!isUpdate)
-			game.update ();
+		if (!isUpdate){
+			game.update (); game.escapeReleased = false;
+		}
 		isUpdate = false;
 
 
