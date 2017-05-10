@@ -120,6 +120,12 @@ public:
 			shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 		if (name == "HelpWall") //вспомогательные "стены" которые показывают правильный путь
 			shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
+		if (name == "Circle")
+			shape.setTextureRect (IntRect (0, hTexture * 5, wTexture, hTexture));
+		if (name == "Rectangle")
+			shape.setTextureRect (IntRect (0, hTexture * 6, wTexture, hTexture));
+		if (name == "Triangle")
+			shape.setTextureRect (IntRect (0, hTexture * 7, wTexture, hTexture));
 	}
 
 	void draw (){ 
@@ -518,8 +524,7 @@ public:
 				buttPressed = true;
 			else{
 				if (buttPressed){ //если же курсор на кнопке и кнопка была нажата, а сейчас не нажата-значит мы кликнули по ней
-					buttClick = true; 
-					picture.setTextureRect (IntRect (0, hPicture, wPicture, hPicture));
+					buttClick = true; whichWall = typeWall;
 				}
 				buttPressed = false;
 			}
@@ -529,6 +534,11 @@ public:
 			buttPressed = false; //если курсор не на мыши то кнопка обычного вида
 			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 		}		
+
+		if (typeWall == whichWall)
+			picture.setTextureRect (IntRect (0, hPicture, wPicture, hPicture));
+		else
+			picture.setTextureRect (IntRect (0, 0, wPicture, hPicture));
 	}
 
 	void updateText (char *Pass){ }
@@ -613,10 +623,10 @@ public:
 
 	void initializeButton (){
 		Font font;
-		font.loadFromFile ("modeka.otf");
+		font.loadFromFile ("Resources/Fonts/modeka.otf");
 
 		Image buttonImage; //загрузка спрайта стен
-		buttonImage.loadFromFile ("button.png");
+		buttonImage.loadFromFile ("Resources/Textures/button.png");
 
 		StateList tmpS;
 
@@ -650,18 +660,18 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, tmpS, GLOBAL_W / 2 + W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		pictureImage.loadFromFile ("Resources/Texture/circle.png");
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/circle.png");
 		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 16, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("rectangle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 -47, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("triangle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 78, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("wall2.png");
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/rectangle.png");
+		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 -48, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/triangle.png");
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 80, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/wall.png");
 		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2 + 16, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("start.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 47, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("finish.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 78, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/start.png");
+		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 48, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png");
+		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 80, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 
 
 		tmpS = player;
@@ -716,17 +726,17 @@ public:
 		state = menu; //инициализируем состояние
 
 		Image playerImage; //зарузка спрайта игрока
-		playerImage.loadFromFile ("player.png");
+		playerImage.loadFromFile ("Resources/Textures/player.png");
 		pl  = new Player (playerImage, Start.x, Start.y, EDGE, EDGE, 20, 20); //создание объекта игрок
 
 		timer = 0;
 
 		Image backgroundImage; //черный фон
-		backgroundImage.loadFromFile ("background.png");
+		backgroundImage.loadFromFile ("Resources/Textures/PlayerBackGround/background.png");
 		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 2560, 1280, 2560, 1280);
 
 		Image backgroundImage2; //окаймляющий фон
-		backgroundImage2.loadFromFile ("background2.png");
+		backgroundImage2.loadFromFile ("Resources/Textures/PlayerBackGround/background2.png");
 		plBackground2 = new Background (backgroundImage2, "PlayerBackground", 0, 0, GLOBAL_W, GLOBAL_H, GLOBAL_W, GLOBAL_H);
 		plBackground2 -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2, 0);
 
@@ -734,20 +744,21 @@ public:
 
 		strcpy (fileNameAd, "");
 
-		backgroundMusic.openFromFile ("deadbolt.ogg"); //музыка
+		backgroundMusic.openFromFile ("Resources/Music/deadbolt.ogg"); //музыка
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
 		backgroundMusic.setVolume (volumBackMusic);
 
-		buffer.loadFromFile ("button-30.wav"); //звук
+		buffer.loadFromFile ("Resources/Sounds/button-30.wav"); //звук
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
 
 		escapeReleased = false;
+		whichWall = wall;
 	}
 
 	void initializeWall (){
-		wallImage.loadFromFile ("wall.png");
+		wallImage.loadFromFile ("Resources/Textures/wall.png");
 	
 		NumWall = 0; //количество стен
 		CoordWall = new bool* [NUM_CELL_X];
@@ -777,8 +788,11 @@ public:
 
 	void createWalls (){ //создание стен в админ моде
 		int tmpX, tmpY, tmpX2, tmpY2;
-		int tmp; bool wallDeleted = false;
-		bool canNotPut = false;
+		int tmp; 
+		bool wallDeleted = false;
+		bool circleDeleted = false;
+		bool rectangleDeleted = false;
+		bool triangleDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
 				if (timer > 200){
@@ -786,67 +800,114 @@ public:
 					tmpX = (int) posMouse.x; tmp = tmpX % EDGE; tmpX -= tmp; 
 					tmpY = (int) posMouse.y; tmp = tmpY % EDGE; tmpY -= tmp; 
 					tmpX2 = (tmpX - GLOB_IND_W) / EDGE; tmpY2 = (tmpY - GLOB_IND_H) / EDGE;
-					if (CoordWall [tmpX2][tmpY2]){ //проверяем на наличие стены, туда куда мы хотим поставить
+					for (int i = 0; i < NumWall; i++){
+						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
+							for (int j = i; j < NumWall - 1; j++)
+								ArrWall [j] =  ArrWall [j + 1];
+							NumWall--;
+							CoordWall [tmpX2][tmpY2] = false;
+							if (ArrWall [i] -> name == "Wall") wallDeleted = true;
+							else if (ArrWall [i] -> name == "Circle") circleDeleted = true;
+							else if (ArrWall [i] -> name == "Rectangle") rectangleDeleted = true;
+							else if (ArrWall [i] -> name == "Triangle") triangleDeleted = true;
+							break;
+						}
+					}
+					switch (whichWall){
+					case startW:{
+						bool tmpB = true;
 						for (int i = 0; i < NumWall; i++)
-							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
-								if (ArrWall [i] -> name != "Finish" && ArrWall [i] -> name != "Start"){
+							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Finish")
+								tmpB = false;
+						if (tmpB){
+							for (int i = 0; i < NumWall; i++){
+								if (ArrWall [i] -> name == "Start"){
+									CoordWall [(ArrWall [i] -> x - GLOB_IND_W) / EDGE][(ArrWall [i] -> y - GLOB_IND_H) / EDGE] = false;
 									for (int j = i; j < NumWall - 1; j++)
 										ArrWall [j] =  ArrWall [j + 1];
 									NumWall--;
-									CoordWall [tmpX2][tmpY2] = false;
-									wallDeleted = true;
 									break;
 								}
-					}
-					if(Keyboard::isKeyPressed (Keyboard::LControl)){ //установка стены старта
-						for (int i = 0; i < NumWall; i++){
-							if (ArrWall [i] -> name == "Start"){
-								ArrWall [i] -> drawThis = false;
-								CoordWall [(ArrWall [i] -> x - GLOB_IND_W) / EDGE][(ArrWall [i] -> y - GLOB_IND_H) / EDGE] = false;
-								for (int j = i; j < NumWall - 1; j++)
-									ArrWall [j] =  ArrWall [j + 1];
-								NumWall--;
-								break;
 							}
-							if (ArrWall [i] -> name == "Start" && ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
-								canNotPut = true;
-						}
-						if (!canNotPut){
 							ArrWall [NumWall++] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Start.x = tmpX; Start.y = tmpY;
 						}
-						canNotPut = false;
-					}
-					else if (Keyboard::isKeyPressed (Keyboard::LShift)){ //установки стены финиша
-						for (int i = 0; i < NumWall; i++){
-							if (ArrWall [i] -> name == "Finish"){
-								ArrWall [i] -> drawThis = false;
-								CoordWall [(ArrWall [i] -> x - GLOB_IND_W) / EDGE][(ArrWall [i] -> y - GLOB_IND_H) / EDGE] = false;
-								for (int j = i; j < NumWall - 1; j++)
-									ArrWall [j] =  ArrWall [j + 1];
-								NumWall--;
-								break;
+						break;
+								}
+					case finishW:{
+						bool tmpB = true;
+						for (int i = 0; i < NumWall; i++)
+							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Start")
+								tmpB = false;
+						if (tmpB){
+							for (int i = 0; i < NumWall; i++){
+								if (ArrWall [i] -> name == "Finish"){
+									ArrWall [i] -> drawThis = false;
+									CoordWall [(ArrWall [i] -> x - GLOB_IND_W) / EDGE][(ArrWall [i] -> y - GLOB_IND_H) / EDGE] = false;
+									for (int j = i; j < NumWall - 1; j++)
+										ArrWall [j] =  ArrWall [j + 1];
+									NumWall--;
+									break;
+								}
 							}
-							if (ArrWall [i] -> name == "Start" && ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
-								canNotPut = true;
-						}
-						if (!canNotPut){
 							ArrWall [NumWall++] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Finish.x = tmpX; Finish.y = tmpY;
 						}
-						canNotPut = false;
-					}
-					else if (!CoordWall [tmpX2][tmpY2] && !wallDeleted){ //обычная стена
-						bool tmpB = true;
-						for (int i = 0; i < NumWall; i++){
-							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY){
-								ArrWall [i] -> drawThis = true;
-								tmpB = false;
+						break;
+								 }
+					case wall:{
+						bool tmp2 = false;
+						if (!wallDeleted){
+							for (int i = 0; i < NumWall; i++)
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
+									tmp2 = true;
+							if (!tmp2){
+									ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
+									CoordWall [tmpX2][tmpY2] = true;
+								}
+						}
+						wallDeleted = false;
+						break;
+						}
+					case rectangleW:{
+						bool tmp2 = false;
+						if (!rectangleDeleted){
+							for (int i = 0; i < NumWall; i++)
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
+									tmp2 = true;
+							if (!tmp2){
+								ArrWall [NumWall++] = new Wall (wallImage, "Rectangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							}
 						}
-						if (tmpB)
-							ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
-						CoordWall [tmpX2][tmpY2] = true;
+						rectangleDeleted = false;
+						break;
+									}
+					case triangleW:{
+						bool tmp2 = false;
+						if (!triangleDeleted){
+							for (int i = 0; i < NumWall; i++)
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
+									tmp2 = true;
+							if (!tmp2){
+								ArrWall [NumWall++] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+							}
+						}
+						triangleDeleted = false;
+						break;
+								   }
+					case circleW:{
+						bool tmp2 = false;
+						if (!circleDeleted){
+							for (int i = 0; i < NumWall; i++)
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
+									tmp2 = true;
+							if (!tmp2){
+								ArrWall [NumWall++] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+							}
+						}
+						circleDeleted = false;
+						break;
+								 }
 					}
 				}	
 	}
