@@ -1,4 +1,4 @@
-15
+35
 66 32 Finish
 67 31 Wall
 68 32 Start
@@ -14,3 +14,23 @@
 67 35 Wall
 67 32 Wall
 67 33 Wall
+68 33 Rectangle
+68 34 Rectangle
+68 35 Triangle
+68 36 Triangle
+67 36 Triangle
+67 34 Circle
+66 34 Circle
+66 35 Circle
+66 36 Circle
+66 33 Rectangle
+65 33 Rectangle
+65 32 Triangle
+68 31 Circle
+68 30 Circle
+67 30 Rectangle
+68 29 Rectangle
+67 29 Triangle
+66 30 Triangle
+66 31 Triangle
+65 31 Triangle

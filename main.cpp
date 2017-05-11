@@ -196,7 +196,7 @@ public:
 			statePl = rectangle;
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
 		}
-		else if (Keyboard::isKeyPressed (Keyboard::T)){
+		else if (Keyboard::isKeyPressed (Keyboard::E)){
 			statePl = triangle;
 			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
 		}
@@ -416,7 +416,19 @@ public:
 
 	void checkCursor (){ }
 
-	void updateText (char *Pass){ }
+	void updateText (char *Pass){
+		text -> clear ();
+		text -> changeSize (30); //размер текста
+		char tmpC [40];
+		strcpy (tmpC, "Time: ");
+		strcat (tmpC, Pass);
+		text -> add (tmpC, Color::Red);
+		float tmp = (float) strlen (Pass); //получаем длинну текста в символах
+		tmp /= 2;
+		xText = (float) x - tmp * 14;
+		yText = (float) y - h / 2 - 5;
+		text -> setPosition (xText, yText); //распологаем текст по кнопке
+	}
 };
 
 class HorizontScrollBar : public BodyButton{
@@ -567,9 +579,11 @@ public:
 	Background *plBackground2; //фоновое которые окаймляет черный фон
 
 	Player *pl; //игрок
+	mcText *timePlText;
+	float timePl;
 
 	int NumButton; //количество кнопок
-	BodyButton *button [70]; //массив кнопок
+	BodyButton *button [100]; //массив кнопок
 
 	char fileNameAd [50]; //имя файла открытого админом
 public:
@@ -661,22 +675,23 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, tmpS, GLOBAL_W / 2 + W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/circle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 16, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 16 - W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/rectangle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 -48, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 48 - W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/triangle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 80, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 80 - W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/wall.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2 + 16, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2 + 16 + W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/start.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 48, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 48 + W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 80, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 80 + W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 
 
 		tmpS = player;
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, tmpS, GLOBAL_W / 2 - W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, tmpS, GLOBAL_W / 2 + W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = pause;
 		button [NumButton++] = new Static (buttonImage, "Pause", "Pause", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
@@ -755,6 +770,15 @@ public:
 
 		escapeReleased = false;
 		whichWall = wall;
+
+
+		Font font;
+		font.loadFromFile ("Resources/Fonts/modeka.otf");
+		timePlText = new mcText (&font); //создаем текст который будет отображаться на кнопке
+		timePlText -> changeSize (30); //размер текста
+		timePlText -> add ("", Color::Red);
+		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
+		timePl = 0;
 	}
 
 	void initializeWall (){
@@ -795,7 +819,7 @@ public:
 		bool triangleDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
-				if (timer > 200){
+				if (timer > 400){
 					timer = 0;	
 					tmpX = (int) posMouse.x; tmp = tmpX % EDGE; tmpX -= tmp; 
 					tmpY = (int) posMouse.y; tmp = tmpY % EDGE; tmpY -= tmp; 
@@ -924,10 +948,16 @@ public:
 			if (ArrWall [i] -> drawThis){
 				if (ArrWall [i] -> name == "Wall")
 					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE << " Wall" << endl;
-				if (ArrWall [i] -> name == "Start")
+				else if (ArrWall [i] -> name == "Start")
 					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE << " Start" << endl;
-				if (ArrWall [i] -> name == "Finish")
+				else if (ArrWall [i] -> name == "Finish")
 					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Finish" << endl;
+				else if (ArrWall [i] -> name == "Rectangle")
+					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Rectangle" << endl;
+				else if (ArrWall [i] -> name == "Circle")
+					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Circle" << endl;
+				else if (ArrWall [i] -> name == "Triangle")
+					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Triangle" << endl;
 			}
 		}
 	}
@@ -949,21 +979,23 @@ public:
 		inF >> NumWall;
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
-			if (strcmp (tmpC, "Wall") == 0)
+			if (strcmp (tmpC, "Wall") == 0){
 				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
-			if (strcmp (tmpC, "Start") == 0){
+				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = true;
+			}
+			else if (strcmp (tmpC, "Rectangle") == 0)
+				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Circle") == 0)
+				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Triangle") == 0)
+				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX * EDGE; Start.y = tmpY * EDGE;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
 			}
-			if (strcmp (tmpC, "Finish") == 0){
+			else if (strcmp (tmpC, "Finish") == 0){
 				Finish.x = tmpX * EDGE; Finish.y = tmpY * EDGE; indexFinish = i; indexFinishUpdate = true;
 				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
-			}
-			if (strcmp (tmpC, "Start") != 0){
-				ArrWall [i] -> drawThis = true;
-				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = true;
-				if (strcmp (tmpC, "Finish") == 0)
-					CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = false;
 			}
 		}
 		if (!indexFinishUpdate)
@@ -986,23 +1018,24 @@ public:
 		inF >> NumWall;
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
-			if (strcmp (tmpC, "Wall") == 0)
+			if (strcmp (tmpC, "Wall") == 0){
 				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
-			if (strcmp (tmpC, "Start") == 0){
+				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = true;
+			}
+			else if (strcmp (tmpC, "Rectangle") == 0)
+				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Circle") == 0)
+				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Triangle") == 0)
+				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX * EDGE; Start.y = tmpY * EDGE;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
 				ArrWall [i] -> drawThis = false;
-				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = false;
 			}
-			if (strcmp (tmpC, "Finish") == 0){
+			else if (strcmp (tmpC, "Finish") == 0){
 				Finish.x = tmpX * EDGE; Finish.y = tmpY * EDGE; indexFinish = i; indexFinishUpdate = true;
 				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
-			}
-			if (strcmp (tmpC, "Start") != 0){
-				ArrWall [i] -> drawThis = true;
-				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = true;
-				if (strcmp (tmpC, "Finish") == 0)
-					CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = false;
 			}
 		}
 		if (!indexFinishUpdate)
@@ -1062,6 +1095,12 @@ public:
 		}
 	}
 
+	String toString(int val){
+		std::ostringstream oss;
+		oss<< val;
+		return oss.str ();
+	}
+
 
 	void StateMenu (){
 		button [NumButton - 1] -> drawThis = false; 
@@ -1080,7 +1119,10 @@ public:
 				if (button [i] -> buttClick && button [i] -> name == "Go!"){
 					sndClickButt.play (); 
 					if (AdOrPlMode == "AdminMode"){
-						openSpecificFile ("empty.txt");
+						NumWall = 0;
+						ArrWall [NumWall++] = new Wall (wallImage, "Start", GLOB_IND_W, GLOB_IND_H, EDGE, EDGE, 20, 20);
+						ArrWall [NumWall++] = new Wall (wallImage, "Finish", GLOB_IND_W + EDGE, GLOB_IND_H + EDGE, EDGE, EDGE, 20, 20);
+						whichWall = wall;
 						state = admin; 
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == admin)
@@ -1175,15 +1217,51 @@ public:
 							button [i] -> drawThis = false;
 				}
 			}
+
+			if (event.type == Event::KeyPressed){
+				if (Keyboard::isKeyPressed (Keyboard::Num1))       whichWall = triangleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num2))  whichWall = rectangleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num3))  whichWall = circleW;
+			}
 	}
 	void StatePlayer (){
-		timer += time;
+		//timer += time;
 		pl -> update (CoordWall);
 		plBackground -> changeCoord (pl [0]. x, pl [0].y);
+
+		for (int i = 0; i < NumWall; i++){
+			if (ArrWall [i] -> x == pl -> x && ArrWall [i] -> y == pl -> y){
+				if (ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle){
+					pl -> changeCoord (Start.x, Start.y);
+					break;
+				}
+				else if (ArrWall [i] -> name == "Circle" && pl -> statePl != circle){
+					pl -> changeCoord (Start.x, Start.y);
+					break;
+				}
+				else if (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle){
+					pl -> changeCoord (Start.x, Start.y);
+					break;
+				}
+			}
+		}
+
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
+				if (button [i] -> name == "TimePlayer"){
+					char tmpC [30];
+					char *tmpC2;
+					tmpC2 = _itoa ((int) timePl / 1250, tmpC, 10);
+					button [i] -> updateText (tmpC2);
+					timePl += time;
+					if (strcmp (tmpC2, "120") == 0){
+						pl -> x = Start.x;
+						pl -> y = Start.y;
+					}
+				}
 				button [i] -> checkCursor ();
 				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuPl") || escapeReleased){
+					timePl -= time;
 					escapeReleased = false;
 					sndClickButt.play (); 
 					state = pause;
@@ -1192,6 +1270,7 @@ public:
 							button [i] -> drawThis = true;
 				}
 				if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && Keyboard::isKeyPressed (Keyboard::Return))){
+					timePl = 0;
 					sndClickButt.play (); 
 					if (CurrentLVL < 4){
 						timer = 0;
@@ -1400,6 +1479,7 @@ public:
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
 				if ((button [i] -> buttClick && button [i] -> name == "LeaveYes") || Keyboard::isKeyPressed (Keyboard::Return)){
+					timePl = 0;
 					sndClickButt.play (); 
 					timer = 0;
 					NumAnsw = 0;
