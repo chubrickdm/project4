@@ -9,21 +9,6 @@
 using namespace std;
 using namespace sf;
 
-#define GLOBAL_W 2240 //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
-#define GLOBAL_H 1280 //1280 //высота
-#define W_WIN 1366 //GetSystemMetrics (0) // самое маленькое 1366 разрешение на котором пойдет игра, ширина
-#define H_WIN 768 //GetSystemMetrics(1) // самое маленькое 768, высота
-#define EDGE 20 // + (W_WIN - 1366) / 300 //размер одной клетки
-#define NUM_CELL_X 64 //количество клеток уровня по ширине
-#define NUM_CELL_Y 32 //количество клеток уровня по высоте
-#define NUM_H_LINE (NUM_CELL_Y + 1) //количество горизонтальных прямых, которые создают поле
-#define NUM_V_LINE (NUM_CELL_X + 1) //количество вертикальных прямых, которые создают поле
-#define W_BUTTON 120 + (W_WIN - 1360) / 5 //ширина кнопки
-#define H_BUTTON 30 + (H_WIN - 760) / 10 //высота кнопки
-#define GLOB_IND_W (GLOBAL_W - NUM_CELL_X * EDGE) / 2 //отступ по ширине, с которого начинается область которую видит игрок
-#define GLOB_IND_H (GLOBAL_H - NUM_CELL_Y * EDGE) / 2 //отступ по высоте, с которого начинается область которую видит игрок
-
-
 
 enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
@@ -54,6 +39,47 @@ public:
 	static String AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
 	static Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 	static bool lvlComplete; //показывает завершен уровень
+
+	static double speed;
+
+	int GLOBAL_W;
+	int GLOBAL_H;
+	int W_WIN;
+	int H_WIN;
+	int EDGE;
+	int NUM_CELL_X; 
+	int NUM_CELL_Y;
+	int NUM_H_LINE;
+	int NUM_V_LINE;
+	int W_BUTTON;
+	int H_BUTTON;
+	int GLOB_IND_W; 
+	int GLOB_IND_H;
+public:
+	System (){
+		GLOBAL_W = 2240; //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
+		GLOBAL_H = 1280; //1280 //высота
+		W_WIN = GetSystemMetrics (0); //GetSystemMetrics (0) // самое маленькое 1366 разрешение на котором пойдет игра, ширина
+		H_WIN = GetSystemMetrics (1); //GetSystemMetrics(1) // самое маленькое 768, высота
+		EDGE = 22; // + (W_WIN - 1366) / 300 //размер одной клетки
+		NUM_CELL_X = 64; //количество клеток уровня по ширине
+		NUM_CELL_Y = 32; //количество клеток уровня по высоте
+		NUM_H_LINE = (NUM_CELL_Y + 1); //количество горизонтальных прямых, которые создают поле
+		NUM_V_LINE = (NUM_CELL_X + 1); //количество вертикальных прямых, которые создают поле
+		W_BUTTON = 120 + (W_WIN - 1360) / 5; //ширина кнопки
+		H_BUTTON = 30 + (H_WIN - 760) / 10; //высота кнопки
+		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
+		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
+
+		if (GLOB_IND_W % EDGE != 0){
+			GLOB_IND_W = GLOB_IND_W - GLOB_IND_W % EDGE;
+		}
+		if (GLOB_IND_H % EDGE != 0){
+			GLOB_IND_H = GLOB_IND_H - GLOB_IND_H % EDGE;
+		}
+
+		speed = (double) EDGE / 10;
+	}
 };
 
 //инициализируем всё, нужно что б если переменная менялась где-то, то она менялась и во всех классах наследниках
@@ -81,6 +107,8 @@ String System::AdOrPlMode;
 Coordinate System::Start;
 Coordinate System::Finish;
 bool System::lvlComplete;
+
+double System::speed;
 
 
 class Body : public System{ //класс который служит основой для всех других классов с графикой
@@ -162,66 +190,73 @@ public:
 	int tmpX, tmpY; //переменные которые хранят место куда мы хотим попасть, нажав клавишу
 	bool playerMove; //движется ли игрок
 	StatePlayer statePl;
+	int currDir;
+	double xx, yy;
 public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
-	    tmpX = x; tmpY = y;
+	    tmpX = x; tmpY = y; xx = (double) x; yy = (double) y;
 	    playerMove = false;
 		statePl = rectangle; shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		currDir = 0;
 	}
 
 	void update (bool **CoordWall){
 		//может быть нажата одновременно только одна клавиша
-		if (Keyboard::isKeyPressed (Keyboard::W) && !playerMove){
-			if (y != GLOB_IND_H){
-				tmpY = y - EDGE; playerMove = true; //запоминаем координаты куда мы должы придти
-			}
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::S) && !playerMove){
-			if (y != GLOB_IND_H + NUM_CELL_Y * EDGE){
-				tmpY = y + EDGE; playerMove = true; //запоминаем координаты куда мы должы придти
-			}
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::A) && !playerMove){
-			if (x != GLOB_IND_W){
-				tmpX = x - EDGE; playerMove = true; //запоминаем координаты куда мы должы придти
-			}
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::D) && !playerMove){
-			if (x != GLOB_IND_W + (NUM_CELL_X - 1) * EDGE){
-				tmpX = x + EDGE; playerMove = true; //запоминаем координаты куда мы должы придти
-			}
+		if (currDir < NumMoves && !playerMove){
+			if (Direction [currDir] == 4) tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
+			else if (Direction [currDir] == 1) tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
+			else if (Direction [currDir] == 2) tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
+			else if (Direction [currDir] == 3) tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
+			currDir++; playerMove = true;
+			xx = (double) x; yy = (double) y;
 		}
 
-		if (Keyboard::isKeyPressed (Keyboard::R)){
+		if (Keyboard::isKeyPressed (Keyboard::R) || Keyboard::isKeyPressed (Keyboard::Num1)){
 			statePl = rectangle;
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
 		}
-		else if (Keyboard::isKeyPressed (Keyboard::E)){
+		else if (Keyboard::isKeyPressed (Keyboard::T) || Keyboard::isKeyPressed (Keyboard::Num2)){
 			statePl = triangle;
 			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
 		}
-		else if (Keyboard::isKeyPressed (Keyboard::C)){
+		else if (Keyboard::isKeyPressed (Keyboard::C) || Keyboard::isKeyPressed (Keyboard::Num3)){
 			statePl = circle;
 			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 		}
 
-		if ((!CoordWall [(tmpX - GLOB_IND_W) / EDGE][(tmpY - GLOB_IND_H) / EDGE]) && playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-			if (x == tmpX && y == tmpY) //если мы попали туда куда хотели, то игрок не движется
-				playerMove = false;
-			else{
+		if (playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
+			if (abs (xx - tmpX) < 0.3 && abs (yy - tmpY) < 0.3){ //если мы попали туда куда хотели, то игрок не движется
+				playerMove = false; 
 				if (x < tmpX)
-					x += 2; //скорость равна двум пикселям
+					x = (int) xx + 1;
 				if (x > tmpX)
-					x -= 2;
+					x = (int) xx;
 				if (y < tmpY)
-					y += 2;
-				if (y > tmpY) 
-					y -= 2;
+					y = (int) yy + 1;
+				if (y > tmpY)
+					y = (int) yy;
+				xx = (double) x; yy = (double) y;
+			}
+			else{
+				if (x < tmpX){
+					xx += speed; //скорость равна двум пикселям
+					x = (int) xx;
+				}
+				if (x > tmpX){
+					xx -= speed;
+					x = (int) xx;
+				}
+				if (y < tmpY){
+					yy += speed;
+					y = (int) yy;
+				}
+				if (y > tmpY){
+					yy -= speed;
+					y = (int) yy;
+				}
 			}
 		}
-		else{
-			tmpX = x; tmpY = y;
-		}
+
 		if (x == Finish.x && y == Finish.y) //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
 			lvlComplete = true;
 		else
@@ -231,7 +266,7 @@ public:
 
 	void changeCoord (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
 		x = x2; y = y2; shape.setPosition ((float) x, (float) y);
-		tmpX = x; tmpY = y;
+		tmpX = x; tmpY = y; xx = (double) x; yy = (double) y;
 	}
 
 	void draw (){ 
@@ -570,7 +605,6 @@ public:
 	int NumWall; //количество стен
 	Wall *ArrWall [10000]; //массив стен
 	bool **CoordWall; //координаты стен
-	Wall *helpWall [10000]; //всопогательные стены, которые показывают правильный путь
 	int indexFinish; //индекс финиша (что б долго не искать)
 
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
@@ -581,6 +615,7 @@ public:
 	Player *pl; //игрок
 	mcText *timePlText;
 	float timePl;
+	Coordinate fn, sizeMap, st;
 
 	int NumButton; //количество кнопок
 	BodyButton *button [100]; //массив кнопок
@@ -604,6 +639,7 @@ public:
 		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL || state == pause){
 			if (state != player && state != pause)
 				window -> draw (lines); //рисую массив линий
+			
 			for (int j = 0; j < NumWall; j++) //рисую стены
 				if (ArrWall [j] -> drawThis)
 					ArrWall [j] -> draw ();
@@ -625,11 +661,8 @@ public:
 			if (button [i] -> drawThis)
 				button [i] -> draw ();
 
-		if (state == player){
+		if (state == player)
 			pl -> draw (); //рисую игрока
-			for (int i = 0; i < NumAnsw; i++) //рисую вспомогательные стены
-				helpWall [i] -> draw ();
-		}			
 
 		window -> display ();
 	}
@@ -659,9 +692,9 @@ public:
 
 		tmpS = settings;
 		button [NumButton++] = new Static (buttonImage, "Sound", "VolSound", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 10, GLOB_IND_H + EDGE * 7 + 50, 20, H_BUTTON, GLOBAL_W / 2 - 120 / 2 + 10, GLOBAL_W / 2 - 120 / 2 + W_BUTTON - 10, 20, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 10, GLOB_IND_H + EDGE * 7 + 50, 20, H_BUTTON, GLOBAL_W / 2 - W_BUTTON / 2 + 10, GLOBAL_W / 2 - W_BUTTON / 2 + W_BUTTON - 10, 20, 30);
 		button [NumButton++] = new Static (buttonImage, "Music", "VolMusic", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 10, GLOB_IND_H + EDGE * 7 + 100, 20, H_BUTTON, GLOBAL_W / 2 - 120 / 2 + 10, GLOBAL_W / 2 - 120 / 2 + W_BUTTON - 10, 20, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 10, GLOB_IND_H + EDGE * 7 + 100, 20, H_BUTTON, GLOBAL_W / 2 - W_BUTTON / 2 + 10, GLOBAL_W / 2 - W_BUTTON / 2 + W_BUTTON - 10, 20, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSet", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = mode;
@@ -675,22 +708,21 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, tmpS, GLOBAL_W / 2 + W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/circle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 16 - W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/rectangle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 48 - W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/triangle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 80 - W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/wall.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2 + 16 + W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/start.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 48 + W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 80 + W_BUTTON / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
-
+		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 18 - W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/rectangle.png"); 
+		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 84 - W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/triangle.png"); 
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 51 - W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/wall.png"); 
+		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2 + 18, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/start.png"); 
+		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 51 + W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png"); 
+		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 84 + W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 
 		tmpS = player;
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, tmpS, GLOBAL_W / 2 - W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, tmpS, GLOBAL_W / 2 + W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+		//button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, tmpS, GLOBAL_W / 2 + W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Static (buttonImage, "", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = pause;
@@ -712,10 +744,10 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = AdSelectLVL;
-		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = AdSaveLVL;
-		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = completeLVL;
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, W_BUTTON, H_BUTTON, 0, 120, 30);
@@ -759,7 +791,7 @@ public:
 
 		strcpy (fileNameAd, "");
 
-		backgroundMusic.openFromFile ("Resources/Music/deadbolt.ogg"); //музыка
+		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
 		backgroundMusic.setVolume (volumBackMusic);
@@ -779,6 +811,9 @@ public:
 		timePlText -> add ("", Color::Red);
 		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
 		timePl = 0;
+
+		sizeMap.x = NUM_CELL_X;
+		sizeMap.y = NUM_CELL_Y;
 	}
 
 	void initializeWall (){
@@ -821,9 +856,13 @@ public:
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
 				if (timer > 400){
 					timer = 0;	
+					cout << GLOB_IND_W << " " << GLOB_IND_H << endl;
+					cout << posMouse.x << " " << posMouse.y << endl;
 					tmpX = (int) posMouse.x; tmp = tmpX % EDGE; tmpX -= tmp; 
 					tmpY = (int) posMouse.y; tmp = tmpY % EDGE; tmpY -= tmp; 
+					cout << tmpX << " " << tmpY << endl;
 					tmpX2 = (tmpX - GLOB_IND_W) / EDGE; tmpY2 = (tmpY - GLOB_IND_H) / EDGE;
+					cout << tmpX2 << " " << tmpY2 << endl;
 					for (int i = 0; i < NumWall; i++){
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
 							for (int j = i; j < NumWall - 1; j++)
@@ -946,18 +985,13 @@ public:
 		outF << tmp << endl;
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> drawThis){
-				if (ArrWall [i] -> name == "Wall")
-					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE << " Wall" << endl;
-				else if (ArrWall [i] -> name == "Start")
-					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE << " Start" << endl;
-				else if (ArrWall [i] -> name == "Finish")
-					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Finish" << endl;
-				else if (ArrWall [i] -> name == "Rectangle")
-					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Rectangle" << endl;
-				else if (ArrWall [i] -> name == "Circle")
-					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Circle" << endl;
-				else if (ArrWall [i] -> name == "Triangle")
-					outF << ArrWall [i] -> x / EDGE << " " << ArrWall [i] -> y / EDGE<< " Triangle" << endl;
+				outF << (ArrWall [i] -> x - GLOB_IND_W ) / EDGE << " " << (ArrWall [i] -> y - GLOB_IND_H) / EDGE;
+				if (ArrWall [i] -> name == "Wall")            outF << " Wall" << endl;
+				else if (ArrWall [i] -> name == "Start")      outF << " Start" << endl;
+				else if (ArrWall [i] -> name == "Finish")     outF << " Finish" << endl;
+				else if (ArrWall [i] -> name == "Rectangle")  outF << " Rectangle" << endl;
+				else if (ArrWall [i] -> name == "Circle")     outF << " Circle" << endl;
+				else if (ArrWall [i] -> name == "Triangle")   outF << " Triangle" << endl;
 			}
 		}
 	}
@@ -980,22 +1014,22 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0){
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
-				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = true;
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				CoordWall [tmpX][tmpY] = true;
 			}
 			else if (strcmp (tmpC, "Rectangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Circle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Triangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
-				Start.x = tmpX * EDGE; Start.y = tmpY * EDGE;
-				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
+				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
-				Finish.x = tmpX * EDGE; Finish.y = tmpY * EDGE; indexFinish = i; indexFinishUpdate = true;
-				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				Finish.x = tmpX * EDGE + GLOB_IND_W; Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i; indexFinishUpdate = true;
+				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			}
 		}
 		if (!indexFinishUpdate)
@@ -1019,23 +1053,23 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0){
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
-				CoordWall [(tmpX * EDGE - GLOB_IND_W) / EDGE][(tmpY * EDGE - GLOB_IND_H) / EDGE] = true;
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				CoordWall [tmpX][tmpY] = true;
 			}
 			else if (strcmp (tmpC, "Rectangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Circle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Triangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
-				Start.x = tmpX * EDGE; Start.y = tmpY * EDGE;
-				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
+				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 				ArrWall [i] -> drawThis = false;
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
-				Finish.x = tmpX * EDGE; Finish.y = tmpY * EDGE; indexFinish = i; indexFinishUpdate = true;
-				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE, tmpY * EDGE, EDGE, EDGE, 20, 20);
+				Finish.x = tmpX * EDGE + GLOB_IND_W; Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i; indexFinishUpdate = true;
+				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
 			}
 		}
 		if (!indexFinishUpdate)
@@ -1095,10 +1129,13 @@ public:
 		}
 	}
 
-	String toString(int val){
-		std::ostringstream oss;
-		oss<< val;
-		return oss.str ();
+	void createWay (){
+		st.x = (pl -> x - GLOB_IND_W) / EDGE;
+		st.y = (pl -> y - GLOB_IND_H) / EDGE;
+		fn.x = (Finish.x - GLOB_IND_W) / EDGE;
+		fn.y = (Finish.y - GLOB_IND_H) / EDGE;
+		pl -> currDir = 0;
+		outputSearch (CoordWall, fn, st, sizeMap);
 	}
 
 
@@ -1219,28 +1256,34 @@ public:
 			}
 
 			if (event.type == Event::KeyPressed){
-				if (Keyboard::isKeyPressed (Keyboard::Num1))       whichWall = triangleW;
-				else if (Keyboard::isKeyPressed (Keyboard::Num2))  whichWall = rectangleW;
+				if (Keyboard::isKeyPressed (Keyboard::Num1))       whichWall = rectangleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num2))  whichWall = triangleW;
 				else if (Keyboard::isKeyPressed (Keyboard::Num3))  whichWall = circleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num4))  whichWall = wall;
+				else if (Keyboard::isKeyPressed (Keyboard::Num5))  whichWall = startW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num6))  whichWall = finishW;
 			}
 	}
 	void StatePlayer (){
 		//timer += time;
 		pl -> update (CoordWall);
-		plBackground -> changeCoord (pl [0]. x, pl [0].y);
+		plBackground -> changeCoord (pl -> x, pl -> y);
 
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> x == pl -> x && ArrWall [i] -> y == pl -> y){
 				if (ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle){
 					pl -> changeCoord (Start.x, Start.y);
+					createWay ();
 					break;
 				}
 				else if (ArrWall [i] -> name == "Circle" && pl -> statePl != circle){
 					pl -> changeCoord (Start.x, Start.y);
+					createWay ();
 					break;
 				}
 				else if (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle){
 					pl -> changeCoord (Start.x, Start.y);
+					createWay ();
 					break;
 				}
 			}
@@ -1254,10 +1297,6 @@ public:
 					tmpC2 = _itoa ((int) timePl / 1250, tmpC, 10);
 					button [i] -> updateText (tmpC2);
 					timePl += time;
-					if (strcmp (tmpC2, "120") == 0){
-						pl -> x = Start.x;
-						pl -> y = Start.y;
-					}
 				}
 				button [i] -> checkCursor ();
 				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuPl") || escapeReleased){
@@ -1285,35 +1324,10 @@ public:
 						strcat (nameFile, ".txt");
 						openSpecificFile (nameFile);
 						pl -> changeCoord (Start.x, Start.y);
-					}
-				}
-				if (button [i] -> buttClick && button [i] -> name == "HelpPl"){
-					sndClickButt.play (); 
-					if (timer > 2000){ //20 000 = 5 секунд реального времени, 40 000=15, 80 000=30
-						timer = 0;
-						Coordinate fn, sizeMap, st;
-						sizeMap.x = NUM_CELL_X;
-						sizeMap.y = NUM_CELL_Y;
-						st.x = (pl [0].x - GLOB_IND_W) / EDGE;
-						st.y = (pl [0].y - GLOB_IND_H) / EDGE;
-						fn.x = (Finish.x - GLOB_IND_W) / EDGE;
-						fn.y = (Finish.y - GLOB_IND_H) / EDGE;
-						outputSearch (CoordWall, st, fn, sizeMap);
 
-						//cout << endl << NumAnsw << endl;
-						int tmp = NumAnsw;
-						if (NumAnsw >= 60) 
-							NumAnsw = 20;
-						else
-							if (NumAnsw >= 30 && NumAnsw < 60) 
-								NumAnsw = 10;
-							else
-								NumAnsw = 0;
-						int j;
-						for (int i = 0; i < NumAnsw; i++){
-							j = tmp - i - 1;
-							helpWall [i] = new Wall (wallImage, "HelpWall", Arr [j].x * EDGE + GLOB_IND_W, Arr [j].y * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
-						}
+						createWay ();
+
+						timePl = 0;
 					}
 				}
 			}
@@ -1416,8 +1430,11 @@ public:
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
 						openSpecificFile (nameFile);
-						pl [0].changeCoord (Start.x, Start.y);
+						pl -> changeCoord (Start.x, Start.y);
 						plBackground -> changeCoord (Start.x, Start.y);
+
+						createWay ();
+
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == player)
 								button [i] -> drawThis = true;
@@ -1544,12 +1561,13 @@ public:
 };
 
 int main (){
-	view.reset (FloatRect (0, 0, (float) W_WIN, (float) H_WIN)); //создание камеры
-	setCoordinateForView (GLOBAL_W / 2, GLOBAL_H / 2); //двигаем камеру с игроком
-
 	System system;
+	view.reset (FloatRect (0, 0, (float) system.W_WIN, (float) system.H_WIN)); //создание камеры
+	setCoordinateForView ((float) system.GLOBAL_W / 2, (float) system.GLOBAL_H / 2); //двигаем камеру с игроком
+
+	
 	Game game;
-	system.window = new RenderWindow (VideoMode (W_WIN, H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen*/); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen*/); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){

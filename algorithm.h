@@ -33,6 +33,8 @@ struct Coordinate{
 
 int NumAnsw = 0;
 Coordinate Arr [1000];
+int Direction [1000];
+int NumMoves = 0;
 
 class Queue{
 private:
@@ -101,6 +103,7 @@ public:
 
 void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish, const Coordinate &size){
 	NumAnsw = 0;
+	NumMoves = 0;
 	int **dir;
 	dir = new int* [size.x];
 	for (int i = 0; i < size.x; i++){
@@ -142,13 +145,13 @@ void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish
 	if (answer != -1){
     	tmpc = finish;
 	    while (tmpc != start){
-			if (dir [tmpc.x][tmpc.y] == -1){ Arr [NumAnsw++] = tmpc; tmpc.y++; }
+			if (dir [tmpc.x][tmpc.y] == -1){ Arr [NumAnsw++] = tmpc; tmpc.y++; Direction [NumMoves++] = 1; }
 	    	else
-				if (dir [tmpc.x][tmpc.y] == 1){ Arr [NumAnsw++] = tmpc; tmpc.y--; }
+				if (dir [tmpc.x][tmpc.y] == 1){ Arr [NumAnsw++] = tmpc; tmpc.y--; Direction [NumMoves++] = 4; }
 	    		else
-					if (dir [tmpc.x][tmpc.y] == -2){ Arr [NumAnsw++] = tmpc; tmpc.x++; }
+					if (dir [tmpc.x][tmpc.y] == -2){ Arr [NumAnsw++] = tmpc; tmpc.x++; Direction [NumMoves++] = 3; }
 		    		else
-						if (dir [tmpc.x][tmpc.y] == 2){ Arr [NumAnsw++] = tmpc; tmpc.x--; }
+						if (dir [tmpc.x][tmpc.y] == 2){ Arr [NumAnsw++] = tmpc; tmpc.x--; Direction [NumMoves++] = 2; }
 	    	answer++;
 	    }
 	}
