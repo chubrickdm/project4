@@ -1,0 +1,7 @@
+6
+26 11 Start
+27 11 Finish
+0 0 Wall
+0 31 Wall
+63 0 Wall
+63 31 Wall

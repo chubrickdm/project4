@@ -61,24 +61,24 @@ public:
 		GLOBAL_H = 1280; //1280 //высота
 		W_WIN = GetSystemMetrics (0); //GetSystemMetrics (0) // самое маленькое 1366 разрешение на котором пойдет игра, ширина
 		H_WIN = GetSystemMetrics (1); //GetSystemMetrics(1) // самое маленькое 768, высота
-		EDGE = 22; // + (W_WIN - 1366) / 300 //размер одной клетки
+		EDGE = 20; //размер одной клетки
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
 		NUM_H_LINE = (NUM_CELL_Y + 1); //количество горизонтальных прямых, которые создают поле
 		NUM_V_LINE = (NUM_CELL_X + 1); //количество вертикальных прямых, которые создают поле
 		W_BUTTON = 120 + (W_WIN - 1360) / 5; //ширина кнопки
 		H_BUTTON = 30 + (H_WIN - 760) / 10; //высота кнопки
+
+		while (1){
+			if ((H_WIN - NUM_CELL_Y * EDGE) / 2 < H_BUTTON + 40 || (W_WIN - NUM_CELL_X * EDGE) / 2 < 60)
+				break;
+			EDGE++;
+		}
+
 		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
 		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
 
-		if (GLOB_IND_W % EDGE != 0){
-			GLOB_IND_W = GLOB_IND_W - GLOB_IND_W % EDGE;
-		}
-		if (GLOB_IND_H % EDGE != 0){
-			GLOB_IND_H = GLOB_IND_H - GLOB_IND_H % EDGE;
-		}
-
-		speed = (double) EDGE / 10;
+		speed = (double) EDGE / 13;
 	}
 };
 
@@ -140,6 +140,7 @@ public:
 public:
 	Wall (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ //конструктор с именем
 		drawThis = true; 
+		shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
 		if (name == "Wall") //стена обычная
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
 		if (name == "Finish") //куда надо игроку идти
@@ -162,22 +163,16 @@ public:
 };
 
 class Background : public Body{ //класс фонового изображения
-	public:
-	bool drawThis;
 public:
-	Background (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){
-		drawThis = false;
-		shape.setOrigin ((float) w / 2, (float) h / 2);
-	}
+	Background (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ }
 
 	void changeCoord (int x2, int y2){ //функция изменения координат черного заднего фона (центр фона находится где центр игрока)
 		x = x2 + EDGE / 2; y = y2 + EDGE / 2;
-		shape.setPosition ((float) x, (float) y);
-	}
-
-	void changeCoord (int x2, int y2, bool fictiv){ //функция изменения координат заднего фона, который окаймляет черный фон
-		x = x2; y = y2;
-		shape.setPosition ((float) x, (float) y);
+		int left, top;
+		left = x - GLOB_IND_W;
+		top = y - GLOB_IND_H;
+		shape.setTextureRect (IntRect (2240 - left, 1280 - top, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE));
+		shape.setPosition ((float) GLOB_IND_W, (float) GLOB_IND_H);
 	}
 
 	void draw (){ 
@@ -610,7 +605,6 @@ public:
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
 
 	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
-	Background *plBackground2; //фоновое которые окаймляет черный фон
 
 	Player *pl; //игрок
 	mcText *timePlText;
@@ -647,7 +641,6 @@ public:
 		
 		if (state == player || state == pause){ //фон
 			plBackground -> draw ();
-			plBackground2 -> draw (); 
 		}
 
 		if (state == admin || state == player || state == pause) //рисуем финиш поверх черного фона
@@ -780,12 +773,7 @@ public:
 
 		Image backgroundImage; //черный фон
 		backgroundImage.loadFromFile ("Resources/Textures/PlayerBackGround/background.png");
-		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 2560, 1280, 2560, 1280);
-
-		Image backgroundImage2; //окаймляющий фон
-		backgroundImage2.loadFromFile ("Resources/Textures/PlayerBackGround/background2.png");
-		plBackground2 = new Background (backgroundImage2, "PlayerBackground", 0, 0, GLOBAL_W, GLOBAL_H, GLOBAL_W, GLOBAL_H);
-		plBackground2 -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2, 0);
+		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE, 4480, 2560);
 
 		readInfo ();
 
@@ -846,7 +834,7 @@ public:
 
 
 	void createWalls (){ //создание стен в админ моде
-		int tmpX, tmpY, tmpX2, tmpY2;
+		int tmpX, tmpY;
 		int tmp; 
 		bool wallDeleted = false;
 		bool circleDeleted = false;
@@ -856,19 +844,14 @@ public:
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
 				if (timer > 400){
 					timer = 0;	
-					cout << GLOB_IND_W << " " << GLOB_IND_H << endl;
-					cout << posMouse.x << " " << posMouse.y << endl;
-					tmpX = (int) posMouse.x; tmp = tmpX % EDGE; tmpX -= tmp; 
-					tmpY = (int) posMouse.y; tmp = tmpY % EDGE; tmpY -= tmp; 
-					cout << tmpX << " " << tmpY << endl;
-					tmpX2 = (tmpX - GLOB_IND_W) / EDGE; tmpY2 = (tmpY - GLOB_IND_H) / EDGE;
-					cout << tmpX2 << " " << tmpY2 << endl;
+					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
+					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
 					for (int i = 0; i < NumWall; i++){
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
 							for (int j = i; j < NumWall - 1; j++)
 								ArrWall [j] =  ArrWall [j + 1];
 							NumWall--;
-							CoordWall [tmpX2][tmpY2] = false;
+							CoordWall [tmpX][tmpY] = false;
 							if (ArrWall [i] -> name == "Wall") wallDeleted = true;
 							else if (ArrWall [i] -> name == "Circle") circleDeleted = true;
 							else if (ArrWall [i] -> name == "Rectangle") rectangleDeleted = true;
@@ -885,7 +868,7 @@ public:
 						if (tmpB){
 							for (int i = 0; i < NumWall; i++){
 								if (ArrWall [i] -> name == "Start"){
-									CoordWall [(ArrWall [i] -> x - GLOB_IND_W) / EDGE][(ArrWall [i] -> y - GLOB_IND_H) / EDGE] = false;
+									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
 									for (int j = i; j < NumWall - 1; j++)
 										ArrWall [j] =  ArrWall [j + 1];
 									NumWall--;
@@ -906,7 +889,7 @@ public:
 							for (int i = 0; i < NumWall; i++){
 								if (ArrWall [i] -> name == "Finish"){
 									ArrWall [i] -> drawThis = false;
-									CoordWall [(ArrWall [i] -> x - GLOB_IND_W) / EDGE][(ArrWall [i] -> y - GLOB_IND_H) / EDGE] = false;
+									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
 									for (int j = i; j < NumWall - 1; j++)
 										ArrWall [j] =  ArrWall [j + 1];
 									NumWall--;
@@ -926,7 +909,7 @@ public:
 									tmp2 = true;
 							if (!tmp2){
 									ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
-									CoordWall [tmpX2][tmpY2] = true;
+									CoordWall [tmpX][tmpY] = true;
 								}
 						}
 						wallDeleted = false;
@@ -939,7 +922,7 @@ public:
 								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
 									tmp2 = true;
 							if (!tmp2){
-								ArrWall [NumWall++] = new Wall (wallImage, "Rectangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+								ArrWall [NumWall++] = new Wall (wallImage, "Rectangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 							}
 						}
 						rectangleDeleted = false;
@@ -952,7 +935,7 @@ public:
 								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
 									tmp2 = true;
 							if (!tmp2){
-								ArrWall [NumWall++] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+								ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 							}
 						}
 						triangleDeleted = false;
@@ -965,7 +948,7 @@ public:
 								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
 									tmp2 = true;
 							if (!tmp2){
-								ArrWall [NumWall++] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+								ArrWall [NumWall++] = new Wall (wallImage, "Circle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 							}
 						}
 						circleDeleted = false;
@@ -985,7 +968,7 @@ public:
 		outF << tmp << endl;
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> drawThis){
-				outF << (ArrWall [i] -> x - GLOB_IND_W ) / EDGE << " " << (ArrWall [i] -> y - GLOB_IND_H) / EDGE;
+				outF << ArrWall [i] -> x << " " << ArrWall [i] -> y;
 				if (ArrWall [i] -> name == "Wall")            outF << " Wall" << endl;
 				else if (ArrWall [i] -> name == "Start")      outF << " Start" << endl;
 				else if (ArrWall [i] -> name == "Finish")     outF << " Finish" << endl;
@@ -1014,22 +997,22 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0){
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
 				CoordWall [tmpX][tmpY] = true;
 			}
 			else if (strcmp (tmpC, "Rectangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Circle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Triangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
-				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
 				Finish.x = tmpX * EDGE + GLOB_IND_W; Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i; indexFinishUpdate = true;
-				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 		}
 		if (!indexFinishUpdate)
@@ -1053,23 +1036,23 @@ public:
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0){
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
 				CoordWall [tmpX][tmpY] = true;
 			}
 			else if (strcmp (tmpC, "Rectangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Circle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Circle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Triangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
-				ArrWall [i] = new Wall (wallImage, "Start", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 				ArrWall [i] -> drawThis = false;
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
 				Finish.x = tmpX * EDGE + GLOB_IND_W; Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i; indexFinishUpdate = true;
-				ArrWall [i] = new Wall (wallImage, "Finish", tmpX * EDGE + GLOB_IND_W, tmpY * EDGE + GLOB_IND_H, EDGE, EDGE, 20, 20);
+				ArrWall [i] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 		}
 		if (!indexFinishUpdate)
@@ -1157,8 +1140,8 @@ public:
 					sndClickButt.play (); 
 					if (AdOrPlMode == "AdminMode"){
 						NumWall = 0;
-						ArrWall [NumWall++] = new Wall (wallImage, "Start", GLOB_IND_W, GLOB_IND_H, EDGE, EDGE, 20, 20);
-						ArrWall [NumWall++] = new Wall (wallImage, "Finish", GLOB_IND_W + EDGE, GLOB_IND_H + EDGE, EDGE, EDGE, 20, 20);
+						ArrWall [NumWall++] = new Wall (wallImage, "Start", 0, 0, EDGE, EDGE, 20, 20);
+						ArrWall [NumWall++] = new Wall (wallImage, "Finish", 1, 0, EDGE, EDGE, 20, 20);
 						whichWall = wall;
 						state = admin; 
 						for (int i = 0; i < NumButton; i++)
@@ -1270,7 +1253,7 @@ public:
 		plBackground -> changeCoord (pl -> x, pl -> y);
 
 		for (int i = 0; i < NumWall; i++){
-			if (ArrWall [i] -> x == pl -> x && ArrWall [i] -> y == pl -> y){
+			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
 				if (ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle){
 					pl -> changeCoord (Start.x, Start.y);
 					createWay ();
@@ -1563,11 +1546,11 @@ public:
 int main (){
 	System system;
 	view.reset (FloatRect (0, 0, (float) system.W_WIN, (float) system.H_WIN)); //создание камеры
-	setCoordinateForView ((float) system.GLOBAL_W / 2, (float) system.GLOBAL_H / 2); //двигаем камеру с игроком
+	setCoordinateForView ((float) system.GLOBAL_W / 2, (float) system.GLOBAL_H / 2); //двигаем камеру
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen*/); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
