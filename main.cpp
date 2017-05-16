@@ -14,6 +14,7 @@ enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass,
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW};
 
+
 class System{ //основной класс игры, в котором хранится все самое выжное
 public:
 	static Vector2i mousePosWin; //координаты мыши относ. окна
@@ -57,8 +58,8 @@ public:
 	int GLOB_IND_H;
 public:
 	System (){
-		GLOBAL_W = 2240; //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
-		GLOBAL_H = 1280; //1280 //высота
+		GLOBAL_W = 4000; //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
+		GLOBAL_H = 3000; //1280 //высота
 		W_WIN = GetSystemMetrics (0); //GetSystemMetrics (0) // самое маленькое 1366 разрешение на котором пойдет игра, ширина
 		H_WIN = GetSystemMetrics (1); //GetSystemMetrics(1) // самое маленькое 768, высота
 		EDGE = 20; //размер одной клетки
@@ -77,8 +78,7 @@ public:
 
 		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
 		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
-
-		speed = (double) EDGE / 13;
+		speed = (double) EDGE / 13; // /13
 	}
 };
 
@@ -128,6 +128,7 @@ public:
 		shape.setPosition (Vector2f ((float) x, (float) y));
 		shape.setTexture (&texture);
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));	
+		
 	}
 
 	virtual void draw () = 0;
@@ -171,7 +172,7 @@ public:
 		int left, top;
 		left = x - GLOB_IND_W;
 		top = y - GLOB_IND_H;
-		shape.setTextureRect (IntRect (2240 - left, 1280 - top, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE));
+		shape.setTextureRect (IntRect (1000 - left, 500 - top, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE));
 		shape.setPosition ((float) GLOB_IND_W, (float) GLOB_IND_H);
 	}
 
@@ -617,12 +618,12 @@ public:
 	char fileNameAd [50]; //имя файла открытого админом
 public:
 	void readInfo (){ //считать информацию об игроке
-		ifstream inF ("player.txt");
+		ifstream inF ("Resources/Info/Player.txt");
 		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt;
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
-		ofstream outF ("player.txt");
+		ofstream outF ("Resources/Info/Player.txt");
 		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << " " << volSndClickButt << endl;
 	}
 
@@ -743,7 +744,7 @@ public:
 		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = completeLVL;
-		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOB_IND_H - 30 - ((H_WIN - NUM_CELL_Y * EDGE) / 2 - 30) / 2, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 	}
 
 	void initializeLine (){
@@ -772,8 +773,8 @@ public:
 		timer = 0;
 
 		Image backgroundImage; //черный фон
-		backgroundImage.loadFromFile ("Resources/Textures/PlayerBackGround/background.png");
-		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE, 4480, 2560);
+		backgroundImage.loadFromFile ("Resources/Textures/BackGround/background.png");
+		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE, 0, 0); //не важно какие последние 2 параметра
 
 		readInfo ();
 
@@ -1409,7 +1410,7 @@ public:
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
 						state = player;
-						char nameFile [30] = "lvl";
+						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
 						openSpecificFile (nameFile);
@@ -1451,7 +1452,10 @@ public:
 								button [i] -> drawThis = true;
 							else
 								button [i] -> drawThis = false;
-						openFileAd (fileNameAd);
+						char tmpC [100] = "Resources/LVLs/";
+						strcat (tmpC, fileNameAd);
+						strcat (tmpC, ".txt");
+						openFileAd (tmpC);
 					}
 				}
 	}
@@ -1470,7 +1474,10 @@ public:
 								button [i] -> drawThis = true;
 							else
 								button [i] -> drawThis = false;
-						saveFile (fileNameAd);
+						char tmpC [100] = "Resources/LVLs/";
+						strcat (tmpC, fileNameAd);
+						strcat (tmpC, ".txt");
+						saveFile (tmpC);
 					}
 				}
 	}
@@ -1550,7 +1557,7 @@ int main (){
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
