@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW};
 
@@ -265,6 +265,21 @@ public:
 		tmpX = x; tmpY = y; xx = (double) x; yy = (double) y;
 	}
 
+	void changeFigure (){
+		if (Keyboard::isKeyPressed (Keyboard::R) || Keyboard::isKeyPressed (Keyboard::Num1)){
+			statePl = rectangle;
+			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		}
+		else if (Keyboard::isKeyPressed (Keyboard::T) || Keyboard::isKeyPressed (Keyboard::Num2)){
+			statePl = triangle;
+			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+		}
+		else if (Keyboard::isKeyPressed (Keyboard::C) || Keyboard::isKeyPressed (Keyboard::Num3)){
+			statePl = circle;
+			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+		}
+	}
+
 	void draw (){ 
 		window -> draw (shape);
 	}
@@ -286,7 +301,7 @@ public:
 		buttPressed = false; state = State;
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
 		text -> changeSize (30); //размер текста
-		if (name != "Pause" && name != "Leave?")
+		if (name != "Pause" && name != "Leave?" && name != "StartLVL")
 			text -> add (Text);
 		else
 			text -> add (Text, Color::White);
@@ -439,6 +454,8 @@ public:
 			text -> setPosition (xText - 9, yText);
 		if (name == "Leave?")
 			text -> setPosition (xText - 6, yText);
+		if (name == "StartLVL")
+			text -> setPosition (xText - 10, yText);
 	}
 
 	void draw (){
@@ -604,12 +621,14 @@ public:
 	int indexFinish; //индекс финиша (что б долго не искать)
 
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
+	VertexArray playerLines;
 
 	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
 
 	Player *pl; //игрок
 	mcText *timePlText;
 	float timePl;
+	float AllTime;
 	Coordinate fn, sizeMap, st;
 
 	int NumButton; //количество кнопок
@@ -619,20 +638,22 @@ public:
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
-		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt;
+		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt >> AllTime;
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
 		ofstream outF ("Resources/Info/Player.txt");
-		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << " " << volSndClickButt << endl;
+		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << " " << volSndClickButt  << " " << AllTime << endl;
 	}
 
 	void draw (){ //главная и единственная функция рисования
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
 
-		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL || state == pause){
-			if (state != player && state != pause)
+		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL || state == pause || state == startLVL){
+			if (state == player || state == pause || state == startLVL)
+				window -> draw (playerLines);
+			else
 				window -> draw (lines); //рисую массив линий
 			
 			for (int j = 0; j < NumWall; j++) //рисую стены
@@ -640,15 +661,15 @@ public:
 					ArrWall [j] -> draw ();
 		}
 		
-		if (state == player || state == pause){ //фон
+		if (state == player || state == pause || state == startLVL){ //фон
 			plBackground -> draw ();
 		}
 
-		if (state == admin || state == player || state == pause) //рисуем финиш поверх черного фона
+		if (state == admin || state == player || state == pause || state == startLVL) //рисуем финиш поверх черного фона
 			if (indexFinish != -1)
 				ArrWall [indexFinish] -> draw ();
 
-		if (state == pause)
+		if (state == pause || state == startLVL) //именно здесь рисуем игрока, что б он был не поверх текста на кнопок и их самих
 			pl -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -715,7 +736,7 @@ public:
 		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 84 + W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 
 		tmpS = player;
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		//button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, tmpS, GLOBAL_W / 2 + W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Static (buttonImage, "", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
 
@@ -743,6 +764,10 @@ public:
 		tmpS = AdSaveLVL;
 		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
 
+		tmpS = startLVL;
+		button [NumButton++] = new Static (buttonImage, "Press Escape to leave", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Press Enter to continue", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
+
 		tmpS = completeLVL;
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 	}
@@ -758,6 +783,19 @@ public:
 			lines [i].position = Vector2f ((float) GLOB_IND_W, (float) EDGE * k / 2 + GLOB_IND_H);
 			lines [i + 1].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE, (float) EDGE * k / 2 + GLOB_IND_H);
 		}
+
+		playerLines = VertexArray (Lines, 8);
+		playerLines [0].position = Vector2f ((float) GLOB_IND_W - 1, (float) GLOB_IND_H - 1);
+		playerLines [1].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE + 1, (float) GLOB_IND_H - 1);
+
+		playerLines [2].position = Vector2f ((float) GLOB_IND_W - 1, (float) GLOB_IND_H - 1);
+		playerLines [3].position = Vector2f ((float) GLOB_IND_W - 1, (float) GLOB_IND_H + NUM_CELL_Y * EDGE + 1);
+
+		playerLines [4].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE + 1, (float) GLOB_IND_H - 1);
+		playerLines [5].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE + 1, (float) GLOB_IND_H + NUM_CELL_Y * EDGE + 1);
+
+		playerLines [6].position = Vector2f ((float) GLOB_IND_W - 1, (float) GLOB_IND_H + NUM_CELL_Y * EDGE + 1);
+		playerLines [7].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE + 1, (float) GLOB_IND_H + NUM_CELL_Y * EDGE + 1);
 	}
 
 	void initialize (){
@@ -1249,7 +1287,6 @@ public:
 			}
 	}
 	void StatePlayer (){
-		//timer += time;
 		pl -> update (CoordWall);
 		plBackground -> changeCoord (pl -> x, pl -> y);
 
@@ -1257,16 +1294,40 @@ public:
 			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
 				if (ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle){
 					pl -> changeCoord (Start.x, Start.y);
+					plBackground -> changeCoord (pl -> x, pl -> y);
+					state = startLVL;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == startLVL)
+							button [i] -> drawThis = true;
+						else
+							if (button [i] -> name == "BackToMenuPl")
+								button [i] -> drawThis = false;
 					createWay ();
 					break;
 				}
 				else if (ArrWall [i] -> name == "Circle" && pl -> statePl != circle){
 					pl -> changeCoord (Start.x, Start.y);
+					plBackground -> changeCoord (pl -> x, pl -> y);
+					state = startLVL;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == startLVL)
+							button [i] -> drawThis = true;
+						else
+							if (button [i] -> name == "BackToMenuPl")
+								button [i] -> drawThis = false;
 					createWay ();
 					break;
 				}
 				else if (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle){
 					pl -> changeCoord (Start.x, Start.y);
+					plBackground -> changeCoord (pl -> x, pl -> y);
+					state = startLVL;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == startLVL)
+							button [i] -> drawThis = true;
+						else
+							if (button [i] -> name == "BackToMenuPl")
+								button [i] -> drawThis = false;
 					createWay ();
 					break;
 				}
@@ -1291,8 +1352,12 @@ public:
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == pause)
 							button [i] -> drawThis = true;
+						else
+							if (button [i] -> name == "BackToMenuPl")
+								button [i] -> drawThis = false;
 				}
 				if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && Keyboard::isKeyPressed (Keyboard::Return))){
+					AllTime += timePl / 1250;
 					timePl = 0;
 					sndClickButt.play (); 
 					if (CurrentLVL < 4){
@@ -1303,15 +1368,13 @@ public:
 						CurrentLVL++;
 						char tmpC [30], *tmpC2;
 						tmpC2 = _itoa (CurrentLVL, tmpC, 10);
-						char nameFile [30] = "lvl";
+						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
 						openSpecificFile (nameFile);
 						pl -> changeCoord (Start.x, Start.y);
-
+						plBackground -> changeCoord (pl -> x, pl -> y);
 						createWay ();
-
-						timePl = 0;
 					}
 				}
 			}
@@ -1453,9 +1516,20 @@ public:
 							else
 								button [i] -> drawThis = false;
 						char tmpC [100] = "Resources/LVLs/";
-						strcat (tmpC, fileNameAd);
-						strcat (tmpC, ".txt");
-						openFileAd (tmpC);
+						ifstream inF ("Resources/LVLs/listLVLs.txt");
+						char tmpC2 [30];
+						int tmpI;
+						inF >> tmpI;
+						for (int i = 0; i < tmpI; i++){
+							inF >> tmpC2;
+							if (strcmp (tmpC2, fileNameAd) == 0){
+								strcat (tmpC, fileNameAd);
+								strcat (tmpC, ".txt");
+								openFileAd (tmpC);
+								break;
+							}
+						}
+						
 					}
 				}
 	}
@@ -1474,10 +1548,42 @@ public:
 								button [i] -> drawThis = true;
 							else
 								button [i] -> drawThis = false;
-						char tmpC [100] = "Resources/LVLs/";
-						strcat (tmpC, fileNameAd);
-						strcat (tmpC, ".txt");
-						saveFile (tmpC);
+						int tmpI; 
+						char tmpC2 [100][30]; 
+						bool edit = true;
+						ifstream inF ("Resources/LVLs/listLVLs.txt");
+						inF >> tmpI;
+						for (int i = 0; i < tmpI; i++){
+							inF >> tmpC2 [i];
+							if (strcmp (tmpC2 [i], fileNameAd) == 0){
+								edit = false;
+								break;
+							}
+						}
+						inF.close ();
+						if (edit){
+							ofstream outF ("Resources/LVLs/listLVLs.txt");
+							outF << ++tmpI << endl;
+							for (int i = 0; i < tmpI - 1; i++){
+								outF << tmpC2 [i] << endl;
+							}
+							outF << fileNameAd << endl;
+							char tmpC [100] = "Resources/LVLs/";
+							strcat (tmpC, fileNameAd);
+							strcat (tmpC, ".txt");
+							saveFile (tmpC);
+						}
+						if (!edit){
+							ofstream outF ("Resources/LVLs/listLVLs.txt");
+							outF << tmpI << endl;
+							for (int i = 0; i < tmpI; i++){
+								outF << tmpC2 [i] << endl;
+							}
+							char tmpC [100] = "Resources/LVLs/";
+							strcat (tmpC, fileNameAd);
+							strcat (tmpC, ".txt");
+							saveFile (tmpC);
+						}
 					}
 				}
 	}
@@ -1486,6 +1592,7 @@ public:
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
 				if ((button [i] -> buttClick && button [i] -> name == "LeaveYes") || Keyboard::isKeyPressed (Keyboard::Return)){
+					AllTime += timePl / 1250;
 					timePl = 0;
 					sndClickButt.play (); 
 					timer = 0;
@@ -1509,6 +1616,33 @@ public:
 							button [i] -> drawThis = false;
 				}
 			}
+	}
+	void StateStartLVL (){
+		pl -> changeFigure ();
+		if (Keyboard::isKeyPressed (Keyboard::Return)){
+			sndClickButt.play (); 
+			state = player;
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> state == player)
+					button [i] -> drawThis = true;
+				else
+					button [i] -> drawThis = false;
+		}
+		if (escapeReleased){
+			AllTime += timePl / 1250;
+			timePl = 0;
+			sndClickButt.play (); 
+			timer = 0;
+			NumAnsw = 0;
+			writeInfo ();
+			state = selectLVL;
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> state == selectLVL)
+					button [i] -> drawThis = true;
+				else
+					button [i] -> drawThis = false;
+			lvlComplete = false;
+		}
 	}
 
 	void update (){
@@ -1545,6 +1679,9 @@ public:
 			break;
 		case pause:
 			StatePause ();
+			break;
+		case startLVL:
+			StateStartLVL ();
 			break;
 		}
 	}
