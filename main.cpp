@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW};
 
@@ -42,6 +42,9 @@ public:
 	static bool lvlComplete; //показывает завершен уровень
 
 	static double speed;
+
+	static bool PassEnter; //введен ли пароль игроком от админ мода
+	static int PassedLVL; //сколько пройдено уровней
 
 	int GLOBAL_W;
 	int GLOBAL_H;
@@ -109,6 +112,9 @@ Coordinate System::Finish;
 bool System::lvlComplete;
 
 double System::speed;
+
+bool System::PassEnter;
+int System::PassedLVL;
 
 
 class Body : public System{ //класс который служит основой для всех других классов с графикой
@@ -322,9 +328,11 @@ public:
 
 class Button : public BodyButton{
 public:
+	bool buttLocked;
+public:
 	Button (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int Value, int WTexture, int HTexture) : 
 		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
-		value = Value;
+		value = Value; buttLocked = false;
 		if (state == menu)
 			drawThis = true;
 		else
@@ -348,6 +356,8 @@ public:
 			text -> setPosition (xText - 4, yText);
 		if (name == "BackToMenuSel")
 			text -> setPosition (xText - 7, yText);
+		if (name == "BackToMenuMyLVL")
+			text -> setPosition (xText - 7, yText);
 		if (name == "BackToMenuPl")
 			text -> setPosition (xText - 7, yText);
 		if (name == "HelpPl")
@@ -366,21 +376,33 @@ public:
 	}
 
 	void checkCursor (){ //функция проверки на нажатие кнопки или наведением курсора на кнопку
+		if (name == "SelectLVL")
+			if (value > PassedLVL + 1)  buttLocked = true;
+			else                        buttLocked = false;
+		if (name == "My lvls")
+			if (!PassEnter)             buttLocked = true;
+			else                        buttLocked = false;
+
+
 		buttClick = false;
-		if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y - h / 2) && (posMouse.y <= y + h / 2)){ //если курсор мыши находится на кнопке
-			if (Mouse::isButtonPressed (Mouse::Left)) //и если нажали на нее
-				buttPressed = true;
-			else{
-				if (buttPressed) //если же курсор на кнопке и кнопка была нажата, а сейчас не нажата-значит мы кликнули по ней
-					buttClick = true; 
-				buttPressed = false;
+		if (!buttLocked){
+			if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y - h / 2) && (posMouse.y <= y + h / 2)){ //если курсор мыши находится на кнопке
+				if (Mouse::isButtonPressed (Mouse::Left)) //и если нажали на нее
+					buttPressed = true;
+				else{
+					if (buttPressed) //если же курсор на кнопке и кнопка была нажата, а сейчас не нажата-значит мы кликнули по ней
+						buttClick = true; 
+					buttPressed = false;
+				}
+				shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
 			}
-			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
+			else{
+				buttPressed = false; //если курсор не на мыши то кнопка обычного вида
+				shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+			}
 		}
-		else{
-			buttPressed = false; //если курсор не на мыши то кнопка обычного вида
-			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-		}
+		else
+			shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 
 		if (buttClick && (name == "AdminMode" || name == "PlayerMode")) //если мы в state = mode, можем выбрать режим игры, админ (для редактирования и создания карт) или игрок (играть)
 			AdOrPlMode = name; //переменная хранящая текущий режим игры
@@ -455,6 +477,8 @@ public:
 		if (name == "Leave?")
 			text -> setPosition (xText - 6, yText);
 		if (name == "StartLVL")
+			text -> setPosition (xText - 10, yText);
+		if (name == "StaticMyLVL")
 			text -> setPosition (xText - 10, yText);
 	}
 
@@ -609,9 +633,7 @@ class Game : public System{ //вся механика и инициализация игры в этом классе
 public:
 	StateList state; //состояние игры
 	int CurrentLVL; //текущий уровень
-	bool PassEnter; //введен ли пароль игроком от админ мода
 	char Pass [30]; //пароль
-	int PassedLVL; //сколько пройдено уровней
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 
 	Image wallImage; //загрузка спрайта стен
@@ -634,6 +656,7 @@ public:
 	int NumButton; //количество кнопок
 	BodyButton *button [100]; //массив кнопок
 
+	char myLVLname [50];
 	char fileNameAd [50]; //имя файла открытого админом
 public:
 	void readInfo (){ //считать информацию об игроке
@@ -750,13 +773,19 @@ public:
 		button [NumButton++] = new EditButton (buttonImage, "", "Edit", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
 		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 120, 30);
 
+		tmpS = myLVLs;
+		button [NumButton++] = new EditButton (buttonImage, "", "InputMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Enter name your LVL", "StaticMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
+
 		tmpS = selectLVL;
 		button [NumButton++] = new Button (buttonImage, "1", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 1, 29, 30);
 		button [NumButton++] = new Button (buttonImage, "2", "SelectLVL", font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 2, 29, 30);
 		button [NumButton++] = new Button (buttonImage, "3", "SelectLVL", font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 3, 29, 30);
 		button [NumButton++] = new Button (buttonImage, "4", "SelectLVL", font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 4, 29, 30);
 		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 - 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "My lvls", "My lvls", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = AdSelectLVL;
 		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
@@ -829,7 +858,7 @@ public:
 
 		escapeReleased = false;
 		whichWall = wall;
-
+		strcpy (myLVLname, "");
 
 		Font font;
 		font.loadFromFile ("Resources/Fonts/modeka.otf");
@@ -865,6 +894,7 @@ public:
 		timer = 0;
 		indexFinish = -1;
 
+		readInfo ();
 		initialize (); //вызываем остальные инициализации
 		initializeButton ();
 		initializeLine ();
@@ -1498,94 +1528,103 @@ public:
 						else
 							button [i] -> drawThis = false;
 				}
+				if (button [i] -> buttClick && button [i] -> name == "My lvls"){
+					sndClickButt.play (); 
+					state = myLVLs;
+					readInfo ();
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == myLVLs)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+				}
 			}
 	}
 	void StateAdSelectLVL (){
 		inputKeyboard (fileNameAd, 0);
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> state == AdSelectLVL){
-					button [i] -> checkCursor ();
-					if (button [i] -> name == "EditLVL")
-						button [i] -> updateText (fileNameAd);
-					if ((button [i] -> buttClick && button [i] -> name == "EditLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
-						sndClickButt.play (); 
-						state = admin;
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == admin)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
-						char tmpC [100] = "Resources/LVLs/";
-						ifstream inF ("Resources/LVLs/listLVLs.txt");
-						char tmpC2 [30];
-						int tmpI;
-						inF >> tmpI;
-						for (int i = 0; i < tmpI; i++){
-							inF >> tmpC2;
-							if (strcmp (tmpC2, fileNameAd) == 0){
-								strcat (tmpC, fileNameAd);
-								strcat (tmpC, ".txt");
-								openFileAd (tmpC);
-								break;
-							}
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> state == AdSelectLVL){
+				button [i] -> checkCursor ();
+				if (button [i] -> name == "EditLVL")
+					button [i] -> updateText (fileNameAd);
+				if ((button [i] -> buttClick && button [i] -> name == "EditLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
+					sndClickButt.play (); 
+					state = admin;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == admin)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+					char tmpC [100] = "Resources/LVLs/";
+					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					char tmpC2 [30];
+					int tmpI;
+					inF >> tmpI;
+					for (int i = 0; i < tmpI; i++){
+						inF >> tmpC2;
+						if (strcmp (tmpC2, fileNameAd) == 0){
+							strcat (tmpC, fileNameAd);
+							strcat (tmpC, ".txt");
+							openFileAd (tmpC);
+							break;
 						}
-						
 					}
 				}
+			}
 	}
 	void StateAdSaveLVL (){
 		inputKeyboard (fileNameAd, 0);
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> state == AdSaveLVL){
-					button [i] -> checkCursor ();
-					if (button [i] -> name == "AdSaveLVL")
-						button [i] -> updateText (fileNameAd);
-					if ((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
-						sndClickButt.play (); 
-						state = admin;
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == admin)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
-						int tmpI; 
-						char tmpC2 [100][30]; 
-						bool edit = true;
-						ifstream inF ("Resources/LVLs/listLVLs.txt");
-						inF >> tmpI;
-						for (int i = 0; i < tmpI; i++){
-							inF >> tmpC2 [i];
-							if (strcmp (tmpC2 [i], fileNameAd) == 0){
-								edit = false;
-								break;
-							}
-						}
-						inF.close ();
-						if (edit){
-							ofstream outF ("Resources/LVLs/listLVLs.txt");
-							outF << ++tmpI << endl;
-							for (int i = 0; i < tmpI - 1; i++){
-								outF << tmpC2 [i] << endl;
-							}
-							outF << fileNameAd << endl;
-							char tmpC [100] = "Resources/LVLs/";
-							strcat (tmpC, fileNameAd);
-							strcat (tmpC, ".txt");
-							saveFile (tmpC);
-						}
-						if (!edit){
-							ofstream outF ("Resources/LVLs/listLVLs.txt");
-							outF << tmpI << endl;
-							for (int i = 0; i < tmpI; i++){
-								outF << tmpC2 [i] << endl;
-							}
-							char tmpC [100] = "Resources/LVLs/";
-							strcat (tmpC, fileNameAd);
-							strcat (tmpC, ".txt");
-							saveFile (tmpC);
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> state == AdSaveLVL){
+				button [i] -> checkCursor ();
+				if (button [i] -> name == "AdSaveLVL")
+					button [i] -> updateText (fileNameAd);
+				if ((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
+					sndClickButt.play (); 
+					state = admin;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == admin)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+					int tmpI; 
+					char tmpC2 [100][30]; 
+					bool edit = true;
+					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					inF >> tmpI;
+					for (int i = 0; i < tmpI; i++){
+						inF >> tmpC2 [i];
+						if (strcmp (tmpC2 [i], fileNameAd) == 0){
+							edit = false;
+							break;
 						}
 					}
+					inF.close ();
+					if (edit){
+						ofstream outF ("Resources/LVLs/listLVLs.txt");
+						outF << ++tmpI << endl;
+						for (int i = 0; i < tmpI - 1; i++){
+							outF << tmpC2 [i] << endl;
+						}
+						outF << fileNameAd << endl;
+						char tmpC [100] = "Resources/LVLs/";
+						strcat (tmpC, fileNameAd);
+						strcat (tmpC, ".txt");
+						saveFile (tmpC);
+					}
+					if (!edit){
+						ofstream outF ("Resources/LVLs/listLVLs.txt");
+						outF << tmpI << endl;
+						for (int i = 0; i < tmpI; i++){
+							outF << tmpC2 [i] << endl;
+						}
+						char tmpC [100] = "Resources/LVLs/";
+						strcat (tmpC, fileNameAd);
+						strcat (tmpC, ".txt");
+						saveFile (tmpC);
+					}
 				}
+			}
 	}
 	void StatePause (){
 		for (int i = 0; i < NumButton; i++)
@@ -1644,6 +1683,58 @@ public:
 			lvlComplete = false;
 		}
 	}
+	void StateMyLVLs (){
+		inputKeyboard (myLVLname, 0);
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (button [i] -> name == "InputMyLVL")
+						button [i] -> updateText (myLVLname);
+				if ((button [i] -> buttClick && button [i] -> name == "InputMyLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
+					sndClickButt.play (); 
+					char tmpC [100] = "Resources/LVLs/";
+					bool findLVL = false;
+					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					char tmpC2 [30];
+					int tmpI;
+					inF >> tmpI;
+					for (int j = 0; j < tmpI; j++){
+						inF >> tmpC2;
+						if (strcmp (tmpC2, myLVLname) == 0){
+							strcat (tmpC, myLVLname);
+							strcat (tmpC, ".txt");
+							openSpecificFile (tmpC);
+							pl -> changeCoord (Start.x, Start.y);
+							plBackground -> changeCoord (Start.x, Start.y);
+
+							createWay ();
+							state = player;
+							findLVL = true;
+							for (int k = 0; k < NumButton; k++)
+								if (button [k] -> state == player)
+									button [k] -> drawThis = true;
+								else
+									button [k] -> drawThis = false;
+							break;
+						}
+					}
+
+					if (!findLVL)
+						for (int k = 0; k < NumButton; k++)
+							if (button [k] -> name == "InputMyLVL")
+								strcpy (myLVLname, "");
+				}
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuMyLVL") || escapeReleased){
+					sndClickButt.play (); 
+					state = selectLVL;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == selectLVL)
+							button [i] -> drawThis = true;
+						else
+							button [i] -> drawThis = false;
+				}
+			}
+	}
 
 	void update (){
 		switch (state){
@@ -1682,6 +1773,9 @@ public:
 			break;
 		case startLVL:
 			StateStartLVL ();
+			break;
+		case myLVLs:
+			StateMyLVLs ();
 			break;
 		}
 	}
