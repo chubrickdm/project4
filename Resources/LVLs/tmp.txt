@@ -1,4 +1,4 @@
-48
+51
 3 24 Start
 44 9 Finish
 16 5 Wall
@@ -47,3 +47,6 @@
 6 26 Wall
 6 27 Wall
 6 28 Wall
+5 28 Save
+5 29 Save
+6 29 Save

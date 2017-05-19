@@ -12,7 +12,7 @@ using namespace sf;
 
 enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
-enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW};
+enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
 
 class System{ //основной класс игры, в котором хранится все самое выжное
@@ -148,20 +148,14 @@ public:
 	Wall (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ //конструктор с именем
 		drawThis = true; 
 		shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
-		if (name == "Wall") //стена обычная
-			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-		if (name == "Finish") //куда надо игроку идти
-			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
-		if (name == "Start") //откуда игрок будет начинать, сделано для удобства создания карт, что б админ видел где игрок начинает и где заканчиват
-			shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
-		if (name == "HelpWall") //вспомогательные "стены" которые показывают правильный путь
-			shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
-		if (name == "Circle")
-			shape.setTextureRect (IntRect (0, hTexture * 5, wTexture, hTexture));
-		if (name == "Rectangle")
-			shape.setTextureRect (IntRect (0, hTexture * 6, wTexture, hTexture));
-		if (name == "Triangle")
-			shape.setTextureRect (IntRect (0, hTexture * 7, wTexture, hTexture));
+		if (name == "Save")            shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+		else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		else if (name == "Finish")     shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+		else if (name == "Start")      shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
+		else if (name == "HelpWall")   shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
+		else if (name == "Circle")     shape.setTextureRect (IntRect (0, hTexture * 5, wTexture, hTexture));
+		else if (name == "Rectangle")  shape.setTextureRect (IntRect (0, hTexture * 6, wTexture, hTexture));
+		else if (name == "Triangle")   shape.setTextureRect (IntRect (0, hTexture * 7, wTexture, hTexture));
 	}
 
 	void draw (){ 
@@ -594,6 +588,7 @@ public:
 		if (name == "Start") typeWall = startW;
 		if (name == "Wall") typeWall = wall;
 		if (name == "Finish") typeWall = finishW;
+		if (name == "Save") typeWall = saveW;
 	}
 
 	void draw (){
@@ -635,6 +630,7 @@ public:
 	int CurrentLVL; //текущий уровень
 	char Pass [30]; //пароль
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
+	bool playerLVL;
 
 	Image wallImage; //загрузка спрайта стен
 	int NumWall; //количество стен
@@ -717,6 +713,9 @@ public:
 
 		NumButton = 0;
 
+		tmpS = completeLVL;
+		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+
 		tmpS = menu;
 		button [NumButton++] = new Button (buttonImage, "Go!", "Go!", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Mode", "Mode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
@@ -757,10 +756,11 @@ public:
 		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 51 + W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png"); 
 		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 84 + W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
+		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/save.png"); 
+		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS, GLOBAL_W / 2 + 117 + W_BUTTON / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, 30, 30, EDGE, EDGE, pictureImage, 30, 30);
 
 		tmpS = player;
 		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		//button [NumButton++] = new Button (buttonImage, "Help", "HelpPl", font, tmpS, GLOBAL_W / 2 + W_WIN / 6, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Static (buttonImage, "", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = pause;
@@ -796,9 +796,6 @@ public:
 		tmpS = startLVL;
 		button [NumButton++] = new Static (buttonImage, "Press Escape to leave", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
 		button [NumButton++] = new Static (buttonImage, "Press Enter to continue", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-
-		tmpS = completeLVL;
-		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 	}
 
 	void initializeLine (){
@@ -870,6 +867,8 @@ public:
 
 		sizeMap.x = NUM_CELL_X;
 		sizeMap.y = NUM_CELL_Y;
+
+		playerLVL = false;
 	}
 
 	void initializeWall (){
@@ -909,6 +908,7 @@ public:
 		bool circleDeleted = false;
 		bool rectangleDeleted = false;
 		bool triangleDeleted = false;
+		bool saveDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
 				if (timer > 400){
@@ -925,6 +925,7 @@ public:
 							else if (ArrWall [i] -> name == "Circle") circleDeleted = true;
 							else if (ArrWall [i] -> name == "Rectangle") rectangleDeleted = true;
 							else if (ArrWall [i] -> name == "Triangle") triangleDeleted = true;
+							else if (ArrWall [i] -> name == "Save") saveDeleted = true;
 							break;
 						}
 					}
@@ -1023,6 +1024,19 @@ public:
 						circleDeleted = false;
 						break;
 								 }
+					case saveW:{
+						bool tmp2 = false;
+						if (!saveDeleted){
+							for (int i = 0; i < NumWall; i++)
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
+									tmp2 = true;
+							if (!tmp2){
+								ArrWall [NumWall++] = new Wall (wallImage, "Save",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							}
+						}
+						saveDeleted = false;
+						break;
+								 }
 					}
 				}	
 	}
@@ -1044,6 +1058,7 @@ public:
 				else if (ArrWall [i] -> name == "Rectangle")  outF << " Rectangle" << endl;
 				else if (ArrWall [i] -> name == "Circle")     outF << " Circle" << endl;
 				else if (ArrWall [i] -> name == "Triangle")   outF << " Triangle" << endl;
+				else if (ArrWall [i] -> name == "Save")       outF << " Save" << endl;
 			}
 		}
 	}
@@ -1075,6 +1090,8 @@ public:
 				ArrWall [i] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Triangle") == 0)
 				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Save") == 0)
+				ArrWall [i] = new Wall (wallImage, "Save", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
@@ -1114,6 +1131,8 @@ public:
 				ArrWall [i] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Triangle") == 0)
 				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
+			else if (strcmp (tmpC, "Save") == 0)
+				ArrWall [i] = new Wall (wallImage, "Save", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
 				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
@@ -1314,6 +1333,7 @@ public:
 				else if (Keyboard::isKeyPressed (Keyboard::Num4))  whichWall = wall;
 				else if (Keyboard::isKeyPressed (Keyboard::Num5))  whichWall = startW;
 				else if (Keyboard::isKeyPressed (Keyboard::Num6))  whichWall = finishW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num7))  whichWall = saveW;
 			}
 	}
 	void StatePlayer (){
@@ -1390,34 +1410,52 @@ public:
 					AllTime += timePl / 1250;
 					timePl = 0;
 					sndClickButt.play (); 
-					if (CurrentLVL < 4){
+					if (!playerLVL){
+						if (CurrentLVL < 4){
+							timer = 0;
+							if (PassedLVL < 4)
+								PassedLVL++;
+							writeInfo ();
+							CurrentLVL++;
+							char tmpC [30], *tmpC2;
+							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
+							char nameFile [30] = "Resources/LVLs/lvl";
+							strcat (nameFile, tmpC2);
+							strcat (nameFile, ".txt");
+							openSpecificFile (nameFile);
+							pl -> changeCoord (Start.x, Start.y);
+							plBackground -> changeCoord (pl -> x, pl -> y);
+							createWay ();
+						}
+					}
+					else{
+						playerLVL = false;
 						timer = 0;
-						if (PassedLVL < 4)
-							PassedLVL++;
-						writeInfo ();
-						CurrentLVL++;
-						char tmpC [30], *tmpC2;
-						tmpC2 = _itoa (CurrentLVL, tmpC, 10);
-						char nameFile [30] = "Resources/LVLs/lvl";
-						strcat (nameFile, tmpC2);
-						strcat (nameFile, ".txt");
-						openSpecificFile (nameFile);
-						pl -> changeCoord (Start.x, Start.y);
-						plBackground -> changeCoord (pl -> x, pl -> y);
-						createWay ();
+						NumAnsw = 0;
+						state = selectLVL;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == selectLVL)
+								button [i] -> drawThis = true;
+							else
+								button [i] -> drawThis = false;
+						lvlComplete = false;
 					}
 				}
 			}
 
 			if (lvlComplete){
 				for (int i = 0; i < NumButton; i++)
-					if (button [i] -> name == "lvlComplete")
+					if (button [i] -> name == "lvlComplete"){
 						button [i] -> drawThis = true;
+						break;
+					}
 			}
 			else{
 				for (int i = 0; i < NumButton; i++)
-					if (button [i] -> name == "lvlComplete")
+					if (button [i] -> name == "lvlComplete"){
 						button [i] -> drawThis = false;
+						break;
+					}
 			}
 	}
 	void StateSettings (){
@@ -1701,20 +1739,23 @@ public:
 					for (int j = 0; j < tmpI; j++){
 						inF >> tmpC2;
 						if (strcmp (tmpC2, myLVLname) == 0){
-							strcat (tmpC, myLVLname);
-							strcat (tmpC, ".txt");
-							openSpecificFile (tmpC);
-							pl -> changeCoord (Start.x, Start.y);
-							plBackground -> changeCoord (Start.x, Start.y);
+							if (strstr (myLVLname, "lvl") == NULL || strcspn (myLVLname, "1234") == NULL){
+								strcat (tmpC, myLVLname);
+								strcat (tmpC, ".txt");
+								openSpecificFile (tmpC);
+								pl -> changeCoord (Start.x, Start.y);
+								plBackground -> changeCoord (Start.x, Start.y);
 
-							createWay ();
-							state = player;
-							findLVL = true;
-							for (int k = 0; k < NumButton; k++)
-								if (button [k] -> state == player)
-									button [k] -> drawThis = true;
-								else
-									button [k] -> drawThis = false;
+								playerLVL = true;
+								createWay ();
+								state = player;
+								findLVL = true;
+								for (int k = 0; k < NumButton; k++)
+									if (button [k] -> state == player)
+										button [k] -> drawThis = true;
+									else
+										button [k] -> drawThis = false;	
+							}
 							break;
 						}
 					}
