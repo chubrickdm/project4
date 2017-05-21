@@ -637,6 +637,7 @@ public:
 	Wall *ArrWall [10000]; //массив стен
 	bool **CoordWall; //координаты стен
 	int indexFinish; //индекс финиша (что б долго не искать)
+	int indexStart; //индекс старта (что б долго не искать)
 
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
 	VertexArray playerLines;
@@ -654,6 +655,7 @@ public:
 
 	char myLVLname [50];
 	char fileNameAd [50]; //имя файла открытого админом
+	char fileNamePl [70];
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
@@ -945,6 +947,7 @@ public:
 									break;
 								}
 							}
+							indexStart = NumWall;
 							ArrWall [NumWall++] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Start.x = tmpX; Start.y = tmpY;
 						}
@@ -1044,16 +1047,18 @@ public:
 	void saveFile (char *tmpC){ //сохранение уровня админом
 		ofstream outF (tmpC);
 		int tmp = 0;
+		ArrWall [indexStart] -> drawThis = false;
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> drawThis)
 				tmp++;
 		}
-		outF << tmp << endl;
+		outF << ++tmp << endl;
+		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
+		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> drawThis){
 				outF << ArrWall [i] -> x << " " << ArrWall [i] -> y;
 				if (ArrWall [i] -> name == "Wall")            outF << " Wall" << endl;
-				else if (ArrWall [i] -> name == "Start")      outF << " Start" << endl;
 				else if (ArrWall [i] -> name == "Finish")     outF << " Finish" << endl;
 				else if (ArrWall [i] -> name == "Rectangle")  outF << " Rectangle" << endl;
 				else if (ArrWall [i] -> name == "Circle")     outF << " Circle" << endl;
@@ -1061,10 +1066,10 @@ public:
 				else if (ArrWall [i] -> name == "Save")       outF << " Save" << endl;
 			}
 		}
+		ArrWall [indexStart] -> drawThis = true;
 	}
 
 	void openFileAd (char *tmpName){
-		bool indexFinishUpdate = false;
 		char tmpC [50];
 		strcpy (tmpC, tmpName);
 		int tmpX, tmpY;
@@ -1077,7 +1082,11 @@ public:
 				CoordWall [i][j] = false;
 		ifstream inF (tmpC);
 
-		inF >> NumWall;
+		inF >> NumWall; 
+		inF >> Start.x >> Start.y;
+		Start.x = Start.x * EDGE + GLOB_IND_W;
+		Start.y = Start.y * EDGE + GLOB_IND_H;
+
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0){
@@ -1093,20 +1102,20 @@ public:
 			else if (strcmp (tmpC, "Save") == 0)
 				ArrWall [i] = new Wall (wallImage, "Save", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
-				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
+				//Start.x = tmpX * EDGE + GLOB_IND_W; 
+				//Start.y = tmpY * EDGE + GLOB_IND_H; 
+				indexStart = i;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
-				Finish.x = tmpX * EDGE + GLOB_IND_W; Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i; indexFinishUpdate = true;
+				Finish.x = tmpX * EDGE + GLOB_IND_W; 
+				Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i;
 				ArrWall [i] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 		}
-		if (!indexFinishUpdate)
-			indexFinish = -1;
 	}
 
 	void openSpecificFile (char *nameFile){ //открытие уровня когда игрок заходит
-		bool indexFinishUpdate = false;
 		int tmpX, tmpY;
 		char tmpC [40];
 		if (NumWall != 0){
@@ -1117,8 +1126,13 @@ public:
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				CoordWall [i][j] = false;
 		NumAnsw = 0;
+
 		ifstream inF (nameFile);
 		inF >> NumWall;
+		inF >> Start.x >> Start.y;
+		Start.x = Start.x * EDGE + GLOB_IND_W;
+		Start.y = Start.y * EDGE + GLOB_IND_H;
+
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
 			if (strcmp (tmpC, "Wall") == 0){
@@ -1134,17 +1148,18 @@ public:
 			else if (strcmp (tmpC, "Save") == 0)
 				ArrWall [i] = new Wall (wallImage, "Save", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
-				Start.x = tmpX * EDGE + GLOB_IND_W; Start.y = tmpY * EDGE + GLOB_IND_H;
+				//Start.x = tmpX * EDGE + GLOB_IND_W; 
+				//Start.y = tmpY * EDGE + GLOB_IND_H; 
+				indexStart = i;
 				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 				ArrWall [i] -> drawThis = false;
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
-				Finish.x = tmpX * EDGE + GLOB_IND_W; Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i; indexFinishUpdate = true;
+				Finish.x = tmpX * EDGE + GLOB_IND_W; 
+				Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i;
 				ArrWall [i] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 		}
-		if (!indexFinishUpdate)
-			indexFinish = -1;
 	}
 
 	void inputKeyboard (char *tmpC, bool fictiv){ //ввод с клавиатуры
@@ -1381,6 +1396,11 @@ public:
 					createWay ();
 					break;
 				}
+				else if (ArrWall [i] -> name == "Save"){
+					Start.x = ArrWall [i] -> x * EDGE + GLOB_IND_W;
+					Start.y = ArrWall [i] -> y * EDGE + GLOB_IND_H;
+					createWay ();
+				}
 			}
 		}
 
@@ -1416,13 +1436,13 @@ public:
 							if (PassedLVL < 4)
 								PassedLVL++;
 							writeInfo ();
-							CurrentLVL++;
+							CurrentLVL++; saveFile (fileNamePl);
 							char tmpC [30], *tmpC2;
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
 							char nameFile [30] = "Resources/LVLs/lvl";
 							strcat (nameFile, tmpC2);
 							strcat (nameFile, ".txt");
-							openSpecificFile (nameFile);
+							openSpecificFile (nameFile); strcpy (fileNamePl, nameFile);
 							pl -> changeCoord (Start.x, Start.y);
 							plBackground -> changeCoord (pl -> x, pl -> y);
 							createWay ();
@@ -1540,11 +1560,12 @@ public:
 					if (button [i] -> value <= PassedLVL + 1){
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
-						state = player;
+						state = player; playerLVL = false;
 						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
 						openSpecificFile (nameFile);
+						strcpy (fileNamePl, nameFile);
 						pl -> changeCoord (Start.x, Start.y);
 						plBackground -> changeCoord (Start.x, Start.y);
 
@@ -1632,18 +1653,15 @@ public:
 					inF >> tmpI;
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC2 [i];
-						if (strcmp (tmpC2 [i], fileNameAd) == 0){
+						if (strcmp (tmpC2 [i], fileNameAd) == 0)
 							edit = false;
-							break;
-						}
 					}
 					inF.close ();
 					if (edit){
 						ofstream outF ("Resources/LVLs/listLVLs.txt");
 						outF << ++tmpI << endl;
-						for (int i = 0; i < tmpI - 1; i++){
+						for (int i = 0; i < tmpI - 1; i++)
 							outF << tmpC2 [i] << endl;
-						}
 						outF << fileNameAd << endl;
 						char tmpC [100] = "Resources/LVLs/";
 						strcat (tmpC, fileNameAd);
@@ -1653,9 +1671,8 @@ public:
 					if (!edit){
 						ofstream outF ("Resources/LVLs/listLVLs.txt");
 						outF << tmpI << endl;
-						for (int i = 0; i < tmpI; i++){
+						for (int i = 0; i < tmpI; i++)
 							outF << tmpC2 [i] << endl;
-						}
 						char tmpC [100] = "Resources/LVLs/";
 						strcat (tmpC, fileNameAd);
 						strcat (tmpC, ".txt");
@@ -1675,6 +1692,7 @@ public:
 					timer = 0;
 					NumAnsw = 0;
 					writeInfo ();
+					saveFile (fileNamePl);
 					state = selectLVL;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == selectLVL)
@@ -1706,13 +1724,10 @@ public:
 					button [i] -> drawThis = false;
 		}
 		if (escapeReleased){
-			AllTime += timePl / 1250;
-			timePl = 0;
-			sndClickButt.play (); 
-			timer = 0;
-			NumAnsw = 0;
-			writeInfo ();
-			state = selectLVL;
+			AllTime += timePl / 1250; timePl = 0;
+			sndClickButt.play (); timer = 0;
+			NumAnsw = 0; writeInfo ();
+			saveFile (fileNamePl); state = selectLVL;
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == selectLVL)
 					button [i] -> drawThis = true;
@@ -1743,6 +1758,7 @@ public:
 								strcat (tmpC, myLVLname);
 								strcat (tmpC, ".txt");
 								openSpecificFile (tmpC);
+								strcpy (fileNamePl, tmpC);
 								pl -> changeCoord (Start.x, Start.y);
 								plBackground -> changeCoord (Start.x, Start.y);
 

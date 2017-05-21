@@ -1,7 +1,7 @@
 975
 0 31
-0 31 Start
 63 0 Finish
+0 31 Start
 1 29 Wall
 3 29 Wall
 3 31 Wall
