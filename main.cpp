@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, backToMenu, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
@@ -41,7 +41,7 @@ public:
 	static Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 	static bool lvlComplete; //показывает завершен уровень
 
-	static double speed;
+	static float speed; //скорость с которой движется игрок по уровню
 
 	static bool PassEnter; //введен ли пароль игроком от админ мода
 	static int PassedLVL; //сколько пройдено уровней
@@ -81,7 +81,7 @@ public:
 
 		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
 		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
-		speed = (double) EDGE / 13; // /13
+		speed = (float) EDGE / 13; // /13
 	}
 };
 
@@ -111,7 +111,7 @@ Coordinate System::Start;
 Coordinate System::Finish;
 bool System::lvlComplete;
 
-double System::speed;
+float System::speed;
 
 bool System::PassEnter;
 int System::PassedLVL;
@@ -131,7 +131,7 @@ public:
 		wTexture = WTexture; hTexture = HTexture;
 		texture.loadFromImage (image); 
 		shape.setSize (Vector2f ((float) w, (float) h));
-		shape.setPosition (Vector2f ((float) x, (float) y));
+		shape.setPosition ((float) x, (float) y);
 		shape.setTexture (&texture);
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));	
 		
@@ -187,82 +187,15 @@ public:
 	bool playerMove; //движется ли игрок
 	StatePlayer statePl;
 	int currDir;
-	double xx, yy;
+	float xx, yy;
 public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
-	    tmpX = x; tmpY = y; xx = (double) x; yy = (double) y;
-	    playerMove = false;
-		statePl = rectangle; shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-		currDir = 0;
-	}
-
-	void update (bool **CoordWall){
-		//может быть нажата одновременно только одна клавиша
-		if (currDir < NumMoves && !playerMove){
-			if (Direction [currDir] == 4) tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
-			else if (Direction [currDir] == 1) tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
-			else if (Direction [currDir] == 2) tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
-			else if (Direction [currDir] == 3) tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
-			currDir++; playerMove = true;
-			xx = (double) x; yy = (double) y;
-		}
-
-		if (Keyboard::isKeyPressed (Keyboard::R) || Keyboard::isKeyPressed (Keyboard::Num1)){
-			statePl = rectangle;
-			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::T) || Keyboard::isKeyPressed (Keyboard::Num2)){
-			statePl = triangle;
-			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::C) || Keyboard::isKeyPressed (Keyboard::Num3)){
-			statePl = circle;
-			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-		}
-
-		if (playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-			if (abs (xx - tmpX) < 0.3 && abs (yy - tmpY) < 0.3){ //если мы попали туда куда хотели, то игрок не движется
-				playerMove = false; 
-				if (x < tmpX)
-					x = (int) xx + 1;
-				if (x > tmpX)
-					x = (int) xx;
-				if (y < tmpY)
-					y = (int) yy + 1;
-				if (y > tmpY)
-					y = (int) yy;
-				xx = (double) x; yy = (double) y;
-			}
-			else{
-				if (x < tmpX){
-					xx += speed; //скорость равна двум пикселям
-					x = (int) xx;
-				}
-				if (x > tmpX){
-					xx -= speed;
-					x = (int) xx;
-				}
-				if (y < tmpY){
-					yy += speed;
-					y = (int) yy;
-				}
-				if (y > tmpY){
-					yy -= speed;
-					y = (int) yy;
-				}
-			}
-		}
-
-		if (x == Finish.x && y == Finish.y) //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
-			lvlComplete = true;
-		else
-			lvlComplete = false; 
-		shape.setPosition ((float) x, (float) y); //устанавливаем позицию игрока
-	}
-
-	void changeCoord (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
-		x = x2; y = y2; shape.setPosition ((float) x, (float) y);
-		tmpX = x; tmpY = y; xx = (double) x; yy = (double) y;
+	    xx = (float) x; yy = (float) y; 
+		tmpX = x; tmpY = y; 
+		playerMove = false;
+		currDir = 0; statePl = rectangle; 
+		shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		
 	}
 
 	void changeFigure (){
@@ -278,6 +211,50 @@ public:
 			statePl = circle;
 			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 		}
+	}
+
+	void update (bool **CoordWall){
+		//может быть нажата одновременно только одна клавиша
+		if (currDir < NumMoves && !playerMove){
+			if (Direction [currDir] == 4)        tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
+			else if (Direction [currDir] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
+			else if (Direction [currDir] == 2)   tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
+			else if (Direction [currDir] == 3)   tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
+			currDir++; playerMove = true;
+			xx = (float) x; yy = (float) y;
+		}
+
+		changeFigure ();
+
+		if (playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
+			if (abs (xx - tmpX) < 0.3 && abs (yy - tmpY) < 0.3){ //если мы попали туда куда хотели, то игрок не движется
+				playerMove = false; 
+				if (x < tmpX)        x = (int) xx + 1;
+				else if (x > tmpX)   x = (int) xx;
+				else if (y < tmpY)   y = (int) yy + 1;
+				else if (y > tmpY)   y = (int) yy;
+				xx = (float) x; yy = (float) y;
+			}
+			else{
+				if (x < tmpX)        xx += speed;  
+				else if (x > tmpX)   xx -= speed; 
+				else if (y < tmpY)   yy += speed; 
+				else if (y > tmpY)   yy -= speed;  
+				x = (int) xx; y = (int) yy;
+			}
+		}
+
+		if (x == Finish.x && y == Finish.y) //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
+			lvlComplete = true;
+		else
+			lvlComplete = false; 
+		shape.setPosition ((float) x, (float) y); //устанавливаем позицию игрока
+	}
+
+	void changeCoord (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+		x = x2; y = y2; shape.setPosition ((float) x, (float) y);
+		xx = (float) x; yy = (float) y;
+		tmpX = x; tmpY = y; 
 	}
 
 	void draw (){ 
@@ -297,8 +274,9 @@ public:
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
-	    font = Font; drawThis = false; buttClick = false; 
-		buttPressed = false; state = State;
+	    font = Font; state = State;
+		drawThis = false; buttClick = false; buttPressed = false; 
+
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
 		text -> changeSize (30); //размер текста
 		if (name != "Pause" && name != "Leave?" && name != "StartLVL")
@@ -333,7 +311,7 @@ public:
 			drawThis = false;
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 
-		//т.к. размерыьбукв разный, двигаем текст на кнопках, что б он находился ровно по кнопке
+		//т.к. размеры букв разный, двигаем текст на кнопках, что б он находился ровно по кнопке
 		if (name == "Mode")
 			text -> setPosition (xText - 12, yText);
 		if (name == "Go!")
@@ -376,7 +354,6 @@ public:
 		if (name == "My lvls")
 			if (!PassEnter)             buttLocked = true;
 			else                        buttLocked = false;
-
 
 		buttClick = false;
 		if (!buttLocked){
@@ -444,11 +421,10 @@ public:
 		tmp /= 2;
 		xText = (float) x - tmp * 14;
 		yText = (float) y - h / 2 - 5;
-		text -> setPosition (xText, yText); //распологаем текст по кнопке
-		if (name == "Edit"){ //числа имееют другую ширину чем буквы, поэтому сдвигаем немного
+		
+		if (name == "Edit") //числа имееют другую ширину чем буквы, поэтому сдвигаем немного
 			xText -= 5;
-			text -> setPosition (xText, yText); 
-		}
+		text -> setPosition (xText, yText); //распологаем текст по кнопке
 	}
 };
 
@@ -456,24 +432,15 @@ class Static : public BodyButton{
 public:
 	Static (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){ 
-		if (name == "RequestPass")
-			text -> setPosition (xText - 5, yText);
-		if (name == "SelectStatic")
-			text -> setPosition (xText - 8, yText);
-		if (name == "Quit game?")
-			text -> setPosition (xText - 10, yText);
-		if (name == "VolMusic")
-			text -> setPosition (xText - 8, yText);
-		if (name == "VolSound")
-			text -> setPosition (xText - 10, yText);
-		if (name == "Pause")
-			text -> setPosition (xText - 9, yText);
-		if (name == "Leave?")
-			text -> setPosition (xText - 6, yText);
-		if (name == "StartLVL")
-			text -> setPosition (xText - 10, yText);
-		if (name == "StaticMyLVL")
-			text -> setPosition (xText - 10, yText);
+		if (name == "RequestPass")         text -> setPosition (xText - 5, yText);
+		else if (name == "SelectStatic")   text -> setPosition (xText - 8, yText);
+		else if (name == "Quit game?")     text -> setPosition (xText - 10, yText);
+		else if (name == "VolMusic")       text -> setPosition (xText - 8, yText);
+		else if (name == "VolSound")       text -> setPosition (xText - 10, yText);
+		else if (name == "Pause")          text -> setPosition (xText - 9, yText);
+		else if (name == "Leave?")         text -> setPosition (xText - 6, yText);
+		else if (name == "StartLVL")       text -> setPosition (xText - 10, yText);
+		else if (name == "StaticMyLVL")    text -> setPosition (xText - 10, yText);
 	}
 
 	void draw (){
@@ -551,9 +518,9 @@ public:
 				else
 					buttClick = false;
 		}
+
 		if (event.type == Event::MouseButtonReleased) //если отпустили мышку
 			buttPressed = false;
-
 
 		if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y - h / 2) && (posMouse.y <= y + h / 2)) //если курсор мыши находится на кнопке
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
@@ -577,18 +544,18 @@ public:
         pictureT.loadFromImage (Ipicture);
 		wPicture = WPicture; hPicture = HPicture;
 		picture.setSize (Vector2f ((float) w, (float) h));
-		picture.setPosition (Vector2f ((float) x, (float) y));
+		picture.setPosition ((float) x, (float) y);
 		picture.setTexture (&pictureT);
 		picture.setTextureRect (IntRect (0, 0, wPicture, hPicture));	
 		picture.setOrigin ((float) w / 2, (float) h / 2);
 
-		if (name == "Circle") typeWall = circleW;
-		if (name == "Rectangle") typeWall = rectangleW;
-		if (name == "Triangle") typeWall = triangleW;
-		if (name == "Start") typeWall = startW;
-		if (name == "Wall") typeWall = wall;
-		if (name == "Finish") typeWall = finishW;
-		if (name == "Save") typeWall = saveW;
+		if (name == "Circle")           typeWall = circleW;
+		else if (name == "Rectangle")   typeWall = rectangleW;
+		else if (name == "Triangle")    typeWall = triangleW;
+		else if (name == "Start")       typeWall = startW;
+		else if (name == "Wall")        typeWall = wall;
+		else if (name == "Finish")      typeWall = finishW;
+		else if (name == "Save")        typeWall = saveW;
 	}
 
 	void draw (){
@@ -630,7 +597,7 @@ public:
 	int CurrentLVL; //текущий уровень
 	char Pass [30]; //пароль
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
-	bool playerLVL;
+	bool playerLVL; //игрок играет в свой созданный уровень?
 
 	Image wallImage; //загрузка спрайта стен
 	int NumWall; //количество стен
@@ -645,17 +612,17 @@ public:
 	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
 
 	Player *pl; //игрок
+
 	mcText *timePlText;
 	float timePl;
 	float AllTime;
-	Coordinate fn, sizeMap, st;
 
 	int NumButton; //количество кнопок
 	BodyButton *button [100]; //массив кнопок
 
-	char myLVLname [50];
+	char myLVLname [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
 	char fileNameAd [50]; //имя файла открытого админом
-	char fileNamePl [70];
+	char fileNamePl [70]; //имя файла открытого игроком
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
@@ -690,15 +657,12 @@ public:
 			if (indexFinish != -1)
 				ArrWall [indexFinish] -> draw ();
 
-		if (state == pause || state == startLVL) //именно здесь рисуем игрока, что б он был не поверх текста на кнопок и их самих
+		if (state == pause || state == startLVL || state == player) //именно здесь рисуем игрока, что б он был не поверх текста на кнопок и их самих
 			pl -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
 			if (button [i] -> drawThis)
 				button [i] -> draw ();
-
-		if (state == player)
-			pl -> draw (); //рисую игрока
 
 		window -> display ();
 	}
@@ -830,21 +794,13 @@ public:
 		Start.x = GLOB_IND_H; Start.y = GLOB_IND_H + NUM_CELL_Y * EDGE; //инициализируем стартовую точку
 		Finish.x = GLOB_IND_W + NUM_CELL_X * EDGE; Finish.y = GLOB_IND_H; //инициализируем финиш
 
-		state = menu; //инициализируем состояние
-
 		Image playerImage; //зарузка спрайта игрока
 		playerImage.loadFromFile ("Resources/Textures/player.png");
 		pl  = new Player (playerImage, Start.x, Start.y, EDGE, EDGE, 20, 20); //создание объекта игрок
 
-		timer = 0;
-
 		Image backgroundImage; //черный фон
 		backgroundImage.loadFromFile ("Resources/Textures/BackGround/background.png");
 		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, NUM_CELL_X * EDGE, NUM_CELL_Y * EDGE, 0, 0); //не важно какие последние 2 параметра
-
-		readInfo ();
-
-		strcpy (fileNameAd, "");
 
 		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
 		backgroundMusic.play (); 
@@ -855,10 +811,6 @@ public:
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
 
-		escapeReleased = false;
-		whichWall = wall;
-		strcpy (myLVLname, "");
-
 		Font font;
 		font.loadFromFile ("Resources/Fonts/modeka.otf");
 		timePlText = new mcText (&font); //создаем текст который будет отображаться на кнопке
@@ -866,11 +818,6 @@ public:
 		timePlText -> add ("", Color::Red);
 		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
 		timePl = 0;
-
-		sizeMap.x = NUM_CELL_X;
-		sizeMap.y = NUM_CELL_Y;
-
-		playerLVL = false;
 	}
 
 	void initializeWall (){
@@ -887,13 +834,19 @@ public:
 
 	Game (){ //конструктор в котором инициализируем основные параметры
 		AdOrPlMode = "PlayerMode"; //строка хранящая имя текущего мода игры (игрок или админ)
-		lvlComplete = false; //показывает завершен ли первый уровень
-		CurrentLVL = 1;
-		PassEnter = false;
 		strcpy (Pass, "");
+		strcpy (fileNameAd, "");
+		strcpy (myLVLname, "");
+		lvlComplete = false; //показывает завершен ли первый уровень
+		playerLVL = false;
+		escapeReleased = false;
+		PassEnter = false;
 		state = menu;
+		whichWall = wall;
+		CurrentLVL = 1;
 		timer = 0;
 		indexFinish = -1;
+		NumWall = 0;
 
 		readInfo ();
 		initialize (); //вызываем остальные инициализации
@@ -913,30 +866,32 @@ public:
 		bool saveDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
-				if (timer > 400){
+				if (timer > 350){
 					timer = 0;	
 					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
 					for (int i = 0; i < NumWall; i++){
-						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
-							for (int j = i; j < NumWall - 1; j++)
-								ArrWall [j] =  ArrWall [j + 1];
-							NumWall--;
-							CoordWall [tmpX][tmpY] = false;
-							if (ArrWall [i] -> name == "Wall") wallDeleted = true;
-							else if (ArrWall [i] -> name == "Circle") circleDeleted = true;
-							else if (ArrWall [i] -> name == "Rectangle") rectangleDeleted = true;
-							else if (ArrWall [i] -> name == "Triangle") triangleDeleted = true;
-							else if (ArrWall [i] -> name == "Save") saveDeleted = true;
-							break;
+						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
+							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
+								for (int j = i; j < NumWall - 1; j++)
+									ArrWall [j] =  ArrWall [j + 1];
+								NumWall--;
+								CoordWall [tmpX][tmpY] = false;
+								if (ArrWall [i] -> name == "Wall")             wallDeleted = true;
+								else if (ArrWall [i] -> name == "Circle")      circleDeleted = true;
+								else if (ArrWall [i] -> name == "Rectangle")   rectangleDeleted = true;
+								else if (ArrWall [i] -> name == "Triangle")    triangleDeleted = true;
+								else if (ArrWall [i] -> name == "Save")        saveDeleted = true;
+								break;
 						}
 					}
 					switch (whichWall){
 					case startW:{
 						bool tmpB = true;
 						for (int i = 0; i < NumWall; i++)
-							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Finish")
-								tmpB = false;
+							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Finish"){
+								tmpB = false; break;
+							}
 						if (tmpB){
 							for (int i = 0; i < NumWall; i++){
 								if (ArrWall [i] -> name == "Start"){
@@ -956,8 +911,9 @@ public:
 					case finishW:{
 						bool tmpB = true;
 						for (int i = 0; i < NumWall; i++)
-							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Start")
-								tmpB = false;
+							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Start"){
+								tmpB = false; break;
+							}
 						if (tmpB){
 							for (int i = 0; i < NumWall; i++){
 								if (ArrWall [i] -> name == "Finish"){
@@ -975,71 +931,72 @@ public:
 						break;
 								 }
 					case wall:{
-						bool tmp2 = false;
 						if (!wallDeleted){
+							bool tmpB = false;
 							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
-									tmp2 = true;
-							if (!tmp2){
-									ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
-									CoordWall [tmpX][tmpY] = true;
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
+									tmpB = true; break;
 								}
+							if (!tmpB){
+								ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
+								CoordWall [tmpX][tmpY] = true;
+							}
 						}
 						wallDeleted = false;
 						break;
 						}
 					case rectangleW:{
-						bool tmp2 = false;
 						if (!rectangleDeleted){
+							bool tmpB = false;
 							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
-									tmp2 = true;
-							if (!tmp2){
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
+									tmpB = true; break;
+								}
+							if (!tmpB)
 								ArrWall [NumWall++] = new Wall (wallImage, "Rectangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-							}
 						}
 						rectangleDeleted = false;
 						break;
 									}
 					case triangleW:{
-						bool tmp2 = false;
 						if (!triangleDeleted){
+							bool tmpB = false;
 							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
-									tmp2 = true;
-							if (!tmp2){
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
+									tmpB = true; break;
+								}
+							if (!tmpB)
 								ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-							}
 						}
 						triangleDeleted = false;
 						break;
 								   }
 					case circleW:{
-						bool tmp2 = false;
 						if (!circleDeleted){
+							bool tmpB = false;
 							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
-									tmp2 = true;
-							if (!tmp2){
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
+									tmpB = true; break;
+								}
+							if (!tmpB)
 								ArrWall [NumWall++] = new Wall (wallImage, "Circle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-							}
 						}
 						circleDeleted = false;
 						break;
 								 }
-					case saveW:{
-						bool tmp2 = false;
+					case saveW:{	
 						if (!saveDeleted){
+							bool tmpB = false;
 							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish"))
-									tmp2 = true;
-							if (!tmp2){
+								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
+									tmpB = true; break;
+								}
+							if (!tmpB)
 								ArrWall [NumWall++] = new Wall (wallImage, "Save",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-							}
 						}
 						saveDeleted = false;
 						break;
-								 }
+							   }
 					}
 				}	
 	}
@@ -1048,22 +1005,22 @@ public:
 		ofstream outF (tmpC);
 		int tmp = 0;
 		ArrWall [indexStart] -> drawThis = false;
-		for (int i = 0; i < NumWall; i++){
+		for (int i = 0; i < NumWall; i++)
 			if (ArrWall [i] -> drawThis)
 				tmp++;
-		}
+
 		outF << ++tmp << endl;
 		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
 		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> drawThis){
 				outF << ArrWall [i] -> x << " " << ArrWall [i] -> y;
-				if (ArrWall [i] -> name == "Wall")            outF << " Wall" << endl;
-				else if (ArrWall [i] -> name == "Finish")     outF << " Finish" << endl;
-				else if (ArrWall [i] -> name == "Rectangle")  outF << " Rectangle" << endl;
-				else if (ArrWall [i] -> name == "Circle")     outF << " Circle" << endl;
-				else if (ArrWall [i] -> name == "Triangle")   outF << " Triangle" << endl;
-				else if (ArrWall [i] -> name == "Save")       outF << " Save" << endl;
+				if (ArrWall [i] -> name == "Wall")             outF << " Wall" << endl;
+				else if (ArrWall [i] -> name == "Finish")      outF << " Finish" << endl;
+				else if (ArrWall [i] -> name == "Rectangle")   outF << " Rectangle" << endl;
+				else if (ArrWall [i] -> name == "Circle")      outF << " Circle" << endl;
+				else if (ArrWall [i] -> name == "Triangle")    outF << " Triangle" << endl;
+				else if (ArrWall [i] -> name == "Save")        outF << " Save" << endl;
 			}
 		}
 		ArrWall [indexStart] -> drawThis = true;
@@ -1073,15 +1030,14 @@ public:
 		char tmpC [50];
 		strcpy (tmpC, tmpName);
 		int tmpX, tmpY;
-		if (NumWall != 0){
-			for (int i = 0; i < NumWall; i++)
-				ArrWall [i] -> ~Wall ();
-		}
+
+		for (int i = 0; i < NumWall; i++)
+			ArrWall [i] -> ~Wall ();
 		for (int i = 0; i < NUM_CELL_X; i++)
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				CoordWall [i][j] = false;
-		ifstream inF (tmpC);
 
+		ifstream inF (tmpC);
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
 		Start.x = Start.x * EDGE + GLOB_IND_W;
@@ -1089,28 +1045,15 @@ public:
 
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
-			if (strcmp (tmpC, "Wall") == 0){
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
+			ArrWall [i] = new Wall (wallImage, tmpC, tmpX, tmpY, EDGE, EDGE, 20, 20);
+
+			if (strcmp (tmpC, "Wall") == 0)
 				CoordWall [tmpX][tmpY] = true;
-			}
-			else if (strcmp (tmpC, "Rectangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Circle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Triangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Save") == 0)
-				ArrWall [i] = new Wall (wallImage, "Save", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Start") == 0){
-				//Start.x = tmpX * EDGE + GLOB_IND_W; 
-				//Start.y = tmpY * EDGE + GLOB_IND_H; 
+			else if (strcmp (tmpC, "Start") == 0)
 				indexStart = i;
-				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			}
 			else if (strcmp (tmpC, "Finish") == 0){
 				Finish.x = tmpX * EDGE + GLOB_IND_W; 
 				Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i;
-				ArrWall [i] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 		}
 	}
@@ -1118,10 +1061,9 @@ public:
 	void openSpecificFile (char *nameFile){ //открытие уровня когда игрок заходит
 		int tmpX, tmpY;
 		char tmpC [40];
-		if (NumWall != 0){
-			for (int i = 0; i < NumWall; i++)
-				ArrWall [i] -> ~Wall ();
-		}
+
+		for (int i = 0; i < NumWall; i++)
+			ArrWall [i] -> ~Wall ();
 		for (int i = 0; i < NUM_CELL_X; i++)
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				CoordWall [i][j] = false;
@@ -1135,75 +1077,63 @@ public:
 
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
-			if (strcmp (tmpC, "Wall") == 0){
-				ArrWall [i] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
+			ArrWall [i] = new Wall (wallImage, tmpC, tmpX, tmpY, EDGE, EDGE, 20, 20);
+
+			if (strcmp (tmpC, "Wall") == 0)
 				CoordWall [tmpX][tmpY] = true;
-			}
-			else if (strcmp (tmpC, "Rectangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Rectangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Circle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Circle", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Triangle") == 0)
-				ArrWall [i] = new Wall (wallImage, "Triangle", tmpX, tmpY, EDGE, EDGE, 20, 20);
-			else if (strcmp (tmpC, "Save") == 0)
-				ArrWall [i] = new Wall (wallImage, "Save", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			else if (strcmp (tmpC, "Start") == 0){
-				//Start.x = tmpX * EDGE + GLOB_IND_W; 
-				//Start.y = tmpY * EDGE + GLOB_IND_H; 
 				indexStart = i;
-				ArrWall [i] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 				ArrWall [i] -> drawThis = false;
 			}
 			else if (strcmp (tmpC, "Finish") == 0){
 				Finish.x = tmpX * EDGE + GLOB_IND_W; 
 				Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i;
-				ArrWall [i] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 			}
 		}
 	}
 
 	void inputKeyboard (char *tmpC, bool fictiv){ //ввод с клавиатуры
-		if (event.type == Event::KeyPressed){
-			if ((strlen (tmpC) < 9 && !fictiv) || (strlen (tmpC) < 4 && fictiv))
-				if (Keyboard::isKeyPressed (Keyboard::A))                     strcat (tmpC, "a");
-				else if (Keyboard::isKeyPressed (Keyboard::B))                strcat (tmpC, "b");
-				else if (Keyboard::isKeyPressed (Keyboard::C))                strcat (tmpC, "c");
-				else if (Keyboard::isKeyPressed (Keyboard::D))                strcat (tmpC, "d");
-				else if (Keyboard::isKeyPressed (Keyboard::E))                strcat (tmpC, "e");
-				else if (Keyboard::isKeyPressed (Keyboard::F))                strcat (tmpC, "f");
-				else if (Keyboard::isKeyPressed (Keyboard::G))                strcat (tmpC, "g");
-				else if (Keyboard::isKeyPressed (Keyboard::H))                strcat (tmpC, "h");
-				else if (Keyboard::isKeyPressed (Keyboard::I))                strcat (tmpC, "i");
-				else if (Keyboard::isKeyPressed (Keyboard::J))                strcat (tmpC, "j");
-				else if (Keyboard::isKeyPressed (Keyboard::K))                strcat (tmpC, "k");
-				else if (Keyboard::isKeyPressed (Keyboard::L))                strcat (tmpC, "l");
-				else if (Keyboard::isKeyPressed (Keyboard::M))                strcat (tmpC, "m");
-				else if (Keyboard::isKeyPressed (Keyboard::N))                strcat (tmpC, "n");
-				else if (Keyboard::isKeyPressed (Keyboard::O))                strcat (tmpC, "o");
-				else if (Keyboard::isKeyPressed (Keyboard::P))                strcat (tmpC, "p");
-				else if (Keyboard::isKeyPressed (Keyboard::Q))                strcat (tmpC, "q");
-				else if (Keyboard::isKeyPressed (Keyboard::R))                strcat (tmpC, "r");
-				else if (Keyboard::isKeyPressed (Keyboard::S))                strcat (tmpC, "s");
-				else if (Keyboard::isKeyPressed (Keyboard::T))                strcat (tmpC, "t");
-				else if (Keyboard::isKeyPressed (Keyboard::U))                strcat (tmpC, "u");
-				else if (Keyboard::isKeyPressed (Keyboard::V))                strcat (tmpC, "v");
-				else if (Keyboard::isKeyPressed (Keyboard::W))                strcat (tmpC, "w");
-				else if (Keyboard::isKeyPressed (Keyboard::X))                strcat (tmpC, "x");
-				else if (Keyboard::isKeyPressed (Keyboard::Y))                strcat (tmpC, "y");
-				else if (Keyboard::isKeyPressed (Keyboard::Z))                strcat (tmpC, "z");
-				else if (Keyboard::isKeyPressed (Keyboard::Period))           strcat (tmpC, ".");
-				else if (Keyboard::isKeyPressed (Keyboard::Num0))             strcat (tmpC, "0");
-				else if (Keyboard::isKeyPressed (Keyboard::Num1))             strcat (tmpC, "1");
-				else if (Keyboard::isKeyPressed (Keyboard::Num2))             strcat (tmpC, "2");
-				else if (Keyboard::isKeyPressed (Keyboard::Num3))             strcat (tmpC, "3");
-				else if (Keyboard::isKeyPressed (Keyboard::Num4))             strcat (tmpC, "4");
-				else if (Keyboard::isKeyPressed (Keyboard::Num5))             strcat (tmpC, "5");
-				else if (Keyboard::isKeyPressed (Keyboard::Num6))             strcat (tmpC, "6");
-				else if (Keyboard::isKeyPressed (Keyboard::Num7))             strcat (tmpC, "7");
-				else if (Keyboard::isKeyPressed (Keyboard::Num8))             strcat (tmpC, "8");
-				else if (Keyboard::isKeyPressed (Keyboard::Num9))             strcat (tmpC, "9");
+		if (event.type == Event::KeyPressed)
+			if ((strlen (tmpC) < 9 && !fictiv) || (strlen (tmpC) < 4 && fictiv)){
+				if (Keyboard::isKeyPressed (Keyboard::A))             strcat (tmpC, "a");
+				else if (Keyboard::isKeyPressed (Keyboard::B))        strcat (tmpC, "b");
+				else if (Keyboard::isKeyPressed (Keyboard::C))        strcat (tmpC, "c");
+				else if (Keyboard::isKeyPressed (Keyboard::D))        strcat (tmpC, "d");
+				else if (Keyboard::isKeyPressed (Keyboard::E))        strcat (tmpC, "e");
+				else if (Keyboard::isKeyPressed (Keyboard::F))        strcat (tmpC, "f");
+				else if (Keyboard::isKeyPressed (Keyboard::G))        strcat (tmpC, "g");
+				else if (Keyboard::isKeyPressed (Keyboard::H))        strcat (tmpC, "h");
+				else if (Keyboard::isKeyPressed (Keyboard::I))        strcat (tmpC, "i");
+				else if (Keyboard::isKeyPressed (Keyboard::J))        strcat (tmpC, "j");
+				else if (Keyboard::isKeyPressed (Keyboard::K))        strcat (tmpC, "k");
+				else if (Keyboard::isKeyPressed (Keyboard::L))        strcat (tmpC, "l");
+				else if (Keyboard::isKeyPressed (Keyboard::M))        strcat (tmpC, "m");
+				else if (Keyboard::isKeyPressed (Keyboard::N))        strcat (tmpC, "n");
+				else if (Keyboard::isKeyPressed (Keyboard::O))        strcat (tmpC, "o");
+				else if (Keyboard::isKeyPressed (Keyboard::P))        strcat (tmpC, "p");
+				else if (Keyboard::isKeyPressed (Keyboard::Q))        strcat (tmpC, "q");
+				else if (Keyboard::isKeyPressed (Keyboard::R))        strcat (tmpC, "r");
+				else if (Keyboard::isKeyPressed (Keyboard::S))        strcat (tmpC, "s");
+				else if (Keyboard::isKeyPressed (Keyboard::T))        strcat (tmpC, "t");
+				else if (Keyboard::isKeyPressed (Keyboard::U))        strcat (tmpC, "u");
+				else if (Keyboard::isKeyPressed (Keyboard::V))        strcat (tmpC, "v");
+				else if (Keyboard::isKeyPressed (Keyboard::W))        strcat (tmpC, "w");
+				else if (Keyboard::isKeyPressed (Keyboard::X))        strcat (tmpC, "x");
+				else if (Keyboard::isKeyPressed (Keyboard::Y))        strcat (tmpC, "y");
+				else if (Keyboard::isKeyPressed (Keyboard::Z))        strcat (tmpC, "z");
+				else if (Keyboard::isKeyPressed (Keyboard::Period))   strcat (tmpC, ".");
+				else if (Keyboard::isKeyPressed (Keyboard::Num0))     strcat (tmpC, "0");
+				else if (Keyboard::isKeyPressed (Keyboard::Num1))     strcat (tmpC, "1");
+				else if (Keyboard::isKeyPressed (Keyboard::Num2))     strcat (tmpC, "2");
+				else if (Keyboard::isKeyPressed (Keyboard::Num3))     strcat (tmpC, "3");
+				else if (Keyboard::isKeyPressed (Keyboard::Num4))     strcat (tmpC, "4");
+				else if (Keyboard::isKeyPressed (Keyboard::Num5))     strcat (tmpC, "5");
+				else if (Keyboard::isKeyPressed (Keyboard::Num6))     strcat (tmpC, "6");
+				else if (Keyboard::isKeyPressed (Keyboard::Num7))     strcat (tmpC, "7");
+				else if (Keyboard::isKeyPressed (Keyboard::Num8))     strcat (tmpC, "8");
+				else if (Keyboard::isKeyPressed (Keyboard::Num9))     strcat (tmpC, "9");
 
-				if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       
+				else if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       
 					int i = strlen (tmpC);
 					if (i > 0){
 						char tmpC2 [50];
@@ -1212,76 +1142,56 @@ public:
 						tmpC [i - 1] = '\0';
 					}
 				}
-		}
+			}
 	}
 
 	void createWay (){
+		Coordinate fn, sizeMap, st;
 		st.x = (pl -> x - GLOB_IND_W) / EDGE;
 		st.y = (pl -> y - GLOB_IND_H) / EDGE;
 		fn.x = (Finish.x - GLOB_IND_W) / EDGE;
 		fn.y = (Finish.y - GLOB_IND_H) / EDGE;
 		pl -> currDir = 0;
+		sizeMap.x = NUM_CELL_X;
+		sizeMap.y = NUM_CELL_Y;
 		outputSearch (CoordWall, fn, st, sizeMap);
+	}
+
+	void changeState (StateList tmpS){
+		state = tmpS; sndClickButt.play ();
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> state == tmpS)
+				button [i] -> drawThis = true;
+			else
+				button [i] -> drawThis = false;
 	}
 
 
 	void StateMenu (){
-		button [NumButton - 1] -> drawThis = false; 
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "Mode"){
-					sndClickButt.play (); 
-					state = mode; 
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == mode)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
-				if (button [i] -> buttClick && button [i] -> name == "Go!"){
-					sndClickButt.play (); 
+				if (button [i] -> buttClick && button [i] -> name == "Mode")
+					changeState (mode);
+				else if (button [i] -> buttClick && button [i] -> name == "Go!"){
 					if (AdOrPlMode == "AdminMode"){
 						NumWall = 0;
 						ArrWall [NumWall++] = new Wall (wallImage, "Start", 0, 0, EDGE, EDGE, 20, 20);
 						ArrWall [NumWall++] = new Wall (wallImage, "Finish", 1, 0, EDGE, EDGE, 20, 20);
 						whichWall = wall;
-						state = admin; 
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == admin)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
+						changeState (admin);
 					}
 					if (AdOrPlMode == "PlayerMode"){
 						sndClickButt.play (); 
 						writeInfo ();
-						state = selectLVL;
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == selectLVL)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
+						changeState (selectLVL);
 					}
 				}
-				if (button [i] -> buttClick && button [i] -> name == "Settings"){
-					sndClickButt.play (); 
-					state = settings;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == settings)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
-				if ((button [i] -> buttClick && button [i] -> name == "Exit") || escapeReleased){
+				else if (button [i] -> buttClick && button [i] -> name == "Settings")
+					changeState (settings);
+				else if ((button [i] -> buttClick && button [i] -> name == "Exit") || escapeReleased){
 					writeInfo ();
-					sndClickButt.play (); 
-					state = exitt;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == exitt)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
+					changeState (exitt);
 				}
 			}
 	}
@@ -1289,27 +1199,15 @@ public:
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenu") || escapeReleased){
+				if ((button [i] -> buttClick && button [i] -> name == "BackToMenu") || escapeReleased)
+					changeState (menu);
+				else if (button [i] -> buttClick && button [i] -> name == "AdminMode")
 					sndClickButt.play (); 
-					state = menu;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == menu)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
-				if (button [i] -> buttClick && button [i] -> name == "AdminMode")
+				else if (button [i] -> buttClick && button [i] -> name == "PlayerMode")
 					sndClickButt.play (); 
 			}
-			if (AdOrPlMode == "AdminMode" && !PassEnter){
-				state = reqPass;
-				for (int i = 0; i < NumButton; i++)
-					if (button [i] -> state == reqPass)
-						button [i] -> drawThis = true;
-					else
-						button [i] -> drawThis = false;
-				
-			}
+		if (AdOrPlMode == "AdminMode" && !PassEnter)
+				changeState (reqPass);
 	}
 	void StateAdmin (){
 		createWalls ();
@@ -1323,67 +1221,34 @@ public:
 						if (button [i] -> state == AdSaveLVL)
 							button [i] -> drawThis = true;
 				}
-				if (button [i] -> buttClick && button [i] -> name == "OpenAd"){
+				else if (button [i] -> buttClick && button [i] -> name == "OpenAd"){
 					sndClickButt.play (); 
 					state = AdSelectLVL;
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == AdSelectLVL)
 							button [i] -> drawThis = true;
 				}
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased){
-					sndClickButt.play (); 
-					state = menu;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == menu)
-								button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
+				else if ((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased)
+					changeState (menu);
 			}
 
 			if (event.type == Event::KeyPressed){
-				if (Keyboard::isKeyPressed (Keyboard::Num1))       whichWall = rectangleW;
-				else if (Keyboard::isKeyPressed (Keyboard::Num2))  whichWall = triangleW;
-				else if (Keyboard::isKeyPressed (Keyboard::Num3))  whichWall = circleW;
-				else if (Keyboard::isKeyPressed (Keyboard::Num4))  whichWall = wall;
-				else if (Keyboard::isKeyPressed (Keyboard::Num5))  whichWall = startW;
-				else if (Keyboard::isKeyPressed (Keyboard::Num6))  whichWall = finishW;
-				else if (Keyboard::isKeyPressed (Keyboard::Num7))  whichWall = saveW;
+				if (Keyboard::isKeyPressed (Keyboard::Num1))        whichWall = rectangleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num2))   whichWall = triangleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num3))   whichWall = circleW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num4))   whichWall = wall;
+				else if (Keyboard::isKeyPressed (Keyboard::Num5))   whichWall = startW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num6))   whichWall = finishW;
+				else if (Keyboard::isKeyPressed (Keyboard::Num7))   whichWall = saveW;
 			}
 	}
 	void StatePlayer (){
 		pl -> update (CoordWall);
 		plBackground -> changeCoord (pl -> x, pl -> y);
 
-		for (int i = 0; i < NumWall; i++){
+		for (int i = 0; i < NumWall; i++)
 			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
-				if (ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle){
-					pl -> changeCoord (Start.x, Start.y);
-					plBackground -> changeCoord (pl -> x, pl -> y);
-					state = startLVL;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == startLVL)
-							button [i] -> drawThis = true;
-						else
-							if (button [i] -> name == "BackToMenuPl")
-								button [i] -> drawThis = false;
-					createWay ();
-					break;
-				}
-				else if (ArrWall [i] -> name == "Circle" && pl -> statePl != circle){
-					pl -> changeCoord (Start.x, Start.y);
-					plBackground -> changeCoord (pl -> x, pl -> y);
-					state = startLVL;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == startLVL)
-							button [i] -> drawThis = true;
-						else
-							if (button [i] -> name == "BackToMenuPl")
-								button [i] -> drawThis = false;
-					createWay ();
-					break;
-				}
-				else if (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle){
+				if ((ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [i] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle)){
 					pl -> changeCoord (Start.x, Start.y);
 					plBackground -> changeCoord (pl -> x, pl -> y);
 					state = startLVL;
@@ -1402,7 +1267,6 @@ public:
 					createWay ();
 				}
 			}
-		}
 
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
@@ -1426,7 +1290,7 @@ public:
 							if (button [i] -> name == "BackToMenuPl")
 								button [i] -> drawThis = false;
 				}
-				if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && Keyboard::isKeyPressed (Keyboard::Return))){
+				else if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && Keyboard::isKeyPressed (Keyboard::Return))){
 					AllTime += timePl / 1250;
 					timePl = 0;
 					sndClickButt.play (); 
@@ -1452,12 +1316,7 @@ public:
 						playerLVL = false;
 						timer = 0;
 						NumAnsw = 0;
-						state = selectLVL;
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == selectLVL)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
+						changeState (selectLVL);
 						lvlComplete = false;
 					}
 				}
@@ -1483,18 +1342,12 @@ public:
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSet") || escapeReleased){
-					sndClickButt.play (); 
 					writeInfo ();
-					state = menu;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == menu)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
+					changeState (menu);
 				}
-				if (button [i] -> buttClick && button [i] -> name == "MusicSlider")
+				else if (button [i] -> buttClick && button [i] -> name == "MusicSlider")
 					sndClickButt.play (); 
-				if (button [i] -> buttClick && button [i] -> name == "SoundSlider")
+				else if (button [i] -> buttClick && button [i] -> name == "SoundSlider")
 					sndClickButt.play (); 
 			}
 	}
@@ -1502,16 +1355,9 @@ public:
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "QuitNo") || escapeReleased){
-					sndClickButt.play (); 
-					state = menu;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == menu)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
-				if ((button [i] -> buttClick && button [i] -> name == "QuitYes") || Keyboard::isKeyPressed (Keyboard::Return)){
+				if ((button [i] -> buttClick && button [i] -> name == "QuitNo") || escapeReleased)
+					changeState (menu);
+				else if ((button [i] -> buttClick && button [i] -> name == "QuitYes") || Keyboard::isKeyPressed (Keyboard::Return)){
 					sndClickButt.play (); 
 					window -> close ();
 				}
@@ -1524,30 +1370,20 @@ public:
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "Edit")
 					button [i] -> updateText (Pass);
-				if ((button [i] -> buttClick && button [i] -> name == "Edit") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
-					if (!PassEnter){
-						sndClickButt.play (); 
+				if ((button [i] -> buttClick && button [i] -> name == "Edit") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return)))
+					if (!PassEnter){ 
 						if (strcmp (Pass, "4329") == 0){
 							writeInfo ();
-							state = mode; PassEnter = true;
+							PassEnter = true;
 							AdOrPlMode = "AdminMode"; strcpy (Pass, "");
-							for (int i = 0; i < NumButton; i++)
-								if (button [i] -> state == mode)
-									button [i] -> drawThis = true;
-								else
-									button [i] -> drawThis = false;
+							changeState (mode);
 						}
 						else{
-							state = mode; PassEnter = false;
+							PassEnter = false;
 							AdOrPlMode = "PlayerMode"; strcpy (Pass, "");
-							for (int i = 0; i < NumButton; i++)
-								if (button [i] -> state == mode)
-									button [i] -> drawThis = true;
-								else
-									button [i] -> drawThis = false;
+							changeState (mode);
 						}
 					}
-				}
 			}
 	}
 	void StateSelectLVL (){
@@ -1556,11 +1392,10 @@ public:
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "SelectLVL"){
-					sndClickButt.play (); 
 					if (button [i] -> value <= PassedLVL + 1){
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
-						state = player; playerLVL = false;
+						playerLVL = false;
 						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
@@ -1570,32 +1405,14 @@ public:
 						plBackground -> changeCoord (Start.x, Start.y);
 
 						createWay ();
-
-						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == player)
-								button [i] -> drawThis = true;
-							else
-								button [i] -> drawThis = false;
+						changeState (player);
 					}
 				}
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased){
-					sndClickButt.play (); 
-					state = menu;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == menu)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
-				if (button [i] -> buttClick && button [i] -> name == "My lvls"){
-					sndClickButt.play (); 
-					state = myLVLs;
+				else if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased)
+					changeState (menu);
+				else if (button [i] -> buttClick && button [i] -> name == "My lvls"){
 					readInfo ();
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == myLVLs)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
+					changeState (myLVLs);
 				}
 			}
 	}
@@ -1607,13 +1424,7 @@ public:
 				if (button [i] -> name == "EditLVL")
 					button [i] -> updateText (fileNameAd);
 				if ((button [i] -> buttClick && button [i] -> name == "EditLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
-					sndClickButt.play (); 
-					state = admin;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == admin)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
+					changeState (admin);
 					char tmpC [100] = "Resources/LVLs/";
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					char tmpC2 [30];
@@ -1639,13 +1450,8 @@ public:
 				if (button [i] -> name == "AdSaveLVL")
 					button [i] -> updateText (fileNameAd);
 				if ((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || (event.type == Event::KeyPressed && Keyboard::isKeyPressed (Keyboard::Return))){
-					sndClickButt.play (); 
-					state = admin;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == admin)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
+					changeState (admin);
+
 					int tmpI; 
 					char tmpC2 [100][30]; 
 					bool edit = true;
@@ -1663,21 +1469,22 @@ public:
 						for (int i = 0; i < tmpI - 1; i++)
 							outF << tmpC2 [i] << endl;
 						outF << fileNameAd << endl;
-						char tmpC [100] = "Resources/LVLs/";
-						strcat (tmpC, fileNameAd);
-						strcat (tmpC, ".txt");
-						saveFile (tmpC);
+						
 					}
 					if (!edit){
 						ofstream outF ("Resources/LVLs/listLVLs.txt");
 						outF << tmpI << endl;
 						for (int i = 0; i < tmpI; i++)
 							outF << tmpC2 [i] << endl;
-						char tmpC [100] = "Resources/LVLs/";
-						strcat (tmpC, fileNameAd);
-						strcat (tmpC, ".txt");
-						saveFile (tmpC);
 					}
+					char tmpC [100] = "Resources/LVLs/";
+					strcat (tmpC, fileNameAd);
+					strcat (tmpC, ".txt");
+					Start.x = ArrWall [indexStart] -> x;
+					Start.y = ArrWall [indexStart] -> y;
+					Start.x = Start.x * EDGE + GLOB_IND_W;
+					Start.y = Start.y * EDGE + GLOB_IND_H;
+					saveFile (tmpC);
 				}
 			}
 	}
@@ -1688,51 +1495,27 @@ public:
 				if ((button [i] -> buttClick && button [i] -> name == "LeaveYes") || Keyboard::isKeyPressed (Keyboard::Return)){
 					AllTime += timePl / 1250;
 					timePl = 0;
-					sndClickButt.play (); 
 					timer = 0;
 					NumAnsw = 0;
 					writeInfo ();
 					saveFile (fileNamePl);
-					state = selectLVL;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == selectLVL)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
+					changeState (selectLVL);
 					lvlComplete = false;
 				}
-				if ((button [i] -> buttClick && button [i] -> name == "LeaveNo") || escapeReleased){
-					sndClickButt.play (); 
-					state = player;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == player)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
+				if ((button [i] -> buttClick && button [i] -> name == "LeaveNo") || escapeReleased)
+					changeState (player);
 			}
 	}
 	void StateStartLVL (){
 		pl -> changeFigure ();
-		if (Keyboard::isKeyPressed (Keyboard::Return)){
-			sndClickButt.play (); 
-			state = player;
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> state == player)
-					button [i] -> drawThis = true;
-				else
-					button [i] -> drawThis = false;
-		}
+		if (Keyboard::isKeyPressed (Keyboard::Return))
+			changeState (player);
 		if (escapeReleased){
 			AllTime += timePl / 1250; timePl = 0;
-			sndClickButt.play (); timer = 0;
+			timer = 0;
 			NumAnsw = 0; writeInfo ();
-			saveFile (fileNamePl); state = selectLVL;
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> state == selectLVL)
-					button [i] -> drawThis = true;
-				else
-					button [i] -> drawThis = false;
+			saveFile (fileNamePl); 
+			changeState (selectLVL);
 			lvlComplete = false;
 		}
 	}
@@ -1764,13 +1547,8 @@ public:
 
 								playerLVL = true;
 								createWay ();
-								state = player;
 								findLVL = true;
-								for (int k = 0; k < NumButton; k++)
-									if (button [k] -> state == player)
-										button [k] -> drawThis = true;
-									else
-										button [k] -> drawThis = false;	
+								changeState (player);
 							}
 							break;
 						}
@@ -1781,15 +1559,8 @@ public:
 							if (button [k] -> name == "InputMyLVL")
 								strcpy (myLVLname, "");
 				}
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuMyLVL") || escapeReleased){
-					sndClickButt.play (); 
-					state = selectLVL;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == selectLVL)
-							button [i] -> drawThis = true;
-						else
-							button [i] -> drawThis = false;
-				}
+				else if ((button [i] -> buttClick && button [i] -> name == "BackToMenuMyLVL") || escapeReleased)
+					changeState (selectLVL);
 			}
 	}
 

@@ -1,0 +1,9 @@
+7
+0 0
+0 0 Start
+9 2 Finish
+2 0 Wall
+2 1 Wall
+2 2 Wall
+1 2 Wall
+0 2 Wall

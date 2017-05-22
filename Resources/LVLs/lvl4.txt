@@ -1,4 +1,4 @@
-359
+355
 0 31
 0 31 Start
 24 19 Finish
@@ -230,10 +230,6 @@
 16 31 Rectangle
 17 31 Circle
 18 31 Circle
-18 30 Rectangle
-18 29 Rectangle
-18 28 Rectangle
-17 28 Rectangle
 15 28 Circle
 14 28 Triangle
 14 27 Rectangle
@@ -290,8 +286,6 @@
 22 27 Rectangle
 22 26 Rectangle
 22 25 Rectangle
-23 24 Circle
-24 24 Circle
 24 25 Circle
 24 26 Circle
 24 27 Triangle
@@ -359,3 +353,5 @@
 20 20 Rectangle
 21 20 Circle
 22 20 Circle
+18 29 Save
+23 24 Save
