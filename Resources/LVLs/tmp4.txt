@@ -1,0 +1,5 @@
+3
+0 0
+0 0 Start
+16 15 Finish
+10 16 Wall
