@@ -1,0 +1,12 @@
+10
+30 9
+30 9 Start
+34 11 Finish
+29 8 Wall
+29 9 Wall
+29 10 Wall
+30 10 Wall
+31 10 Wall
+31 9 Wall
+31 8 Wall
+30 8 Wall

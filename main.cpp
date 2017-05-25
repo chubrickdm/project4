@@ -270,6 +270,10 @@ public:
 	StateList state; //каждая кнопка кроме имени имеет группу к которой она относится
 	int value; //значение кнопки
 	float xText, yText; //координаты текста
+
+	bool changeForm;
+	int currFrame;
+	int counter;
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
@@ -295,15 +299,19 @@ public:
 	virtual void checkCursor () = 0;
 
 	virtual void updateText (char *Pass) = 0;
+
+	virtual void changeButton () = 0;
 };
 
 class Button : public BodyButton{
 public:
 	bool buttLocked;
+	
 public:
 	Button (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int Value, int WTexture, int HTexture) : 
 		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
 		value = Value; buttLocked = false;
+		changeForm = true; currFrame = 0; counter = 0;
 		if (state == menu)
 			drawThis = true;
 		else
@@ -386,6 +394,21 @@ public:
 	}
 
 	void updateText (char *Pass){ }
+
+	void changeButton (){
+		if (changeForm){
+			shape.setTextureRect (IntRect (wTexture, currFrame * hTexture, wTexture, hTexture));
+			counter++;
+			if (counter % 8 == 0)
+				currFrame++;
+			if (currFrame == 6){
+				currFrame = 0;
+				counter = 0;
+				changeForm = false;
+				drawThis = false;
+			}
+		}
+	}
 };
 
 class EditButton : public BodyButton{
@@ -429,6 +452,8 @@ public:
 			xText -= 5;
 		text -> setPosition (xText, yText); //распологаем текст по кнопке
 	}
+
+	void changeButton (){ }
 };
 
 class Static : public BodyButton{
@@ -465,6 +490,8 @@ public:
 		yText = (float) y - h / 2 - 5;
 		text -> setPosition (xText, yText); //распологаем текст по кнопке
 	}
+
+	void changeButton (){ }
 };
 
 class HorizontScrollBar : public BodyButton{
@@ -532,6 +559,8 @@ public:
 	}
 
 	void updateText (char *Pass){ }
+
+	void changeButton (){ }
 };
 
 class PictureButton : public BodyButton{
@@ -591,6 +620,8 @@ public:
 	}
 
 	void updateText (char *Pass){ }
+
+	void changeButton (){ }
 };
 
 
@@ -602,6 +633,9 @@ public:
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool playerLVL; //игрок играет в свой созданный уровень?
+	bool changeStates;
+	StateList whichStateWas;
+	StateList whichStateWill;
 
 	Image wallImage; //загрузка спрайта стен
 	int NumWall; //количество стен
@@ -817,7 +851,7 @@ public:
 		backgroundMusic.setLoop (true);
 		backgroundMusic.setVolume (volumBackMusic);
 
-		buffer.loadFromFile ("Resources/Sounds/button-30.wav"); //звук
+		buffer.loadFromFile ("Resources/Sounds/sound.ogg"); //звук
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
 
@@ -828,6 +862,8 @@ public:
 		timePlText -> add ("", Color::Red);
 		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
 		timePl = 0;
+
+		changeStates = false;
 	}
 
 	void initializeWall (){
@@ -869,6 +905,7 @@ public:
 	void createWalls (){ //создание стен в админ моде
 		int tmpX, tmpY;
 		int tmp; 
+		bool deleted = false;
 		bool wallDeleted = false;
 		bool circleDeleted = false;
 		bool rectangleDeleted = false;
@@ -882,21 +919,20 @@ public:
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
 					for (int i = 0; i < NumWall; i++){
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
-							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
-								for (int j = i; j < NumWall - 1; j++)
-									ArrWall [j] =  ArrWall [j + 1];
-								NumWall--;
+							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish" && ArrWall [i] -> drawThis){
+								ArrWall [i] -> drawThis = false;
 								CoordWall [tmpX][tmpY] = false;
+								deleted = true;
 								if (ArrWall [i] -> name == "Wall")             wallDeleted = true;
 								else if (ArrWall [i] -> name == "Circle")      circleDeleted = true;
 								else if (ArrWall [i] -> name == "Rectangle")   rectangleDeleted = true;
 								else if (ArrWall [i] -> name == "Triangle")    triangleDeleted = true;
 								else if (ArrWall [i] -> name == "Save")        saveDeleted = true;
 								break;
-						}
+							}
 					}
-					switch (whichWall){
-					case startW:{
+
+					if (whichWall == startW){
 						bool tmpB = true;
 						for (int i = 0; i < NumWall; i++)
 							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Finish"){
@@ -904,20 +940,18 @@ public:
 							}
 						if (tmpB){
 							for (int i = 0; i < NumWall; i++){
-								if (ArrWall [i] -> name == "Start"){
+								if (ArrWall [i] -> name == "Start" && ArrWall [i] -> drawThis){
 									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
-									for (int j = i; j < NumWall - 1; j++)
-										ArrWall [j] =  ArrWall [j + 1];
-									NumWall--;
+									ArrWall [i] -> drawThis = false;
+									break;
 								}
 							}
 							indexStart = NumWall;
 							ArrWall [NumWall++] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Start.x = tmpX; Start.y = tmpY;
 						}
-						break;
-								}
-					case finishW:{
+					}
+					else if (whichWall == finishW){
 						bool tmpB = true;
 						for (int i = 0; i < NumWall; i++)
 							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Start"){
@@ -925,86 +959,26 @@ public:
 							}
 						if (tmpB){
 							for (int i = 0; i < NumWall; i++){
-								if (ArrWall [i] -> name == "Finish"){
+								if (ArrWall [i] -> name == "Finish" && ArrWall [i] -> drawThis){
+									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
 									ArrWall [i] -> drawThis = false;
-									for (int j = i; j < NumWall - 1; j++)
-										ArrWall [j] =  ArrWall [j + 1];
-									NumWall--;
+									break;
 								}
 							}
 							indexFinish = NumWall;
 							ArrWall [NumWall++] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Finish.x = tmpX; Finish.y = tmpY;
 						}
-						break;
-								 }
-					case wall:{
-						if (!wallDeleted){
-							bool tmpB = false;
-							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
-									tmpB = true; break;
-								}
-							if (!tmpB){
+					}
+					else{ 
+							if ((whichWall == wall) && !wallDeleted){
 								ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
 								CoordWall [tmpX][tmpY] = true;
 							}
-						}
-						wallDeleted = false;
-						break;
-						}
-					case rectangleW:{
-						if (!rectangleDeleted){
-							bool tmpB = false;
-							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
-									tmpB = true; break;
-								}
-							if (!tmpB)
-								ArrWall [NumWall++] = new Wall (wallImage, "Rectangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-						}
-						rectangleDeleted = false;
-						break;
-									}
-					case triangleW:{
-						if (!triangleDeleted){
-							bool tmpB = false;
-							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
-									tmpB = true; break;
-								}
-							if (!tmpB)
-								ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-						}
-						triangleDeleted = false;
-						break;
-								   }
-					case circleW:{
-						if (!circleDeleted){
-							bool tmpB = false;
-							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
-									tmpB = true; break;
-								}
-							if (!tmpB)
-								ArrWall [NumWall++] = new Wall (wallImage, "Circle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-						}
-						circleDeleted = false;
-						break;
-								 }
-					case saveW:{	
-						if (!saveDeleted){
-							bool tmpB = false;
-							for (int i = 0; i < NumWall; i++)
-								if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && (ArrWall [i] -> name == "Start" || ArrWall [i] -> name == "Finish")){
-									tmpB = true; break;
-								}
-							if (!tmpB)
-								ArrWall [NumWall++] = new Wall (wallImage, "Save",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
-						}
-						saveDeleted = false;
-						break;
-							   }
+							else if ((whichWall == rectangleW) && !rectangleDeleted)   ArrWall [NumWall++] = new Wall (wallImage, "Rectangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							else if ((whichWall == triangleW) && !triangleDeleted)     ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							else if ((whichWall == circleW) && !circleDeleted)         ArrWall [NumWall++] = new Wall (wallImage, "Circle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							else if ((whichWall == saveW) && !saveDeleted)             ArrWall [NumWall++] = new Wall (wallImage, "Save",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 					}
 				}	
 	}
@@ -1016,7 +990,7 @@ public:
 		ArrWall [indexFinish] -> drawThis = false;
 		for (int i = 0; i < NumWall; i++)
 			if (ArrWall [i] -> drawThis)
-				tmp++;
+				++tmp;
 		tmp += 2;
 		outF << tmp << endl;
 		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
@@ -1177,13 +1151,35 @@ public:
 				button [i] -> drawThis = false;
 	}
 
+	void changeState2 (){
+		for (int i = 0; i < NumButton; i++){
+			if (button [i] -> state == whichStateWas ){
+				button [i] -> changeButton ();
+				cout << "dima" << endl;
+			}
+			if (button [i] -> state == whichStateWas && button [i] -> changeForm == false){
+				changeState (whichStateWill); return;
+			}
+			//if (button [i] -> state == whichStateWill)
+			//	button [i] -> drawThis = true;
+		}
+		cout << endl;
+	}
+
 
 	void StateMenu (){
+		if (changeStates){
+			changeState2 ();
+		}
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
-				button [i] -> checkCursor ();
+				if (!changeStates)
+					button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "Mode"){
-					changeState (mode); break;
+					//changeState (mode);  
+					sndClickButt.play ();
+					changeStates = true; whichStateWas = menu; whichStateWill = mode;
+					break;
 				}
 				else if (button [i] -> buttClick && button [i] -> name == "Go!"){
 					if (AdOrPlMode == "AdminMode"){
@@ -1322,6 +1318,8 @@ public:
 							pl -> changeCoord (Start.x, Start.y);
 							plBackground -> changeCoord (pl -> x, pl -> y);
 							createWay ();
+							enterReleased = false;
+							changeState (startLVL);
 						}
 					}
 					else{
@@ -1640,7 +1638,7 @@ int main (){
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 0)); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen, ContextSettings (0, 0, 0)*/); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
@@ -1668,7 +1666,6 @@ int main (){
 			game.update ();
 			game.escapeReleased = false;
 			game.enterReleased = false;
-			 
 		}
 		if (game.state == player) //обновляем игрока всегда
 			game.StatePlayer ();

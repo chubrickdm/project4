@@ -1,12 +1,8 @@
-11
+7
 lvl1
 lvl2
 lvl3
 lvl4
 tmp
 tmp2
-tmp7
-tmp6
-tmp5
-tmp4
-tmp9
+tmp3
