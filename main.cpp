@@ -273,7 +273,6 @@ public:
 
 	bool changeForm;
 	int currFrame;
-	int counter;
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
@@ -306,12 +305,22 @@ public:
 class Button : public BodyButton{
 public:
 	bool buttLocked;
-	
+	RectangleShape tmpS;
 public:
 	Button (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int Value, int WTexture, int HTexture) : 
 		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
 		value = Value; buttLocked = false;
-		changeForm = true; currFrame = 0; counter = 0;
+		
+		if (name == "Example"){
+			changeForm = false; currFrame = 0;
+			texture.loadFromImage (image);
+			tmpS.setSize (Vector2f ((float) w, (float) h));
+			tmpS.setPosition ((float) x - W_BUTTON / 2, (float) y + H_BUTTON / 2);
+			tmpS.setTexture (&texture);
+			tmpS.setTextureRect (IntRect (wTexture, 6 * hTexture, wTexture, hTexture));	
+			text -> setPosition (xText - 11, yText);
+		}
+
 		if (state == menu)
 			drawThis = true;
 		else
@@ -356,6 +365,8 @@ public:
 	void draw (){
 		window -> draw (shape);
 		text -> draw (window);
+		if (name == "Example" && changeForm)
+			window -> draw (tmpS);
 	}
 
 	void checkCursor (){ //функция проверки на нажатие кнопки или наведением курсора на кнопку
@@ -395,15 +406,18 @@ public:
 
 	void updateText (char *Pass){ }
 
-	void changeButton (){
+	void changeButton (){ //84, 48
 		if (changeForm){
-			shape.setTextureRect (IntRect (wTexture, currFrame * hTexture, wTexture, hTexture));
-			counter++;
-			if (counter % 8 == 0)
-				currFrame++;
-			if (currFrame == 6){
+			tmpS.setSize (Vector2f ((float)  W_BUTTON * currFrame / 120, (float) H_BUTTON));
+			tmpS.setTextureRect (IntRect (wTexture, 6 * hTexture, currFrame, hTexture));
+			tmpS.setPosition ((float) x + W_BUTTON / 2 - 2 * W_BUTTON * currFrame / 120, (float) y - H_BUTTON / 2);
+
+			shape.setSize (Vector2f ((float) W_BUTTON - W_BUTTON * currFrame / 120, (float) H_BUTTON));
+			shape.setTextureRect (IntRect (0, 0, wTexture - currFrame, hTexture));
+
+			currFrame++;
+			if (currFrame == 121){
 				currFrame = 0;
-				counter = 0;
 				changeForm = false;
 				drawThis = false;
 			}
@@ -633,9 +647,9 @@ public:
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool playerLVL; //игрок играет в свой созданный уровень?
-	bool changeStates;
-	StateList whichStateWas;
-	StateList whichStateWill;
+	//bool changeStates;
+	//StateList whichStateWas;
+	//StateList whichStateWill;
 
 	Image wallImage; //загрузка спрайта стен
 	int NumWall; //количество стен
@@ -724,6 +738,7 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Mode", "Mode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Example", "Example", font, tmpS, GLOBAL_W / 2 - 300, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = exitt;
 		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
@@ -863,7 +878,7 @@ public:
 		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
 		timePl = 0;
 
-		changeStates = false;
+		//changeStates = false;
 	}
 
 	void initializeWall (){
@@ -1151,34 +1166,39 @@ public:
 				button [i] -> drawThis = false;
 	}
 
-	void changeState2 (){
-		for (int i = 0; i < NumButton; i++){
-			if (button [i] -> state == whichStateWas ){
-				button [i] -> changeButton ();
-				cout << "dima" << endl;
-			}
-			if (button [i] -> state == whichStateWas && button [i] -> changeForm == false){
-				changeState (whichStateWill); return;
-			}
-			//if (button [i] -> state == whichStateWill)
-			//	button [i] -> drawThis = true;
-		}
-		cout << endl;
-	}
+	//void changeState2 (){
+	//	for (int i = 0; i < NumButton; i++){
+	//		if (button [i] -> state == whichStateWas ){
+	//			button [i] -> changeButton ();
+	//			cout << "dima" << endl;
+	//		}
+	//		if (button [i] -> state == whichStateWas && button [i] -> changeForm == false){
+	//			changeState (whichStateWill); return;
+	//		}
+	//		//if (button [i] -> state == whichStateWill)
+	//		//	button [i] -> drawThis = true;
+	//	}
+	//	cout << endl;
+	//}
 
 
 	void StateMenu (){
-		if (changeStates){
-			changeState2 ();
-		}
+		//if (changeStates){
+		//	changeState2 ();
+		//}
+		button [5] -> changeButton ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
-				if (!changeStates)
-					button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "Mode"){
-					//changeState (mode);  
+				if (button [i] -> name != "Example" || button [i] -> changeForm == false)
+				button [i] -> checkCursor ();
+				if (button [i] -> buttClick && button [i] -> name == "Example"){
 					sndClickButt.play ();
-					changeStates = true; whichStateWas = menu; whichStateWill = mode;
+					button [i] -> changeForm = true; 
+				}
+				if (button [i] -> buttClick && button [i] -> name == "Mode"){
+					changeState (mode);  
+					//sndClickButt.play ();
+					//changeStates = true; whichStateWas = menu; whichStateWill = mode;
 					break;
 				}
 				else if (button [i] -> buttClick && button [i] -> name == "Go!"){
@@ -1191,8 +1211,7 @@ public:
 						whichWall = wall;
 						changeState (admin);
 					}
-					if (AdOrPlMode == "PlayerMode"){
-						sndClickButt.play ();  
+					if (AdOrPlMode == "PlayerMode"){  
 						writeInfo ();
 						changeState (selectLVL);
 					}
@@ -1638,7 +1657,7 @@ int main (){
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen, ContextSettings (0, 0, 0)*/); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen, ContextSettings (0, 0, 1)*/); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
