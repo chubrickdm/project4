@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, newGame}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
@@ -299,7 +299,7 @@ public:
 
 	virtual void updateText (char *Pass) = 0;
 
-	void reduceButton (){
+	virtual void reduceButton (){
 		if (changeForm){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
 			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
@@ -335,7 +335,7 @@ public:
 		}
 	}
 
-	void enlargeButton (){
+	virtual void enlargeButton (){
 		if (changeForm){
 			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
@@ -357,6 +357,11 @@ public:
 			}
 		}
 	}
+
+	virtual void clearButton (){
+		shape.setSize (Vector2f (0, 0));
+		text -> clear ();
+	}
 };
 
 class Button : public BodyButton{
@@ -372,6 +377,8 @@ public:
 		else
 			drawThis = false;
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+		if (name == "SelectLVL")
+			shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
 	}
 
 	void draw (){
@@ -398,14 +405,21 @@ public:
 					buttPressed = false;
 				}
 				shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
+				if (name == "SelectLVL")
+					shape.setTextureRect (IntRect (wTexture, 4 * hTexture, wTexture, hTexture));
 			}
 			else{
 				buttPressed = false; //если курсор не на мыши то кнопка обычного вида
 				shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+				if (name == "SelectLVL")
+					shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 			}
 		}
-		else
+		else{
 			shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
+			if (name == "SelectLVL")
+				shape.setTextureRect (IntRect (3 * wTexture, 4 * hTexture, wTexture, hTexture));
+		}
 
 		if (buttClick && (name == "AdminMode" || name == "PlayerMode")) //если мы в state = mode, можем выбрать режим игры, админ (для редактирования и создания карт) или игрок (играть)
 			AdOrPlMode = name; //переменная хранящая текущий режим игры
@@ -481,10 +495,24 @@ public:
 class HorizontScrollBar : public BodyButton{
 public:
 	int leftBorder, rightBorder; //левая и правая граница по которой может перемещаться кнопка (не вся доступная область, т.к. кнопка имеет ширину)
+	RectangleShape backgroundd;
+	int wBground;
+	int hBground;
+	int x2, y2;
 public:
-	HorizontScrollBar (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int tmpBordL, int tmpBordR, int WTexture, int HTexture) : 
+	HorizontScrollBar (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int tmpBordL, int tmpBordR, int WTexture, int HTexture, int WBground, int HBground) : 
 		    BodyButton (image, "", Name, Font, State, X, Y, W, H, WTexture, HTexture){ 
         leftBorder = tmpBordL; rightBorder = tmpBordR;
+		wBground = WBground; hBground = HBground;
+		x2 = x; y2 = y;
+
+		backgroundd.setSize (Vector2f ((float) W_BUTTON, (float) H_BUTTON));
+		backgroundd.setOrigin ((float) W_BUTTON / 2, (float) H_BUTTON / 2);
+		backgroundd.setPosition ((float) x2, (float) y2);
+		backgroundd.setTexture (&texture);
+		backgroundd.setTextureRect (IntRect (0, 5 * hBground, wBground, hBground));	
+
+		shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 		if (name == "MusicSlider"){ //считываем с файла данные об настройках игрока, и устанавливаем кнопку в нужное пложение
 			shape.setPosition ((float) leftBorder + volumBackMusic * (rightBorder - leftBorder) / 100, (float) y);
 			x = leftBorder + (int) volumBackMusic * (rightBorder - leftBorder) / 100;
@@ -496,6 +524,7 @@ public:
 	}
 
 	void draw (){
+		window -> draw (backgroundd);
 		window -> draw (shape);
 	}
 
@@ -537,12 +566,53 @@ public:
 			buttPressed = false;
 
 		if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y - h / 2) && (posMouse.y <= y + h / 2)) //если курсор мыши находится на кнопке
-			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
+			shape.setTextureRect (IntRect (wTexture, 4 * hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
 		else
-			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+			shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 	}
 
 	void updateText (char *Pass){ }
+
+	void reduceButton (){
+		if (changeForm){
+			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
+			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+
+			backgroundd.setSize (Vector2f ((float) W_BUTTON * reducePrecent / 100, (float) H_BUTTON * reducePrecent / 100));
+			backgroundd.setOrigin ((float) W_BUTTON * reducePrecent / 100 / 2, (float) H_BUTTON * reducePrecent / 100 / 2);
+			backgroundd.setPosition ((float) x2, (float) y2);
+
+			reducePrecent -= 3;
+			if (reducePrecent < 0){
+				reducePrecent = 100;
+				changeForm = false;
+			}
+		}
+	}
+
+	void enlargeButton (){
+		if (changeForm){
+			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
+			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+
+			backgroundd.setSize (Vector2f ((float) W_BUTTON * enlargePrecent / 100, (float) H_BUTTON * enlargePrecent / 100));
+			backgroundd.setOrigin ((float) W_BUTTON * enlargePrecent / 100 / 2, (float) H_BUTTON * enlargePrecent / 100 / 2);
+			backgroundd.setPosition ((float) x2, (float) y2);
+
+			enlargePrecent += 3;
+			if (enlargePrecent > 100){
+				enlargePrecent = 0;
+				changeForm = false;
+			}
+		}
+	}
+
+	virtual void clearButton (){
+		shape.setSize (Vector2f (0, 0));
+		backgroundd.setSize (Vector2f (0, 0));
+	}
 };
 
 class PictureButton : public BodyButton{
@@ -555,6 +625,8 @@ public:
 public:
 	PictureButton (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture, Image &Ipicture, int WPicture, int HPicture) : 
 		    BodyButton (image, "", Name, Font, State, X, Y, W, H, WTexture, HTexture){
+		
+		shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
         pictureT.loadFromImage (Ipicture);
 		wPicture = WPicture; hPicture = HPicture;
 		picture.setSize (Vector2f ((float) w, (float) h));
@@ -588,20 +660,62 @@ public:
 				}
 				buttPressed = false;
 			}
-			shape.setTextureRect (IntRect (0, 30, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
+			shape.setTextureRect (IntRect (wTexture, 4 * hTexture, wTexture, hTexture));
 		}
 		else{
 			buttPressed = false; //если курсор не на мыши то кнопка обычного вида
-			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+			shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 		}		
 
 		if (typeWall == whichWall)
-			picture.setTextureRect (IntRect (0, hPicture, wPicture, hPicture));
+			//picture.setTextureRect (IntRect (0, hPicture, wPicture, hPicture));
+			shape.setTextureRect (IntRect (2 * wTexture, 4 * hTexture, wTexture, hTexture));
 		else
 			picture.setTextureRect (IntRect (0, 0, wPicture, hPicture));
 	}
 
 	void updateText (char *Pass){ }
+
+	void reduceButton (){
+		if (changeForm){
+			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
+			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+
+			picture.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
+			picture.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
+			picture.setPosition ((float) x, (float) y);
+
+			reducePrecent -= 3;
+			if (reducePrecent < 0){
+				reducePrecent = 100;
+				changeForm = false;
+			}
+		}
+	}
+
+	void enlargeButton (){
+		if (changeForm){
+			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
+			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+
+			picture.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
+			picture.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
+			picture.setPosition ((float) x, (float) y);
+
+			enlargePrecent += 3;
+			if (enlargePrecent > 100){
+				enlargePrecent = 0;
+				changeForm = false;
+			}
+		}
+	}
+
+	virtual void clearButton (){
+		shape.setSize (Vector2f (0, 0));
+		picture.setSize (Vector2f (0, 0));
+	}
 };
 
 
@@ -677,7 +791,7 @@ public:
 				ArrWall [indexFinish] -> draw ();
 
 		if (state == pause || state == startLVL || state == player){ //именно здесь рисуем игрока, что б он был не поверх текста на кнопок и их самих
-			pl -> draw (); button [27] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if
+			pl -> draw (); button [30] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if
 		}
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -712,11 +826,16 @@ public:
 		button [NumButton++] = new Button (buttonImage, "No!", "QuitNo", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Yes.", "QuitYes", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 200, W_BUTTON, H_BUTTON, 0, 120, 30);
 
+		tmpS = newGame;
+		button [NumButton++] = new Static (buttonImage, "Start new game?", "NewGame?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Yes!", "New Game", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "No.", "Continue Game", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 200, W_BUTTON, H_BUTTON, 0, 120, 30);
+
 		tmpS = settings;
-		button [NumButton++] = new Static (buttonImage, "Sound", "VolSound", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 10, GLOB_IND_H + EDGE * 7 + 50, 20, H_BUTTON, GLOBAL_W / 2 - W_BUTTON / 2 + 10, GLOBAL_W / 2 - W_BUTTON / 2 + W_BUTTON - 10, 20, 30);
-		button [NumButton++] = new Static (buttonImage, "Music", "VolMusic", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 - 120 / 2 + 10, GLOB_IND_H + EDGE * 7 + 100, 20, H_BUTTON, GLOBAL_W / 2 - W_BUTTON / 2 + 10, GLOBAL_W / 2 - W_BUTTON / 2 + W_BUTTON - 10, 20, 30);
+		button [NumButton++] = new Static (buttonImage, "Sound:", "VolSound", font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 50, 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Music:", "VolMusic", font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 100, 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSet", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = mode;
@@ -730,19 +849,19 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, tmpS, GLOBAL_W / 2 + W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/rectangle.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/triangle.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 6 - H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 6 - H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/circle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 3 - H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 3 - H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/wall.png");  
-		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/start.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 3 + H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 3 + H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/save.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, EDGE, EDGE, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 
 		tmpS = player;
 		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
@@ -764,10 +883,10 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = selectLVL;
-		button [NumButton++] = new Button (buttonImage, "1", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 1, 29, 30);
-		button [NumButton++] = new Button (buttonImage, "2", "SelectLVL", font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 2, 29, 30);
-		button [NumButton++] = new Button (buttonImage, "3", "SelectLVL", font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 3, 29, 30);
-		button [NumButton++] = new Button (buttonImage, "4", "SelectLVL", font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 4, 29, 30);
+		button [NumButton++] = new Button (buttonImage, "1", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 1, 30, 30);
+		button [NumButton++] = new Button (buttonImage, "2", "SelectLVL", font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 2, 30, 30);
+		button [NumButton++] = new Button (buttonImage, "3", "SelectLVL", font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 3, 30, 30);
+		button [NumButton++] = new Button (buttonImage, "4", "SelectLVL", font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 4, 30, 30);
 		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 - 50, W_BUTTON, H_BUTTON, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "My lvls", "My lvls", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
@@ -899,6 +1018,7 @@ public:
 					timer = 0;	
 					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
+					cout << tmpX << " " << tmpY << endl;
 					for (int i = 0; i < NumWall; i++){
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
 							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish" && ArrWall [i] -> drawThis){
@@ -953,6 +1073,9 @@ public:
 						}
 					}
 					else{ 
+						if ((tmpX == ArrWall [indexStart] -> x && tmpY == ArrWall [indexStart] -> y) || (tmpX == ArrWall [indexFinish] -> x && tmpY == ArrWall [indexFinish] -> y))
+							tmp = 0;
+						else {
 							if ((whichWall == wall) && !wallDeleted){
 								ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
 								CoordWall [tmpX][tmpY] = true;
@@ -961,6 +1084,7 @@ public:
 							else if ((whichWall == triangleW) && !triangleDeleted)     ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 							else if ((whichWall == circleW) && !circleDeleted)         ArrWall [NumWall++] = new Wall (wallImage, "Circle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 							else if ((whichWall == saveW) && !saveDeleted)             ArrWall [NumWall++] = new Wall (wallImage, "Save",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+						}
 					}
 				}	
 	}
@@ -1060,7 +1184,7 @@ public:
 	}
 
 	void inputKeyboard (char *tmpC, bool fictiv){ //ввод с клавиатуры
-		if (event.type == Event::KeyPressed)
+		if (event.type == Event::KeyPressed){
 			if ((strlen (tmpC) < 9 && !fictiv) || (strlen (tmpC) < 4 && fictiv)){
 				if (Keyboard::isKeyPressed (Keyboard::A))             strcat (tmpC, "a");
 				else if (Keyboard::isKeyPressed (Keyboard::B))        strcat (tmpC, "b");
@@ -1099,17 +1223,18 @@ public:
 				else if (Keyboard::isKeyPressed (Keyboard::Num7))     strcat (tmpC, "7");
 				else if (Keyboard::isKeyPressed (Keyboard::Num8))     strcat (tmpC, "8");
 				else if (Keyboard::isKeyPressed (Keyboard::Num9))     strcat (tmpC, "9");
-
-				else if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       
-					int i = strlen (tmpC);
-					if (i > 0){
-						char tmpC2 [50];
-						strcpy (tmpC2, tmpC);
-						strncpy (tmpC, tmpC2, i - 1);
-						tmpC [i - 1] = '\0';
-					}
+			}
+			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       
+				int i = strlen (tmpC);
+				if (i > 0){
+					char tmpC2 [50];
+					strcpy (tmpC2, tmpC);
+					strncpy (tmpC, tmpC2, i - 1);
+					tmpC [i - 1] = '\0';
 				}
 			}
+		}
+			
 	}
 
 	void createWay (){
@@ -1133,8 +1258,7 @@ public:
 					for (int i = 0; i < NumButton; i++)
 						if (button [i] -> state == whichStateWill){
 							button [i] -> drawThis  = true;
-							button [i] -> shape.setSize (Vector2f (0, 0));
-							button [i] -> text -> clear ();
+							button [i] -> clearButton ();
 						}
 						else
 							button [i] -> drawThis  = false;
@@ -1177,8 +1301,7 @@ public:
 			changeState2 ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
-				//if (button [i] -> changeForm != true)
-					button [i] -> checkCursor ();
+				button [i] -> checkCursor ();
 				if (button [i] -> buttClick && button [i] -> name == "Mode" && !changeStates){
 					changeState (mode);
 					break;
@@ -1187,9 +1310,9 @@ public:
 					if (AdOrPlMode == "AdminMode"){
 						NumWall = 0;
 						ArrWall [NumWall++] = new Wall (wallImage, "Start", 0, 0, EDGE, EDGE, 20, 20);
+						ArrWall [NumWall++] = new Wall (wallImage, "Finish", 1, 0, EDGE, EDGE, 20, 20);
 						indexStart = 0;
 						indexFinish = 1;
-						ArrWall [NumWall++] = new Wall (wallImage, "Finish", 1, 0, EDGE, EDGE, 20, 20);
 						whichWall = wall;
 						changeState (admin);
 					}
@@ -1414,18 +1537,22 @@ public:
 					if (button [i] -> value <= PassedLVL + 1){
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
-						playerLVL = false;
+						
 						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
-						openSpecificFile (nameFile);
 						strcpy (fileNamePl, nameFile);
-						pl -> changeCoord (Start.x, Start.y);
-						pl -> statePl = rectangle;
-						plBackground -> changeCoord (Start.x, Start.y);
-
-						createWay ();
-						changeState (startLVL);
+						if (button [i] -> value <= PassedLVL)
+							changeState (newGame);
+						else{
+							openSpecificFile (fileNamePl);
+							pl -> changeCoord (Start.x, Start.y);
+							pl -> statePl = rectangle;
+							plBackground -> changeCoord (Start.x, Start.y);
+							playerLVL = false;
+							createWay ();
+							changeState (startLVL);
+						}
 					}
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased) && !changeStates){
@@ -1611,6 +1738,36 @@ public:
 					changeState (selectLVL);
 			}
 	}
+	void StateNewGame (){
+		if (changeStates)
+			changeState2 ();
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (((button [i] -> buttClick && button [i] -> name == "Continue Game") || escapeReleased) && !changeStates){
+					openSpecificFile (fileNamePl);
+					pl -> changeCoord (Start.x, Start.y);
+					pl -> statePl = rectangle;
+					plBackground -> changeCoord (Start.x, Start.y);
+					playerLVL = false;
+					createWay ();
+					changeState (startLVL);
+				}
+				else if (((button [i] -> buttClick && button [i] -> name == "New Game") || enterReleased) && !changeStates){
+					openSpecificFile (fileNamePl);
+					Start.x = ArrWall [indexStart] -> x;
+					Start.y = ArrWall [indexStart] -> y;
+					Start.x = Start.x * EDGE + GLOB_IND_W;
+					Start.y = Start.y * EDGE + GLOB_IND_H;
+					pl -> changeCoord (Start.x, Start.y);
+					pl -> statePl = rectangle;
+					plBackground -> changeCoord (Start.x, Start.y);
+					playerLVL = false;
+					createWay ();
+					changeState (startLVL);
+				}
+			}
+	}
 
 	void update (){
 		switch (state){
@@ -1653,6 +1810,9 @@ public:
 		case myLVLs:
 			StateMyLVLs ();
 			break;
+		case newGame:
+			StateNewGame ();
+			break;
 		}
 	}
 };
@@ -1664,7 +1824,7 @@ int main (){
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen, ContextSettings (0, 0, 1)*/); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
