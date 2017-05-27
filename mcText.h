@@ -40,6 +40,8 @@ public:
 	std::vector<mcTextInfo*> vecInfo; // вектор содержащий описания текстов
 	std::vector<sf::Text> vecText;    // вектор содержащий сами тексты
 	void data(); // задаёт начальную информацию
+
+	int w, h;
 public:
 	mcText(sf::Font* f);
 	~mcText(void);

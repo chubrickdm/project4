@@ -46,6 +46,8 @@ void mcText::add(sf::String str, sf::Color color)
 	// Êàê âñ¸ ãåíèàëüíî è ïğîñòî, ÿ àæ ñàì îôèãåë êîãäà ïğèäóìàë
 	t->w = (int) text.getLocalBounds().width;
 	t->h = (int) text.getLocalBounds().height;
+	w = (int) text.getLocalBounds().width;
+	h = (int) text.getLocalBounds().height;
 	t->dx = dx;
 	dx += t->w;
 	t->dy = dy;

@@ -1,12 +1,15 @@
-10
-30 9
-30 9 Start
-34 11 Finish
-29 8 Wall
-29 9 Wall
+13
+0 0
+0 0 Start
+36 16 Finish
+32 13 Wall
+30 16 Wall
+32 17 Wall
+35 11 Wall
 29 10 Wall
-30 10 Wall
-31 10 Wall
-31 9 Wall
-31 8 Wall
-30 8 Wall
+34 15 Wall
+38 16 Wall
+35 20 Wall
+29 21 Wall
+24 15 Wall
+33 10 Wall

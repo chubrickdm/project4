@@ -59,6 +59,7 @@ public:
 	int H_BUTTON;
 	int GLOB_IND_W; 
 	int GLOB_IND_H;
+	int SIZE_TEXT;
 public:
 	System (){
 		GLOBAL_W = 4000; //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
@@ -72,6 +73,7 @@ public:
 		NUM_V_LINE = (NUM_CELL_X + 1); //количество вертикальных прямых, которые создают поле
 		W_BUTTON = 120 + (W_WIN - 1360) / 5; //ширина кнопки
 		H_BUTTON = 30 + (H_WIN - 760) / 10; //высота кнопки
+		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
 
 		while (1){
 			if ((H_WIN - NUM_CELL_Y * EDGE) / 2 < H_BUTTON + 40 || (W_WIN - NUM_CELL_X * EDGE) / 2 < 60)
@@ -265,31 +267,29 @@ public:
 class BodyButton : public Body{ //тело кнопок
 public:
 	mcText *text; //текст который выводится на кнопке
+	String buttText;
 	bool drawThis, buttPressed, buttClick; //рисовать ли кнопку, нажата ли кнопка и кликнули ли по кнопке. Клик- это нажать и отпустить кнопку когда курсор мыши на кнопке
 	Font font; //шрифт
 	StateList state; //каждая кнопка кроме имени имеет группу к которой она относится
 	int value; //значение кнопки
-	float xText, yText; //координаты текста
 
 	bool changeForm;
-	int currFrame;
+	float reducePrecent;
+	float enlargePrecent;
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
-	    font = Font; state = State;
+	    font = Font; state = State; buttText = Text;
 		drawThis = false; buttClick = false; buttPressed = false; 
+		changeForm = false; reducePrecent = 100; enlargePrecent = 0;
 
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
-		text -> changeSize (30); //размер текста
+		text -> changeSize (SIZE_TEXT); //размер текста
 		if (name != "Pause" && name != "Leave?" && name != "StartLVL")
-			text -> add (Text);
+			text -> add (buttText);
 		else
-			text -> add (Text, Color::White);
-		float tmp = (float) Text.getSize (); //получаем длинну текста в символах
-		tmp /= 2;
-		xText = (float) x - tmp * 14;
-		yText = (float) y - h / 2 - 5;
-		text -> setPosition (xText, yText); //распологаем текст по кнопке
+			text -> add (buttText, Color::White);
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
@@ -299,74 +299,84 @@ public:
 
 	virtual void updateText (char *Pass) = 0;
 
-	virtual void changeButton () = 0;
+	void reduceButton (){
+		if (changeForm){
+			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
+			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+			text -> clear ();
+			text -> changeSize (SIZE_TEXT * (int) reducePrecent / 100); //размер текста
+			if (name != "Pause" && name != "Leave?" && name != "StartLVL")
+				text -> add (buttText);
+			else
+				text -> add (buttText, Color::White);
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
+
+			reducePrecent -= 3;
+			if (reducePrecent < 0){
+				reducePrecent = 100;
+				changeForm = false;
+				//shape.setSize (Vector2f ((float) w, (float) h));
+			}
+
+			/*tmpS.setSize (Vector2f ((float)  W_BUTTON * currFrame / 120, (float) H_BUTTON));
+			tmpS.setTextureRect (IntRect (wTexture, 0, currFrame, hTexture));
+			tmpS.setPosition ((float) x + W_BUTTON / 2 - 2 * W_BUTTON * currFrame / 120, (float) y - H_BUTTON / 2);
+
+			shape.setSize (Vector2f ((float) W_BUTTON - W_BUTTON * currFrame / 120, (float) H_BUTTON));
+			shape.setTextureRect (IntRect (0, 0, wTexture - currFrame, hTexture));
+
+			currFrame++;
+			if (currFrame == 121){
+				currFrame = 0;
+				changeForm = false;
+				drawThis = false;
+			}*/
+		}
+	}
+
+	void enlargeButton (){
+		if (changeForm){
+			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
+			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+			text -> clear ();
+			text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
+			if (name != "Pause" && name != "Leave?" && name != "StartLVL")
+				text -> add (buttText);
+			else
+				text -> add (buttText, Color::White);
+			if (name == "Edit")
+				text -> clear ();
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
+
+			enlargePrecent += 3;
+			if (enlargePrecent > 100){
+				enlargePrecent = 0;
+				changeForm = false;
+			}
+		}
+	}
 };
 
 class Button : public BodyButton{
 public:
 	bool buttLocked;
-	RectangleShape tmpS;
 public:
 	Button (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int Value, int WTexture, int HTexture) : 
 		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
 		value = Value; buttLocked = false;
-		
-		if (name == "Example"){
-			changeForm = false; currFrame = 0;
-			texture.loadFromImage (image);
-			tmpS.setSize (Vector2f ((float) w, (float) h));
-			tmpS.setPosition ((float) x - W_BUTTON / 2, (float) y + H_BUTTON / 2);
-			tmpS.setTexture (&texture);
-			tmpS.setTextureRect (IntRect (wTexture, 6 * hTexture, wTexture, hTexture));	
-			text -> setPosition (xText - 11, yText);
-		}
 
 		if (state == menu)
 			drawThis = true;
 		else
 			drawThis = false;
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-
-		//т.к. размеры букв разный, двигаем текст на кнопках, что б он находился ровно по кнопке
-		if (name == "Mode")
-			text -> setPosition (xText - 12, yText);
-		if (name == "Go!")
-			text -> setPosition (xText - 6, yText);
-		if (name == "QuitNo")
-			text -> setPosition (xText - 5, yText);
-		if (name == "BackToMenuSet")
-			text -> setPosition (xText - 7, yText);
-		if (name == "BackToMenu")
-			text -> setPosition (xText - 7, yText);
-		if (name == "AdminMode")
-			text -> setPosition (xText - 10, yText);
-		if (name == "PlayerMode")
-			text -> setPosition (xText - 4, yText);
-		if (name == "BackToMenuSel")
-			text -> setPosition (xText - 7, yText);
-		if (name == "BackToMenuMyLVL")
-			text -> setPosition (xText - 7, yText);
-		if (name == "BackToMenuPl")
-			text -> setPosition (xText - 7, yText);
-		if (name == "BackToAdminSel")
-			text -> setPosition (xText - 7, yText);
-		if (name == "BackToAdminSave")
-			text -> setPosition (xText - 7, yText);
-		if (name == "HelpPl")
-			text -> setPosition (xText - 3, yText);
-		if (name == "BackToMenuAd")
-			text -> setPosition (xText - 7, yText);
-		if (name == "SaveAd")
-			text -> setPosition (xText - 6, yText);
-		if (name == "OpenAd")
-			text -> setPosition (xText - 11, yText);
 	}
 
 	void draw (){
 		window -> draw (shape);
 		text -> draw (window);
-		if (name == "Example" && changeForm)
-			window -> draw (tmpS);
 	}
 
 	void checkCursor (){ //функция проверки на нажатие кнопки или наведением курсора на кнопку
@@ -405,24 +415,6 @@ public:
 	}
 
 	void updateText (char *Pass){ }
-
-	void changeButton (){ //84, 48
-		if (changeForm){
-			tmpS.setSize (Vector2f ((float)  W_BUTTON * currFrame / 120, (float) H_BUTTON));
-			tmpS.setTextureRect (IntRect (wTexture, 6 * hTexture, currFrame, hTexture));
-			tmpS.setPosition ((float) x + W_BUTTON / 2 - 2 * W_BUTTON * currFrame / 120, (float) y - H_BUTTON / 2);
-
-			shape.setSize (Vector2f ((float) W_BUTTON - W_BUTTON * currFrame / 120, (float) H_BUTTON));
-			shape.setTextureRect (IntRect (0, 0, wTexture - currFrame, hTexture));
-
-			currFrame++;
-			if (currFrame == 121){
-				currFrame = 0;
-				changeForm = false;
-				drawThis = false;
-			}
-		}
-	}
 };
 
 class EditButton : public BodyButton{
@@ -454,36 +446,20 @@ public:
 	}
 
 	void updateText (char *Pass){ //функция обновления текста
+		buttText = Pass;
 		text -> clear ();
-		text -> changeSize (30); //размер текста
-		text -> add (Pass);
-		float tmp = (float) strlen (Pass); //получаем длинну текста в символах
+		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> add (buttText);
+		float tmp = (float) buttText.getSize (); //получаем длинну текста в символах
 		tmp /= 2;
-		xText = (float) x - tmp * 14;
-		yText = (float) y - h / 2 - 5;
-		
-		if (name == "Edit") //числа имееют другую ширину чем буквы, поэтому сдвигаем немного
-			xText -= 5;
-		text -> setPosition (xText, yText); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
-
-	void changeButton (){ }
 };
 
 class Static : public BodyButton{
 public:
 	Static (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
-		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){ 
-		if (name == "RequestPass")         text -> setPosition (xText - 5, yText);
-		else if (name == "SelectStatic")   text -> setPosition (xText - 8, yText);
-		else if (name == "Quit game?")     text -> setPosition (xText - 10, yText);
-		else if (name == "VolMusic")       text -> setPosition (xText - 8, yText);
-		else if (name == "VolSound")       text -> setPosition (xText - 10, yText);
-		else if (name == "Pause")          text -> setPosition (xText - 9, yText);
-		else if (name == "Leave?")         text -> setPosition (xText - 6, yText);
-		else if (name == "StartLVL")       text -> setPosition (xText - 10, yText);
-		else if (name == "StaticMyLVL")    text -> setPosition (xText - 10, yText);
-	}
+		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){ }
 
 	void draw (){
 		text -> draw (window);
@@ -493,19 +469,13 @@ public:
 
 	void updateText (char *Pass){
 		text -> clear ();
-		text -> changeSize (30); //размер текста
+		text -> changeSize (SIZE_TEXT); //размер текста
 		char tmpC [40];
 		strcpy (tmpC, "Time: ");
 		strcat (tmpC, Pass);
 		text -> add (tmpC, Color::Red);
-		float tmp = (float) strlen (Pass); //получаем длинну текста в символах
-		tmp /= 2;
-		xText = (float) x - tmp * 14;
-		yText = (float) y - h / 2 - 5;
-		text -> setPosition (xText, yText); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
-
-	void changeButton (){ }
 };
 
 class HorizontScrollBar : public BodyButton{
@@ -573,8 +543,6 @@ public:
 	}
 
 	void updateText (char *Pass){ }
-
-	void changeButton (){ }
 };
 
 class PictureButton : public BodyButton{
@@ -634,8 +602,6 @@ public:
 	}
 
 	void updateText (char *Pass){ }
-
-	void changeButton (){ }
 };
 
 
@@ -647,9 +613,10 @@ public:
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool playerLVL; //игрок играет в свой созданный уровень?
-	//bool changeStates;
-	//StateList whichStateWas;
-	//StateList whichStateWill;
+	bool changeStates;
+	StateList whichStateWas;
+	StateList whichStateWill;
+	bool secondPhase;
 
 	Image wallImage; //загрузка спрайта стен
 	int NumWall; //количество стен
@@ -709,8 +676,9 @@ public:
 			if (indexFinish != -1)
 				ArrWall [indexFinish] -> draw ();
 
-		if (state == pause || state == startLVL || state == player) //именно здесь рисуем игрока, что б он был не поверх текста на кнопок и их самих
-			pl -> draw ();
+		if (state == pause || state == startLVL || state == player){ //именно здесь рисуем игрока, что б он был не поверх текста на кнопок и их самих
+			pl -> draw (); button [27] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if
+		}
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
 			if (button [i] -> drawThis)
@@ -738,7 +706,6 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Mode", "Mode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Example", "Example", font, tmpS, GLOBAL_W / 2 - 300, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = exitt;
 		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
@@ -779,7 +746,7 @@ public:
 
 		tmpS = player;
 		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Timer: 0", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = pause;
 		button [NumButton++] = new Static (buttonImage, "Pause", "Pause", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
@@ -878,7 +845,7 @@ public:
 		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
 		timePl = 0;
 
-		//changeStates = false;
+		changeStates = false; secondPhase = false;
 	}
 
 	void initializeWall (){
@@ -1157,51 +1124,66 @@ public:
 		outputSearch (CoordWall, fn, st, sizeMap);
 	}
 
-	void changeState (StateList tmpS){
-		state = tmpS; sndClickButt.play ();
+	void changeState2 (){
+		if (!secondPhase){
 		for (int i = 0; i < NumButton; i++)
-			if (button [i] -> state == tmpS)
-				button [i] -> drawThis = true;
-			else
-				button [i] -> drawThis = false;
+			if (button [i] -> state == whichStateWas){
+				if (button [i] -> changeForm == false){
+					secondPhase = true; state = whichStateWill;
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> state == whichStateWill){
+							button [i] -> drawThis  = true;
+							button [i] -> shape.setSize (Vector2f (0, 0));
+							button [i] -> text -> clear ();
+						}
+						else
+							button [i] -> drawThis  = false;
+					break;
+				}
+				button [i] -> reduceButton ();
+			}
+		}
+		else{
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> state == whichStateWill){
+					button [i] -> enlargeButton (); 
+					if (button [i] -> changeForm == false){
+						changeStates = false; secondPhase = false;
+						state = whichStateWill;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == state)
+								button [i] -> drawThis = true;
+							else
+								button [i] -> drawThis = false;
+					}
+				}
+		}
 	}
 
-	//void changeState2 (){
-	//	for (int i = 0; i < NumButton; i++){
-	//		if (button [i] -> state == whichStateWas ){
-	//			button [i] -> changeButton ();
-	//			cout << "dima" << endl;
-	//		}
-	//		if (button [i] -> state == whichStateWas && button [i] -> changeForm == false){
-	//			changeState (whichStateWill); return;
-	//		}
-	//		//if (button [i] -> state == whichStateWill)
-	//		//	button [i] -> drawThis = true;
-	//	}
-	//	cout << endl;
-	//}
+	void changeState (StateList tmpS){
+		sndClickButt.play ();
+		changeStates = true; whichStateWas = state; whichStateWill = tmpS;
+		for (int i = 0; i < NumButton; i++){
+			if (button [i] -> state == whichStateWas )
+				button [i] -> changeForm = true;
+			if (button [i] -> state == whichStateWill )
+				button [i] -> changeForm = true;
+		}
+	}
 
 
 	void StateMenu (){
-		//if (changeStates){
-		//	changeState2 ();
-		//}
-		button [5] -> changeButton ();
+		if (changeStates)
+			changeState2 ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
-				if (button [i] -> name != "Example" || button [i] -> changeForm == false)
-				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "Example"){
-					sndClickButt.play ();
-					button [i] -> changeForm = true; 
-				}
-				if (button [i] -> buttClick && button [i] -> name == "Mode"){
-					changeState (mode);  
-					//sndClickButt.play ();
-					//changeStates = true; whichStateWas = menu; whichStateWill = mode;
+				//if (button [i] -> changeForm != true)
+					button [i] -> checkCursor ();
+				if (button [i] -> buttClick && button [i] -> name == "Mode" && !changeStates){
+					changeState (mode);
 					break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "Go!"){
+				else if (button [i] -> buttClick && button [i] -> name == "Go!" && !changeStates){
 					if (AdOrPlMode == "AdminMode"){
 						NumWall = 0;
 						ArrWall [NumWall++] = new Wall (wallImage, "Start", 0, 0, EDGE, EDGE, 20, 20);
@@ -1217,44 +1199,49 @@ public:
 					}
 					break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "Settings"){
+				else if (button [i] -> buttClick && button [i] -> name == "Settings" && !changeStates){
 					changeState (settings); break;
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "Exit") || escapeReleased){
+				else if (((button [i] -> buttClick && button [i] -> name == "Exit") || escapeReleased) && !changeStates){
 					writeInfo ();
 					changeState (exitt); break;
 				}
 			}
 	}
 	void StateMode (){
+		if (changeStates)
+			changeState2 ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenu") || escapeReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "BackToMenu") || escapeReleased) && !changeStates){
 					changeState (menu); break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "AdminMode"){
-					sndClickButt.play (); break;
+				else if (button [i] -> buttClick && button [i] -> name == "AdminMode" && !PassEnter && !changeStates){
+					changeState (reqPass); break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "PlayerMode"){
+				else if (button [i] -> buttClick && button [i] -> name == "AdminMode" && PassEnter && !changeStates){
+					 sndClickButt.play (); break;
+				}
+				else if (button [i] -> buttClick && button [i] -> name == "PlayerMode" && !changeStates){
 					sndClickButt.play (); break;
 				}
 			}
-		if (AdOrPlMode == "AdminMode" && !PassEnter)
-				changeState (reqPass);
 	}
 	void StateAdmin (){
+		if (changeStates)
+			changeState2 ();
 		createWalls ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "SaveAd"){
+				if (button [i] -> buttClick && button [i] -> name == "SaveAd" && !changeStates){
 					changeState (AdSaveLVL); break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "OpenAd"){
+				else if (button [i] -> buttClick && button [i] -> name == "OpenAd" && !changeStates){
 					changeState (AdSelectLVL); break;
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased){
+				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased) && !changeStates){
 					changeState (menu); break;
 				}
 			}
@@ -1270,21 +1257,20 @@ public:
 			}
 	}
 	void StatePlayer (){
-		pl -> update (CoordWall);
-		plBackground -> changeCoord (pl -> x, pl -> y);
+		if (changeStates)
+			changeState2 ();
+
+		if (!changeStates){
+			pl -> update (CoordWall);
+			plBackground -> changeCoord (pl -> x, pl -> y);
+		}
 
 		for (int i = 0; i < NumWall; i++)
 			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
 				if ((ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [i] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle)){
 					pl -> changeCoord (Start.x, Start.y);
 					plBackground -> changeCoord (pl -> x, pl -> y);
-					state = startLVL;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == startLVL)
-							button [i] -> drawThis = true;
-						else
-							if (button [i] -> name == "BackToMenuPl")
-								button [i] -> drawThis = false;
+					changeState (startLVL);
 					createWay ();
 					break;
 				}
@@ -1305,19 +1291,12 @@ public:
 					timePl += time;
 				}
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuPl") || escapeReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "BackToMenuPl") || escapeReleased) && !changeStates){
 					timePl -= time;
 					escapeReleased = false;
-					sndClickButt.play (); 
-					state = pause;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == pause)
-							button [i] -> drawThis = true;
-						else
-							if (button [i] -> name == "BackToMenuPl")
-								button [i] -> drawThis = false;
+					changeState (pause);
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && enterReleased)){
+				else if (((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && enterReleased)) && !changeStates){
 					AllTime += timePl / 1250;
 					timePl = 0;
 					sndClickButt.play (); 
@@ -1367,46 +1346,52 @@ public:
 			}
 	}
 	void StateSettings (){
+		if (changeStates)
+			changeState2 ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSet") || escapeReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "BackToMenuSet") || escapeReleased) && !changeStates){
 					writeInfo ();
 					changeState (menu); break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "MusicSlider"){
+				else if (button [i] -> buttClick && button [i] -> name == "MusicSlider" && !changeStates){
 					sndClickButt.play (); break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "SoundSlider"){
+				else if (button [i] -> buttClick && button [i] -> name == "SoundSlider" && !changeStates){
 					sndClickButt.play (); break;
 				}
 			}
 	}
 	void StateExitt (){
+		if (changeStates)
+			changeState2 ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "QuitNo") || escapeReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "QuitNo") || escapeReleased) && !changeStates){
 					changeState (menu); break;
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "QuitYes") || enterReleased){
+				else if (((button [i] -> buttClick && button [i] -> name == "QuitYes") || enterReleased) && !changeStates){
 					sndClickButt.play (); 
 					window -> close (); break;
 				}
 			}
 	}
 	void StateReqPass (){
+		if (changeStates)
+			changeState2 ();
 		inputKeyboard (Pass, 1);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> name == "Edit")
+				if (button [i] -> name == "Edit" && !changeStates)
 					button [i] -> updateText (Pass);
-				if ((button [i] -> buttClick && button [i] -> name == "Edit") || enterReleased)
+				if (((button [i] -> buttClick && button [i] -> name == "Edit") || enterReleased) && !changeStates)
 					if (!PassEnter){ 
 						if (strcmp (Pass, "4329") == 0){
-							writeInfo ();
 							PassEnter = true;
+							writeInfo ();
 							AdOrPlMode = "AdminMode"; strcpy (Pass, "");
 							changeState (mode);
 						}
@@ -1419,11 +1404,13 @@ public:
 			}
 	}
 	void StateSelectLVL (){
+		if (changeStates)
+			changeState2 ();
 		char tmpC2 [30];
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> buttClick && button [i] -> name == "SelectLVL"){
+				if (button [i] -> buttClick && button [i] -> name == "SelectLVL" && !changeStates){
 					if (button [i] -> value <= PassedLVL + 1){
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
@@ -1441,23 +1428,25 @@ public:
 						changeState (startLVL);
 					}
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased){
+				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased) && !changeStates){
 					changeState (menu); break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "My lvls"){
+				else if (button [i] -> buttClick && button [i] -> name == "My lvls" && !changeStates){
 					readInfo ();
 					changeState (myLVLs); break;
 				}
 			}
 	}
 	void StateAdSelectLVL (){
+		if (changeStates)
+			changeState2 ();
 		inputKeyboard (fileNameAd, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> state == AdSelectLVL){
 				button [i] -> checkCursor ();
-				if (button [i] -> name == "EditLVL")
+				if (button [i] -> name == "EditLVL" && !changeStates)
 					button [i] -> updateText (fileNameAd);
-				if ((button [i] -> buttClick && button [i] -> name == "EditLVL") || enterReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "EditLVL") || enterReleased) && !changeStates){
 					changeState (admin);
 					char tmpC [100] = "Resources/LVLs/";
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
@@ -1474,18 +1463,20 @@ public:
 						}
 					}
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "BackToAdminSel") || escapeReleased)
+				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminSel") || escapeReleased) && !changeStates)
 					changeState (admin);
 			}
 	}
 	void StateAdSaveLVL (){
+		if (changeStates)
+			changeState2 ();
 		inputKeyboard (fileNameAd, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> state == AdSaveLVL){
 				button [i] -> checkCursor ();
-				if (button [i] -> name == "AdSaveLVL")
+				if (button [i] -> name == "AdSaveLVL" && !changeStates)
 					button [i] -> updateText (fileNameAd);
-				if ((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || enterReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "AdSaveLVL") || enterReleased) && !changeStates){
 					changeState (admin);
 
 					int tmpI; 
@@ -1522,15 +1513,17 @@ public:
 					Start.y = Start.y * EDGE + GLOB_IND_H;
 					saveFile (tmpC);
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "BackToAdminSave") || escapeReleased)
+				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminSave") || escapeReleased) && !changeStates)
 					changeState (admin);
 			}
 	}
 	void StatePause (){
+		if (changeStates)
+			changeState2 ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
-				if ((button [i] -> buttClick && button [i] -> name == "LeaveYes") || enterReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "LeaveYes") || enterReleased) && !changeStates){
 					AllTime += timePl / 1250;
 					timePl = 0;
 					timer = 0;
@@ -1539,34 +1532,48 @@ public:
 					saveFile (fileNamePl);
 					changeState (selectLVL);
 					lvlComplete = false;
+					for (int k = 0; k < NumButton; k++)
+						if (button [k] -> name == "TimePlayer"){
+							button [k] -> updateText ("0");
+							break;
+						}
 					break;
 				}
-				if ((button [i] -> buttClick && button [i] -> name == "LeaveNo") || escapeReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "LeaveNo") || escapeReleased) && !changeStates){
 					changeState (player); break;
 				}
 			}
 	}
 	void StateStartLVL (){
+		if (changeStates)
+			changeState2 ();
 		pl -> changeFigure ();
-		if (enterReleased)
+		if (enterReleased && !changeStates)
 			changeState (player);
-		if (escapeReleased){
+		if (escapeReleased && !changeStates){
 			AllTime += timePl / 1250; timePl = 0;
 			timer = 0;
 			NumAnsw = 0; writeInfo ();
 			saveFile (fileNamePl); 
+			for (int k = 0; k < NumButton; k++)
+				if (button [k] -> name == "TimePlayer"){
+					button [k] -> updateText ("0");
+					break;
+				}
 			changeState (selectLVL);
 			lvlComplete = false;
 		}
 	}
 	void StateMyLVLs (){
+		if (changeStates)
+			changeState2 ();
 		inputKeyboard (myLVLname, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
-				if (button [i] -> name == "InputMyLVL")
+				if (button [i] -> name == "InputMyLVL" && !changeStates)
 						button [i] -> updateText (myLVLname);
-				if ((button [i] -> buttClick && button [i] -> name == "InputMyLVL") || enterReleased){
+				if (((button [i] -> buttClick && button [i] -> name == "InputMyLVL") || enterReleased) && !changeStates){
 					sndClickButt.play (); 
 					char tmpC [100] = "Resources/LVLs/";
 					bool findLVL = false;
@@ -1600,7 +1607,7 @@ public:
 							if (button [k] -> name == "InputMyLVL")
 								strcpy (myLVLname, "");
 				}
-				else if ((button [i] -> buttClick && button [i] -> name == "BackToMenuMyLVL") || escapeReleased)
+				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuMyLVL") || escapeReleased) && !changeStates)
 					changeState (selectLVL);
 			}
 	}
@@ -1657,7 +1664,7 @@ int main (){
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"/*, Style::Fullscreen, ContextSettings (0, 0, 1)*/); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
