@@ -1,0 +1,84 @@
+void createWalls (){ //создание стен в админ моде
+		int tmpX, tmpY;
+		int tmp; 
+		bool deleted = false;
+		bool wallDeleted = false;
+		bool circleDeleted = false;
+		bool rectangleDeleted = false;
+		bool triangleDeleted = false;
+		bool saveDeleted = false;
+		if (Mouse::isButtonPressed (Mouse::Left))
+			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
+				if (timer > 350){
+					timer = 0;	
+					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
+					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
+					for (int i = 0; i < NumWall; i++){
+						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
+							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish" && ArrWall [i] -> drawThis){
+								ArrWall [i] -> drawThis = false;
+								CoordWall [tmpX][tmpY] = false;
+								deleted = true;
+								if (ArrWall [i] -> name == "Wall")             wallDeleted = true;
+								else if (ArrWall [i] -> name == "Circle")      circleDeleted = true;
+								else if (ArrWall [i] -> name == "Rectangle")   rectangleDeleted = true;
+								else if (ArrWall [i] -> name == "Triangle")    triangleDeleted = true;
+								else if (ArrWall [i] -> name == "Save")        saveDeleted = true;
+								break;
+							}
+					}
+
+					if (whichWall == startW){
+						bool tmpB = true;
+						for (int i = 0; i < NumWall; i++)
+							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Finish"){
+								tmpB = false; break;
+							}
+						if (tmpB){
+							for (int i = 0; i < NumWall; i++){
+								if (ArrWall [i] -> name == "Start" && ArrWall [i] -> drawThis){
+									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
+									ArrWall [i] -> drawThis = false;
+									break;
+								}
+							}
+							indexStart = NumWall;
+							ArrWall [NumWall++] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
+							Start.x = tmpX; Start.y = tmpY;
+						}
+					}
+					else if (whichWall == finishW){
+						bool tmpB = true;
+						for (int i = 0; i < NumWall; i++)
+							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Start"){
+								tmpB = false; break;
+							}
+						if (tmpB){
+							for (int i = 0; i < NumWall; i++){
+								if (ArrWall [i] -> name == "Finish" && ArrWall [i] -> drawThis){
+									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
+									ArrWall [i] -> drawThis = false;
+									break;
+								}
+							}
+							indexFinish = NumWall;
+							ArrWall [NumWall++] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
+							Finish.x = tmpX; Finish.y = tmpY;
+						}
+					}
+					else{ 
+						if ((tmpX == ArrWall [indexStart] -> x && tmpY == ArrWall [indexStart] -> y) || (tmpX == ArrWall [indexFinish] -> x && tmpY == ArrWall [indexFinish] -> y))
+							tmp = 0;
+						else {
+							if ((whichWall == wall) && !wallDeleted){
+								ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
+								CoordWall [tmpX][tmpY] = true;
+							}
+							else if ((whichWall == rectangleW) && !rectangleDeleted)   ArrWall [NumWall++] = new Wall (wallImage, "Rectangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							else if ((whichWall == triangleW) && !triangleDeleted)     ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							else if ((whichWall == circleW) && !circleDeleted)         ArrWall [NumWall++] = new Wall (wallImage, "Circle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+							else if ((whichWall == saveW) && !saveDeleted)             ArrWall [NumWall++] = new Wall (wallImage, "Save",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
+						}
+					}
+				}	
+	}

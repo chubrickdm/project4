@@ -1,9 +1,34 @@
-7
+32
 0 0
 0 0 Start
 9 2 Finish
 2 0 Wall
+14 4 Wall
+10 5 Wall
 2 1 Wall
-2 2 Wall
-1 2 Wall
 0 2 Wall
+17 8 Wall
+12 7 Wall
+2 2 Wall
+2 3 Wall
+2 4 Wall
+3 4 Wall
+4 4 Wall
+5 4 Wall
+6 4 Wall
+7 4 Wall
+8 4 Wall
+9 4 Wall
+10 4 Wall
+9 7 Wall
+10 7 Wall
+11 7 Wall
+11 5 Wall
+12 5 Wall
+13 7 Wall
+14 6 Wall
+14 7 Wall
+14 5 Wall
+14 3 Wall
+12 4 Wall
+12 3 Wall

@@ -71,8 +71,10 @@ public:
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
 		NUM_H_LINE = (NUM_CELL_Y + 1); //количество горизонтальных прямых, которые создают поле
 		NUM_V_LINE = (NUM_CELL_X + 1); //количество вертикальных прямых, которые создают поле
-		W_BUTTON = 120 + (W_WIN - 1360) / 5; //ширина кнопки
-		H_BUTTON = 30 + (H_WIN - 760) / 10; //высота кнопки
+		//W_BUTTON = 120 + (W_WIN - 1360) / 5; //ширина кнопки
+		//H_BUTTON = 30 + (H_WIN - 760) / 10; //высота кнопки
+		W_BUTTON = W_WIN / 10; //ширина кнопки
+		H_BUTTON = H_WIN / 20; //высота кнопки
 		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
 
 		while (1){
@@ -145,10 +147,7 @@ public:
 
 class Wall : public Body{ //класс стены
 public:
-	bool drawThis; //рисовать ли стену
-public:
 	Wall (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ //конструктор с именем
-		drawThis = true; 
 		shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
 		if (name == "Save")            shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 		else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
@@ -157,6 +156,24 @@ public:
 		else if (name == "Circle")     shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
 		else if (name == "Rectangle")  shape.setTextureRect (IntRect (0, hTexture * 5, wTexture, hTexture));
 		else if (name == "Triangle")   shape.setTextureRect (IntRect (0, hTexture * 6, wTexture, hTexture));
+	}
+
+	Wall& operator= (const Wall& tmpW){
+		if (this != &tmpW){
+			x = tmpW.x; y = tmpW.y;
+			w = tmpW.w; h = tmpW.h;  
+			name = tmpW.name; 
+			wTexture = tmpW.wTexture; hTexture = tmpW.hTexture;
+			shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
+			if (name == "Save")            shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+			else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+			else if (name == "Finish")     shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+			else if (name == "Start")      shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
+			else if (name == "Circle")     shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
+			else if (name == "Rectangle")  shape.setTextureRect (IntRect (0, hTexture * 5, wTexture, hTexture));
+			else if (name == "Triangle")   shape.setTextureRect (IntRect (0, hTexture * 6, wTexture, hTexture));
+		}
+		return *this;
 	}
 
 	void draw (){ 
@@ -609,7 +626,7 @@ public:
 		}
 	}
 
-	virtual void clearButton (){
+	void clearButton (){
 		shape.setSize (Vector2f (0, 0));
 		backgroundd.setSize (Vector2f (0, 0));
 	}
@@ -712,7 +729,7 @@ public:
 		}
 	}
 
-	virtual void clearButton (){
+	void clearButton (){
 		shape.setSize (Vector2f (0, 0));
 		picture.setSize (Vector2f (0, 0));
 	}
@@ -771,15 +788,21 @@ public:
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
 
-		if (state == admin || state == player || state == AdSelectLVL || state == AdSaveLVL || state == pause || state == startLVL){
-			if (state == player || state == pause || state == startLVL)
-				window -> draw (playerLines);
-			else
-				window -> draw (lines); //рисую массив линий
-			
-			for (int j = 0; j < NumWall; j++) //рисую стены
-				if (ArrWall [j] -> drawThis)
-					ArrWall [j] -> draw ();
+		if (state == admin || state == AdSelectLVL || state == AdSaveLVL){
+			window -> draw (lines);
+			for (int i = 0; i < NumWall; i++) //рисую стены
+					ArrWall [i] -> draw ();
+		}
+
+		if (state == player || state == pause || state == startLVL){
+			window -> draw (playerLines);
+			int tmpX, tmpY, tmp;
+			tmpX = (int) pl -> x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
+			tmpY = (int) pl -> y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
+			window -> draw (lines); //рисую массив линий
+			for (int i = 0; i < NumWall; i++) //рисую стены
+				if (abs (ArrWall [i] -> x - tmpX) < 6 && abs (ArrWall [i] -> y - tmpY) < 6)
+					ArrWall [i] -> draw ();
 		}
 		
 		if (state == player || state == pause || state == startLVL){ //фон
@@ -816,92 +839,92 @@ public:
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = menu;
-		button [NumButton++] = new Button (buttonImage, "Go!", "Go!", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Mode", "Mode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Exit", "Exit", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Go!",        "Go!", font, tmpS,      GLOBAL_W / 2, GLOB_IND_H + EDGE * 7,                      W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Mode",       "Mode", font, tmpS,     GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Setting",    "Settings", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Exit",       "Exit", font, tmpS,     GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = exitt;
-		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "No!", "QuitNo", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes.", "QuitYes", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 200, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "No!",        "QuitNo", font, tmpS,     GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Yes.",       "QuitYes", font, tmpS,    GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = newGame;
-		button [NumButton++] = new Static (buttonImage, "Start new game?", "NewGame?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes!", "New Game", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "No.", "Continue Game", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 200, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Start new game?", "NewGame?", font, tmpS,      GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Yes!",            "New Game", font, tmpS,      GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "No.",             "Continue Game", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = settings;
-		button [NumButton++] = new Static (buttonImage, "Sound:", "VolSound", font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 50, 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Music:", "VolMusic", font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 100, 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSet", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Sound:",    "VolSound", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON,                                                          120, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage,   "SoundSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     20,       H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Music:",    "VolMusic", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage,   "MusicSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), 20,       H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",      "BackToMenuSet", font, tmpS, GLOBAL_W / 2,                GLOB_IND_H + EDGE * 7 + 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0,                                                       120, 30);
 
 		tmpS = mode;
-		button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Admin", "AdminMode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Player",   "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7,                      W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Admin",    "AdminMode", font, tmpS,  GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		Image pictureImage; //загрузка спрайта стен
 		tmpS = admin;
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Open", "OpenAd", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Save", "SaveAd", font, tmpS, GLOBAL_W / 2 + W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Open",   "OpenAd", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4,             W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Save",   "SaveAd", font, tmpS,       GLOBAL_W / 2 + W_WIN / 4, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/rectangle.png"); 
 		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/triangle.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS, GLOBAL_W / 2 - 6 - H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS,  GLOBAL_W / 2 - 6 - H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/circle.png");
-		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS, GLOBAL_W / 2 - 3 - H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS,    GLOBAL_W / 2 - 3 - H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4,     H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/wall.png");  
-		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4,                    H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/start.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS, GLOBAL_W / 2 + 3 + H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS,     GLOBAL_W / 2 + 3 + H_BUTTON, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4,     H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/finish.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS,    GLOBAL_W / 2 + 6 + H_BUTTON * 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 		pictureImage.loadFromFile ("Resources/Textures/Wall&Floor/save.png"); 
-		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS,      GLOBAL_W / 2 + 9 + H_BUTTON * 3, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 
 		tmpS = player;
-		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Timer: 0", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4,                                   W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Timer: 0", "TimePlayer", font, tmpS, GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - W_BUTTON / 2, GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30, W_BUTTON, H_BUTTON,    120, 30);
 
 		tmpS = pause;
-		button [NumButton++] = new Static (buttonImage, "Pause", "Pause", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Leave?", "Leave?", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "No!", "LeaveNo", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 150, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes.", "LeaveYes", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 200, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Pause",   "Pause", font, tmpS,    GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Static (buttonImage, "Leave?",  "Leave?", font, tmpS,   GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "No!",     "LeaveNo", font, tmpS,  GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Yes.",    "LeaveYes", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = reqPass;
-		button [NumButton++] = new EditButton (buttonImage, "", "Edit", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "",               "Edit", font, tmpS,        GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7,                  W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = myLVLs;
-		button [NumButton++] = new EditButton (buttonImage, "", "InputMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Enter name your LVL", "StaticMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "",                "InputMyLVL", font, tmpS,      GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Static (buttonImage, "Enter name your LVL", "StaticMyLVL", font, tmpS,     GLOBAL_W / 2, GLOB_IND_H + EDGE * 7,                      W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = selectLVL;
-		button [NumButton++] = new Button (buttonImage, "1", "SelectLVL", font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 1, 30, 30);
-		button [NumButton++] = new Button (buttonImage, "2", "SelectLVL", font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 2, 30, 30);
-		button [NumButton++] = new Button (buttonImage, "3", "SelectLVL", font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 3, 30, 30);
-		button [NumButton++] = new Button (buttonImage, "4", "SelectLVL", font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 4, 30, 30);
-		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 - 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "My lvls", "My lvls", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 1, 30, 30);
+		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 - (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7,     (W_BUTTON - 4) / 4, H_BUTTON, 2, 30, 30);
+		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 + (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7,     (W_BUTTON - 4) / 4, H_BUTTON, 3, 30, 30);
+		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, GLOB_IND_H + EDGE * 7, (W_BUTTON - 4) / 4, H_BUTTON, 4, 30, 30);
+		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS,  GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 - (H_BUTTON + 6),     W_BUTTON, H_BUTTON,              120, 30);
+		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls", font, tmpS,       GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON,           0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,           0, 120, 30);
 
 		tmpS = AdSelectLVL;
-		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON,    120, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = AdSaveLVL;
-		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON,    120, 30);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSave", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = startLVL;
-		button [NumButton++] = new Static (buttonImage, "Press Escape to leave", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 50, W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Press Enter to start", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 100, W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Press Escape to leave", "StartLVL", font, tmpS, GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + (H_BUTTON + 6),     W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Press Enter to start", "StartLVL", font, tmpS,  GLOBAL_W / 2, GLOB_IND_H + EDGE * 7 + 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
 	}
 
 	void initializeLine (){
@@ -1018,55 +1041,55 @@ public:
 					timer = 0;	
 					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
-					cout << tmpX << " " << tmpY << endl;
 					for (int i = 0; i < NumWall; i++){
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
-							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish" && ArrWall [i] -> drawThis){
-								ArrWall [i] -> drawThis = false;
-								CoordWall [tmpX][tmpY] = false;
+							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
 								deleted = true;
 								if (ArrWall [i] -> name == "Wall")             wallDeleted = true;
 								else if (ArrWall [i] -> name == "Circle")      circleDeleted = true;
 								else if (ArrWall [i] -> name == "Rectangle")   rectangleDeleted = true;
 								else if (ArrWall [i] -> name == "Triangle")    triangleDeleted = true;
 								else if (ArrWall [i] -> name == "Save")        saveDeleted = true;
+								if (i != NumWall - 1)
+									*ArrWall [i] = *ArrWall [NumWall - 1];
+								if (ArrWall [NumWall - 1] -> name == "Start")
+									indexStart = i;
+								else if (ArrWall [NumWall - 1] -> name == "Finish")
+									indexFinish = i;
+								CoordWall [tmpX][tmpY] = false;
+								delete ArrWall [NumWall - 1];
+								NumWall--;
 								break;
 							}
 					}
 
 					if (whichWall == startW){
-						bool tmpB = true;
-						for (int i = 0; i < NumWall; i++)
-							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Finish"){
-								tmpB = false; break;
-							}
-						if (tmpB){
-							for (int i = 0; i < NumWall; i++){
-								if (ArrWall [i] -> name == "Start" && ArrWall [i] -> drawThis){
-									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
-									ArrWall [i] -> drawThis = false;
-									break;
-								}
-							}
+						if (tmpX != ArrWall [indexFinish] -> x || tmpY != ArrWall [indexFinish] -> y){
+							*ArrWall [indexStart] = *ArrWall [NumWall - 1];
+
+							if (ArrWall [NumWall - 1] -> name == "Finish")
+								indexFinish = indexStart;
+
+							delete ArrWall [NumWall - 1];
+							CoordWall [tmpX][tmpY] = false;
+							NumWall--;
+
 							indexStart = NumWall;
 							ArrWall [NumWall++] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Start.x = tmpX; Start.y = tmpY;
 						}
 					}
 					else if (whichWall == finishW){
-						bool tmpB = true;
-						for (int i = 0; i < NumWall; i++)
-							if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY && ArrWall [i] -> name == "Start"){
-								tmpB = false; break;
-							}
-						if (tmpB){
-							for (int i = 0; i < NumWall; i++){
-								if (ArrWall [i] -> name == "Finish" && ArrWall [i] -> drawThis){
-									CoordWall [ArrWall [i] -> x][ArrWall [i] -> y] = false;
-									ArrWall [i] -> drawThis = false;
-									break;
-								}
-							}
+						if (tmpX != ArrWall [indexStart] -> x || tmpY != ArrWall [indexStart] -> y){
+							*ArrWall [indexFinish] = *ArrWall [NumWall - 1];
+
+							if (ArrWall [NumWall - 1] -> name == "Start")
+								indexStart = indexFinish;
+
+							delete ArrWall [NumWall - 1];
+							CoordWall [tmpX][tmpY] = false;
+							NumWall--;
+
 							indexFinish = NumWall;
 							ArrWall [NumWall++] = new Wall (wallImage, "Finish", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Finish.x = tmpX; Finish.y = tmpY;
@@ -1092,18 +1115,12 @@ public:
 	void saveFile (char *tmpC){ //сохранение уровня админом
 		ofstream outF (tmpC);
 		int tmp = 0;
-		ArrWall [indexStart] -> drawThis = false;
-		ArrWall [indexFinish] -> drawThis = false;
-		for (int i = 0; i < NumWall; i++)
-			if (ArrWall [i] -> drawThis)
-				++tmp;
-		tmp += 2;
-		outF << tmp << endl;
+		outF << NumWall << endl;
 		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
 		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		outF << ArrWall [indexFinish] -> x << " " << ArrWall [indexFinish] -> y << " Finish" << endl;
 		for (int i = 0; i < NumWall; i++){
-			if (ArrWall [i] -> drawThis){
+			if (i != indexStart && i != indexFinish){
 				outF << ArrWall [i] -> x << " " << ArrWall [i] -> y;
 				if (ArrWall [i] -> name == "Wall")             outF << " Wall" << endl;
 				else if (ArrWall [i] -> name == "Rectangle")   outF << " Rectangle" << endl;
@@ -1112,8 +1129,6 @@ public:
 				else if (ArrWall [i] -> name == "Save")        outF << " Save" << endl;
 			}
 		}
-		ArrWall [indexStart] -> drawThis = true;
-		ArrWall [indexFinish] -> drawThis = true;
 	}
 
 	void openFileAd (char *tmpName){
@@ -1171,10 +1186,8 @@ public:
 
 			if (strcmp (tmpC, "Wall") == 0)
 				CoordWall [tmpX][tmpY] = true;
-			else if (strcmp (tmpC, "Start") == 0){
+			else if (strcmp (tmpC, "Start") == 0)
 				indexStart = i;
-				ArrWall [i] -> drawThis = false;
-			}
 			else if (strcmp (tmpC, "Finish") == 0){
 				indexFinish = i;
 				Finish.x = tmpX * EDGE + GLOB_IND_W; 
@@ -1837,7 +1850,7 @@ int main (){
 		system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
 
 
-		while (system.window -> pollEvent (system.event)){ //заходит в цикл когда что-то происходит (игрок двигает мышкой или нажжимает на клавиши)
+		while (system.window -> pollEvent (system.event)){ //заходит в цикл когда что-то происходит (игрок двигает мышкой или нажимает на клавиши)
 			if (system.event.type == Event::Closed) //закрыть игру можно и ескейпом
 				system.window -> close (); 
 			isUpdate = true;
