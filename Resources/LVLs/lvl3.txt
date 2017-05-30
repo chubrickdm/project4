@@ -1,5 +1,5 @@
-1273
-44 16
+1275
+30 29
 44 16 Start
 42 16 Finish
 45 15 Wall
@@ -1273,3 +1273,5 @@
 33 11 Triangle
 31 12 Triangle
 43 12 Wall
+28 13 Save
+30 29 Save
