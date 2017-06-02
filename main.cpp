@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, newGame}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, newGame, allState}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
@@ -24,6 +24,7 @@ public:
 
 	static Event event; //событие
 
+	static int FPS;
 	static Clock clock; //время
 	static float timer; //таймер
 	static float time; //время
@@ -95,6 +96,7 @@ RenderWindow* System::window;
 
 Event System::event;
 
+int System::FPS;
 Clock System::clock;
 float System::timer;
 float System::time;
@@ -325,7 +327,7 @@ public:
 			if (name != "Pause" && name != "Leave?" && name != "StartLVL")
 				text -> add (buttText);
 			else
-				text -> add (buttText, Color::White);
+				text -> add (buttText, Color (193, 180, 180));
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
 			reducePrecent -= 3;
@@ -346,7 +348,7 @@ public:
 			if (name != "Pause" && name != "Leave?" && name != "StartLVL")
 				text -> add (buttText);
 			else
-				text -> add (buttText, Color::White);
+				text -> add (buttText, Color (193, 180, 180));
 			if (name == "Edit")
 				text -> clear ();
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
@@ -479,9 +481,9 @@ public:
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
 		if (name == "TimePlayer")
-			text -> add (buttText, Color::Red);
-		if (name == "Pause" || name == "Leave?" || name == "StartLVL")
-			text -> add (buttText, Color::White);
+			text -> add (buttText, Color (211, 25, 12));
+		else if (name == "Pause" || name == "Leave?" || name == "StartLVL")
+			text -> add (buttText, Color (193, 180, 180));
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
 
@@ -495,9 +497,16 @@ public:
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
 		char tmpC [40];
-		strcpy (tmpC, "Time: ");
-		strcat (tmpC, Pass);
-		text -> add (tmpC, Color::Red);
+		if (name == "TimePlayer"){
+			strcpy (tmpC, "Time: ");
+			strcat (tmpC, Pass);
+			text -> add (tmpC, Color (211, 25, 12));
+		}
+		else if (name == "FPS"){
+			strcpy (tmpC, "FPS: ");
+			strcat (tmpC, Pass);
+			text -> add (tmpC);
+		}
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
 };
@@ -741,6 +750,7 @@ public:
 	char Pass [30]; //пароль
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
+	bool anyKeyReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool playerLVL; //игрок играет в свой созданный уровень?
 	bool changeStates;
 	StateList whichStateWas;
@@ -768,6 +778,7 @@ public:
 	float timePl;
 	float AllTime;
 
+	int indexFPSBut;
 	int indexTimePlBut;
 	int NumButton; //количество кнопок
 	BodyButton *button [100]; //массив кнопок
@@ -828,7 +839,7 @@ public:
 		}
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
-			if (button [i] -> drawThis)
+			if (button [i] -> drawThis || button [i] -> state == allState)
 				button [i] -> draw ();
 
 		window -> display ();
@@ -846,14 +857,18 @@ public:
 
 		NumButton = 0;
 
+		tmpS = allState;
+		indexFPSBut = NumButton;
+		button [NumButton++] = new Static (buttonImage, "FPS: 0", "FPS", font, tmpS, GLOBAL_W / 2 - W_WIN / 2 + W_BUTTON / 2, GLOBAL_H / 2 + H_WIN / 2 - H_BUTTON / 2, W_BUTTON, H_BUTTON, 120, 30);
+
 		tmpS = completeLVL;
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = menu;
-		button [NumButton++] = new Button (buttonImage, "Go!",        "Go!", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Mode",       "Mode", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Setting",    "Settings", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Exit",       "Exit", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Mode",    "Mode", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Exit",    "Exit", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = exitt;
 		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
@@ -895,9 +910,9 @@ public:
 		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS,      GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 30, 30, pictureImage, 30, 30);
 
 		tmpS = player;
-		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6),              W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Time: 0", "TimePlayer", font, tmpS, tmpI, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON,    120, 30);
+		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
+		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6),              W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Time: 0", "TimePlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
 		indexTimePlBut = NumButton - 1;
 
 		tmpS = pause;
@@ -939,7 +954,7 @@ public:
 		tmpS = startLVL;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
 		button [NumButton++] = new Static (buttonImage, "Press Escape to leave", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Press Enter to start", "StartLVL", font, tmpS,  tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Press any key to start", "StartLVL", font, tmpS,  tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
 	}
 
 	void initializeLine (){
@@ -994,14 +1009,6 @@ public:
 		buffer.loadFromFile ("Resources/Sounds/sound.ogg"); //звук
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
-
-		Font font;
-		font.loadFromFile ("Resources/Fonts/modeka.otf");
-		timePlText = new mcText (&font); //создаем текст который будет отображаться на кнопке
-		timePlText -> changeSize (30); //размер текста
-		timePlText -> add ("", Color::Red);
-		timePlText -> setPosition ((float) GLOBAL_W / 2 + EDGE * NUM_CELL_X / 2 - 50, (float) GLOBAL_H / 2 - EDGE * NUM_CELL_Y / 2 - 30); //распологаем текст по кнопке
-		timePl = 0;
 
 		changeStates = false; secondPhase = false;
 	}
@@ -1064,7 +1071,7 @@ public:
 		bool saveDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
-				if (timer > 350){
+				if (timer > 0.5){
 					timer = 0;	
 					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
@@ -1347,7 +1354,7 @@ public:
 					changeState (mode);
 					break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "Go!" && !changeStates){
+				else if (((button [i] -> buttClick && button [i] -> name == "Go!") || enterReleased) && !changeStates){
 					if (AdOrPlMode == "AdminMode"){
 						NumWall = 0;
 						ArrWall [NumWall++] = new Wall (wallImage, "Start", 0, 0, EDGE, EDGE, 20, 20);
@@ -1393,6 +1400,7 @@ public:
 			}
 	}
 	void StateAdmin (){
+		timer += time;
 		if (changeStates)
 			changeState2 ();
 		createWalls ();
@@ -1406,7 +1414,7 @@ public:
 					changeState (AdSelectLVL); break;
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased) && !changeStates){
-					changeState (menu); break;
+					changeState (menu); timer = 0; break;
 				}
 			}
 
@@ -1446,9 +1454,8 @@ public:
 			if (button [i] -> drawThis){
 				if (button [i] -> name == "TimePlayer"){
 					char tmpC [30];
-					char *tmpC2;
-					tmpC2 = _itoa ((int) timePl / 1250, tmpC, 10);
-					button [i] -> updateText (tmpC2);
+					_itoa ((int) timePl, tmpC, 10);
+					button [i] -> updateText (tmpC);
 					timePl += time;
 				}
 				button [i] -> checkCursor ();
@@ -1458,12 +1465,11 @@ public:
 					changeState (pause);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && enterReleased)) && !changeStates){
-					AllTime += timePl / 1250;
+					AllTime += timePl;
 					timePl = 0;
 					sndClickButt.play (); 
 					if (!playerLVL){
 						if (CurrentLVL < 4){
-							timer = 0;
 							if (PassedLVL < 4)
 								PassedLVL++;
 							writeInfo ();
@@ -1482,7 +1488,6 @@ public:
 					}
 					else{
 						playerLVL = false;
-						timer = 0;
 						NumAnsw = 0;
 						changeState (selectLVL);
 						lvlComplete = false;
@@ -1688,9 +1693,8 @@ public:
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
 				if (((button [i] -> buttClick && button [i] -> name == "LeaveYes") || enterReleased) && !changeStates){
-					AllTime += timePl / 1250;
+					AllTime += timePl;
 					timePl = 0;
-					timer = 0;
 					NumAnsw = 0;
 					writeInfo ();
 					saveLVL (fileNamePl);
@@ -1712,11 +1716,10 @@ public:
 		if (changeStates)
 			changeState2 ();
 		pl -> changeFigure ();
-		if (enterReleased && !changeStates)
+		if (anyKeyReleased && !changeStates && !escapeReleased)
 			changeState (player);
-		if (escapeReleased && !changeStates){
-			AllTime += timePl / 1250; timePl = 0;
-			timer = 0;
+		else if (escapeReleased && !changeStates){
+			AllTime += timePl; timePl = 0;
 			NumAnsw = 0; writeInfo ();
 			saveLVL (fileNamePl); 
 			for (int k = 0; k < NumButton; k++)
@@ -1861,35 +1864,40 @@ int main (){
 
 	
 	Game game;
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
-	//system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"); //создание окна
+	//system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
-		system.time = (float) system.clock.getElapsedTime ().asMicroseconds(); //время каждый раз обновляется
-		system.clock.restart ();
-		system.time = system.time / 800;
-		system.timer += system.time;
+		system.time = system.clock.getElapsedTime().asSeconds(); //время каждый раз обновляется
+		system.clock.restart ().asSeconds ();
+		system.FPS = (int) (1.0 / system.time);
+		char tmpC [30];
+		_itoa (system.FPS, tmpC, 10);
+		game.button [game.indexFPSBut] -> updateText (tmpC);
 
 		system.mousePosWin = Mouse::getPosition (system.window [0]); //координаты мыши относ. окна
 		system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
 
 
 		while (system.window -> pollEvent (system.event)){ //заходит в цикл когда что-то происходит (игрок двигает мышкой или нажимает на клавиши)
-			if (system.event.type == Event::Closed) //закрыть игру можно и ескейпом
+			if (system.event.type == Event::Closed) //окно закрывается когда нажали крестик
 				system.window -> close (); 
 			isUpdate = true;
 			game.update ();
 
-			if (system.event.type == Event::KeyReleased && system.event.key.code == 36) game.escapeReleased = true;
+			if (system.event.type == Event::KeyReleased && system.event.key.code == 36) game.escapeReleased = true; //флаг, о том нажат ли ескейп
 			else game.escapeReleased = false;
-			if (system.event.type == Event::KeyReleased && system.event.key.code == 58) game.enterReleased = true; 
+			if (system.event.type == Event::KeyReleased && system.event.key.code == 58) game.enterReleased = true; //флаг, о том нажат ли ентер
 			else game.enterReleased = false; 
+			if (system.event.type == Event::KeyReleased) game.anyKeyReleased = true; //флаг, о том нажата ли какая-либо кнопка
+			else game.anyKeyReleased = false; 
 		}		
 		if (!isUpdate){ //обновляем игру если не зашли в предыдущий while
 			game.update ();
 			game.escapeReleased = false;
 			game.enterReleased = false;
+			game.anyKeyReleased = false;
 		}
 		if (game.state == player) //обновляем игрока всегда
 			game.StatePlayer ();
