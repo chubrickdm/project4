@@ -187,10 +187,12 @@ public:
 
 class Background : public Body{ //класс фонового изображения
 public:
-	Background (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ }
+	Background (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ 
+		shape.setOrigin ((float) w / 2, (float) h / 2);
+	}
 
 	void changeCoord (int x2, int y2){ //функция изменения координат черного заднего фона (центр фона находится где центр игрока)
-		shape.setOrigin ((float) w / 2, (float) h / 2);
+		
 		shape.setPosition ((float) x2, (float) y2);
 	}
 
@@ -330,8 +332,8 @@ public:
 				text -> add (buttText, Color (193, 180, 180));
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
-			reducePrecent -= 3;
-			if (reducePrecent < 3){
+			reducePrecent -= 4;
+			if (reducePrecent < 5){
 				reducePrecent = 100;
 				changeForm = false;
 			}
@@ -353,7 +355,7 @@ public:
 				text -> clear ();
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
-			enlargePrecent += 3;
+			enlargePrecent += 4;
 			if (enlargePrecent > 100){
 				enlargePrecent = 1;
 				changeForm = false;
@@ -602,8 +604,8 @@ public:
 			backgroundd.setOrigin ((float) W_BUTTON * reducePrecent / 100 / 2, (float) H_BUTTON * reducePrecent / 100 / 2);
 			backgroundd.setPosition ((float) x2, (float) y2);
 
-			reducePrecent -= 3;
-			if (reducePrecent < 3){
+			reducePrecent -= 4;
+			if (reducePrecent < 5){
 				reducePrecent = 100;
 				changeForm = false;
 			}
@@ -620,7 +622,7 @@ public:
 			backgroundd.setOrigin ((float) W_BUTTON * enlargePrecent / 100 / 2, (float) H_BUTTON * enlargePrecent / 100 / 2);
 			backgroundd.setPosition ((float) x2, (float) y2);
 
-			enlargePrecent += 3;
+			enlargePrecent += 4;
 			if (enlargePrecent > 100){
 				enlargePrecent = 1;
 				changeForm = false;
@@ -710,8 +712,8 @@ public:
 			picture.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
 			picture.setPosition ((float) x, (float) y);
 
-			reducePrecent -= 3;
-			if (reducePrecent < 3){
+			reducePrecent -= 4;
+			if (reducePrecent < 5){
 				reducePrecent = 100;
 				changeForm = false;
 			}
@@ -728,7 +730,7 @@ public:
 			picture.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
 			picture.setPosition ((float) x, (float) y);
 
-			enlargePrecent += 3;
+			enlargePrecent += 4;
 			if (enlargePrecent > 100){
 				enlargePrecent = 1;
 				changeForm = false;
@@ -770,6 +772,7 @@ public:
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
 	VertexArray playerLines;
 
+	Background *logo;
 	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
 
 	Player *pl; //игрок
@@ -837,12 +840,25 @@ public:
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
 		}
+		else if (menu || mode || settings || exitt || reqPass || selectLVL || myLVLs || newGame)
+			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
 			if (button [i] -> drawThis || button [i] -> state == allState)
 				button [i] -> draw ();
 
 		window -> display ();
+	}
+
+	void initializeBackground (){
+		Image backgroundImage; //черный фон
+		backgroundImage.loadFromFile ("Resources/Textures/background.png");
+		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
+		plBackground -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2);
+
+		backgroundImage.loadFromFile ("Resources/Textures/logo.png");
+		logo = new Background (backgroundImage, "Logo", 0, 0, W_BUTTON * 2, H_BUTTON * 2, 392, 91); 
+		logo -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + 6)); 
 	}
 
 	void initializeButton (){
@@ -865,33 +881,33 @@ public:
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = menu;
-		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Mode",    "Mode", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Exit",    "Exit", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Mode",    "Mode", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Exit",    "Exit", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = exitt;
-		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Button (buttonImage, "No!",        "QuitNo", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes.",       "QuitYes", font, tmpS,    GLOBAL_W / 2, GLOBAL_H / 2,                      W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "No!",        "QuitNo", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Yes.",       "QuitYes", font, tmpS,    GLOBAL_W / 2, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = newGame;
-		button [NumButton++] = new Static (buttonImage, "Start new game?", "NewGame?", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes!",            "New Game", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "No.",             "Continue Game", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Start new game?", "NewGame?", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Yes!",            "New Game", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "No.",             "Continue Game", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = settings;
-		button [NumButton++] = new Static (buttonImage, "Sound:",  "VolSound", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,     120, 30);
-		button [NumButton++] = new Static (buttonImage, "Music:",  "VolMusic", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,     120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back",    "BackToMenuSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0,  120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Sound:",  "VolSound", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,     120, 30);
+		button [NumButton++] = new Static (buttonImage, "Music:",  "VolMusic", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,     120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",    "BackToMenuSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0,  120, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
 		
 
 		tmpS = mode;
-		button [NumButton++] = new Button (buttonImage, "Player",   "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Admin",    "AdminMode", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Player",   "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Admin",    "AdminMode", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		Image pictureImage; //загрузка спрайта стен
 		tmpS = admin;
@@ -923,23 +939,23 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Yes.",    "LeaveYes", font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = reqPass;
-		button [NumButton++] = new EditButton (buttonImage, "",               "Edit", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "",               "Edit", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
 
 		tmpS = myLVLs;
-		button [NumButton++] = new EditButton (buttonImage, "",                "InputMyLVL", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Static (buttonImage, "Enter name your LVL", "StaticMyLVL", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "",                "InputMyLVL", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Static (buttonImage, "Enter name your LVL", "StaticMyLVL", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = selectLVL;
-		tmpI = GLOBAL_H / 2 - 4 * (H_BUTTON + 6);
+		tmpI = GLOBAL_H / 2 - 3 * (H_BUTTON + 6);
 		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 1, 30,  30);
 		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 - (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 2, 30,  30);
 		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 + (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 3, 30,  30);
 		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 4, 30,  30);
-		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 - 5 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON,    120, 30);
-		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 120, 30);
 
 		tmpS = AdSelectLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
@@ -995,11 +1011,6 @@ public:
 		Image playerImage; //зарузка спрайта игрока
 		playerImage.loadFromFile ("Resources/Textures/player.png");
 		pl  = new Player (playerImage, Start.x, Start.y, SQUARE, SQUARE, 20, 20); //создание объекта игрок
-
-		Image backgroundImage; //черный фон
-		backgroundImage.loadFromFile ("Resources/Textures/background.png");
-		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
-		plBackground -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2);
 
 		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
 		backgroundMusic.play (); 
@@ -1057,6 +1068,7 @@ public:
 		initializeButton ();
 		initializeLine ();
 		initializeWall ();
+		initializeBackground ();
 	}
 
 
@@ -1864,8 +1876,8 @@ int main (){
 
 	
 	Game game;
-	//system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"); //создание окна
+	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	//system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"); //создание окна
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
