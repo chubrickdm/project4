@@ -1,5 +1,5 @@
-1286
-44 16
+1295
+52 5
 44 16 Start
 42 16 Finish
 45 15 Wall
@@ -963,8 +963,8 @@
 56 26 Triangle
 56 27 Triangle
 58 30 Rectangle
-58 31 Rectangle
-59 31 Rectangle
+58 28 Rectangle
+58 29 Rectangle
 63 29 Triangle
 62 29 Triangle
 61 29 Triangle
@@ -1286,3 +1286,12 @@
 33 19 Rectangle
 36 19 Rectangle
 36 18 Triangle
+60 31 Triangle
+61 31 Triangle
+62 31 Triangle
+60 27 Rectangle
+60 28 Rectangle
+62 23 Triangle
+60 20 Rectangle
+60 18 Triangle
+61 16 Rectangle

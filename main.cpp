@@ -233,6 +233,15 @@ public:
 		}
 	}
 
+	void changeFigure2 (){
+		if (statePl == rectangle)
+			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		else if (statePl == triangle)
+			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+		else if (statePl == circle)
+			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+	}
+
 	void update (bool **CoordWall){
 		//может быть нажата одновременно только одна клавиша
 		if (currDir < NumMoves && !playerMove){
@@ -484,7 +493,7 @@ public:
 		text -> changeSize (SIZE_TEXT); //размер текста
 		if (name == "TimePlayer")
 			text -> add (buttText, Color (211, 25, 12));
-		else if (name == "Pause" || name == "Leave?" || name == "StartLVL")
+		else if (name == "Pause" || name == "StartLVL")
 			text -> add (buttText, Color (193, 180, 180));
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
@@ -758,6 +767,7 @@ public:
 	StateList whichStateWas;
 	StateList whichStateWill;
 	bool secondPhase;
+	bool inSetIntoPause;
 
 	Image wallImage; //загрузка спрайта стен
 	Image wallImagePL;
@@ -840,7 +850,7 @@ public:
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
 		}
-		else if (menu || mode || settings || exitt || reqPass || selectLVL || myLVLs || newGame)
+		else if (state == menu || state == mode || state == settings || state == exitt || state == reqPass || state == selectLVL || state == myLVLs || state == newGame)
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -933,10 +943,10 @@ public:
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static (buttonImage, "Pause",   "Pause", font, tmpS,    tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Static (buttonImage, "Leave?",  "Leave?", font, tmpS,   tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Button (buttonImage, "No!",     "LeaveNo", font, tmpS,  tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes.",    "LeaveYes", font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Pause",                "Pause", font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Leave",           "LeaveToSel", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Settings", "SettingsIntoPause", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",       "BackToPlPause",   font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = reqPass;
 		button [NumButton++] = new EditButton (buttonImage, "",               "Edit", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
@@ -1009,8 +1019,8 @@ public:
 		Finish.x = GLOB_IND_W + NUM_CELL_X * EDGE; Finish.y = GLOB_IND_H; //инициализируем финиш
 
 		Image playerImage; //зарузка спрайта игрока
-		playerImage.loadFromFile ("Resources/Textures/player.png");
-		pl  = new Player (playerImage, Start.x, Start.y, SQUARE, SQUARE, 20, 20); //создание объекта игрок
+		playerImage.loadFromFile ("Resources/Textures/player2.png");
+		pl  = new Player (playerImage, Start.x, Start.y, SQUARE, SQUARE, 40, 40); //создание объекта игрок
 
 		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
 		backgroundMusic.play (); 
@@ -1020,8 +1030,6 @@ public:
 		buffer.loadFromFile ("Resources/Sounds/sound.ogg"); //звук
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
-
-		changeStates = false; secondPhase = false;
 	}
 
 	void initializeWall (){
@@ -1037,13 +1045,13 @@ public:
 		}
 		NumBorderWall = 0;
 		for (int i = -1; i < 65; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, -1, SQUARE, SQUARE, 20, 20);
+			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, -1, SQUARE, SQUARE, 40, 40);
 		for (int i = -1; i < 65; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, 32, SQUARE, SQUARE, 20, 20);
+			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, 32, SQUARE, SQUARE, 40, 40);
 		for (int i = 0; i < 32; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", -1, i, SQUARE, SQUARE, 20, 20);
+			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", -1, i, SQUARE, SQUARE, 40, 40);
 		for (int i = 0; i < 32; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", 64, i, SQUARE, SQUARE, 20, 20);
+			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", 64, i, SQUARE, SQUARE, 40, 40);
 
 	}
 
@@ -1055,13 +1063,16 @@ public:
 		lvlComplete = false; //показывает завершен ли первый уровень
 		playerLVL = false;
 		escapeReleased = false;
+		changeStates = false; 
+		secondPhase = false;
 		PassEnter = false;
+		inSetIntoPause = false;
 		state = menu;
 		whichWall = wall;
 		CurrentLVL = 1;
 		timer = 0;
-		indexFinish = -1;
 		NumWall = 0;
+		indexFinish = -1;
 
 		readInfo ();
 		initialize (); //вызываем остальные инициализации
@@ -1197,7 +1208,7 @@ public:
 
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
-			ArrWall [i] = new Wall (wallImagePL, tmpC, tmpX, tmpY, SQUARE, SQUARE, 20, 20);
+			ArrWall [i] = new Wall (wallImagePL, tmpC, tmpX, tmpY, SQUARE, SQUARE, 40, 40);
 
 			if (strcmp (tmpC, "Wall") == 0)
 				CoordWall [tmpX][tmpY] = true;
@@ -1530,7 +1541,13 @@ public:
 				button [i] -> checkCursor ();
 				if (((button [i] -> buttClick && button [i] -> name == "BackToMenuSet") || escapeReleased) && !changeStates){
 					writeInfo ();
-					changeState (menu); break;
+					if (!inSetIntoPause)
+						changeState (menu);
+					else{
+						changeState (pause);
+						inSetIntoPause = false;
+					}
+					break;
 				}
 				else if (button [i] -> buttClick && button [i] -> name == "MusicSlider" && !changeStates){
 					sndClickButt.play (); break;
@@ -1602,7 +1619,7 @@ public:
 							openLVL_PL (fileNamePl);
 							pl -> changeCoord (Start.x, Start.y);
 							pl -> statePl = rectangle;
-							//plBackground -> changeCoord (Start.x, Start.y);
+							pl -> changeFigure2 ();
 							playerLVL = false;
 							createWay ();
 							changeState (startLVL);
@@ -1704,7 +1721,7 @@ public:
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
-				if (((button [i] -> buttClick && button [i] -> name == "LeaveYes") || enterReleased) && !changeStates){
+				if (((button [i] -> buttClick && button [i] -> name == "LeaveToSel") || enterReleased) && !changeStates){
 					AllTime += timePl;
 					timePl = 0;
 					NumAnsw = 0;
@@ -1719,8 +1736,11 @@ public:
 						}
 					break;
 				}
-				if (((button [i] -> buttClick && button [i] -> name == "LeaveNo") || escapeReleased) && !changeStates){
+				if (((button [i] -> buttClick && button [i] -> name == "BackToPlPause") || escapeReleased) && !changeStates){
 					changeState (player); break;
+				}
+				if (((button [i] -> buttClick && button [i] -> name == "SettingsIntoPause") || escapeReleased) && !changeStates){
+					changeState (settings); inSetIntoPause = true; break;
 				}
 			}
 	}
@@ -1770,7 +1790,7 @@ public:
 								strcpy (fileNamePl, tmpC);
 								pl -> changeCoord (Start.x, Start.y);
 								pl -> statePl = rectangle;
-								//plBackground -> changeCoord (Start.x, Start.y);
+								pl -> changeFigure2 ();
 
 								playerLVL = true;
 								createWay ();
@@ -1800,7 +1820,7 @@ public:
 					openLVL_PL (fileNamePl);
 					pl -> changeCoord (Start.x, Start.y);
 					pl -> statePl = rectangle;
-					//plBackground -> changeCoord (Start.x, Start.y);
+					pl -> changeFigure2 ();
 					playerLVL = false;
 					createWay ();
 					changeState (startLVL);
@@ -1813,7 +1833,7 @@ public:
 					Start.y = Start.y * EDGE + GLOB_IND_H;
 					pl -> changeCoord (Start.x, Start.y);
 					pl -> statePl = rectangle;
-					//plBackground -> changeCoord (Start.x, Start.y);
+					pl -> changeFigure2 ();
 					playerLVL = false;
 					createWay ();
 					changeState (startLVL);
