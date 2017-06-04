@@ -10,7 +10,8 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, newGame, allState}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, newGame, allState,
+	audioSet, controlsSet}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
@@ -37,6 +38,10 @@ public:
 	static float volSndClickButt; //громкость звука
 
 	static CreateWall whichWall;
+
+	static int key [3];
+
+	static int whatButChange;
 
 	static String AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
 	static Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
@@ -109,6 +114,10 @@ Sound System::sndClickButt;
 float System::volSndClickButt;
 
 CreateWall System::whichWall;
+
+int System::key [3];
+
+int System::whatButChange;
 
 String System::AdOrPlMode;
 Coordinate System::Start;
@@ -219,17 +228,19 @@ public:
 	}
 
 	void changeFigure (){
-		if (Keyboard::isKeyPressed (Keyboard::R) || Keyboard::isKeyPressed (Keyboard::Num1)){
-			statePl = rectangle;
-			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::T) || Keyboard::isKeyPressed (Keyboard::Num2)){
-			statePl = triangle;
-			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
-		}
-		else if (Keyboard::isKeyPressed (Keyboard::C) || Keyboard::isKeyPressed (Keyboard::Num3)){
-			statePl = circle;
-			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+		if (event.type == Event::KeyReleased){
+			if (event.key.code == key [0]){
+				statePl = rectangle;
+				shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+			}
+			else if (event.key.code == key [1]){
+				statePl = triangle;
+				shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+			}
+			else if (event.key.code == key [2]){
+				statePl = circle;
+				shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+			}
 		}
 	}
 
@@ -448,7 +459,13 @@ public:
 class EditButton : public BodyButton{
 public:
 	EditButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
-		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){ }
+		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
+		if (name == "ChangeKey")
+			shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
+		if (Text == "1")      value = 1;
+		else if (Text == "2") value = 2;
+		else if (Text == "3") value = 3;
+	}
 
 	void draw (){
 		window -> draw (shape);
@@ -466,11 +483,18 @@ public:
 				buttPressed = false;
 			}
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
+			if (name == "ChangeKey")
+				shape.setTextureRect (IntRect (wTexture, 4 * hTexture, wTexture, hTexture));
 		}
 		else{
 			buttPressed = false; //если курсор не на мыши то кнопка обычного вида
 			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+			if (name == "ChangeKey")
+				shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 		}
+		
+		if (name == "ChangeKey" && whatButChange == value)
+			shape.setTextureRect (IntRect (2 * wTexture, 4 * hTexture, wTexture, hTexture));
 	}
 
 	void updateText (char *Pass){ //функция обновления текста
@@ -764,6 +788,7 @@ public:
 	bool anyKeyReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool playerLVL; //игрок играет в свой созданный уровень?
 	bool changeStates;
+	bool changeKey;
 	StateList whichStateWas;
 	StateList whichStateWill;
 	bool secondPhase;
@@ -802,12 +827,13 @@ public:
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
-		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt >> AllTime;
+		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt >> AllTime >> key [0] >> key [1] >> key [2];
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
 		ofstream outF ("Resources/Info/Player.txt");
-		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << " " << volSndClickButt  << " " << AllTime << endl;
+		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << " " << volSndClickButt  << " " << AllTime;
+		outF << " " << key [0] << " " << key [1] << " " << key [2] << endl;
 	}
 
 	void draw (){ //главная и единственная функция рисования
@@ -850,7 +876,7 @@ public:
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
 		}
-		else if (state == menu || state == mode || state == settings || state == exitt || state == reqPass || state == selectLVL || state == myLVLs || state == newGame)
+		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL)
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -907,12 +933,25 @@ public:
 		button [NumButton++] = new Button (buttonImage, "No.",             "Continue Game", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = settings;
-		button [NumButton++] = new Static (buttonImage, "Sound:",  "VolSound", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,     120, 30);
-		button [NumButton++] = new Static (buttonImage, "Music:",  "VolMusic", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,     120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back",    "BackToMenuSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0,  120, 30);
+		button [NumButton++] = new Button (buttonImage, "Controls", "ControlsSet",    font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Audio",    "AudioSet",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenuSet", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+
+		tmpS = controlsSet;
+		button [NumButton++] = new Static (buttonImage, "Rectangle:", "Rectangle",  font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Triangle:", "Triangle",    font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Circle:", "Circle",        font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 120, 30);
+		button [NumButton++] = new EditButton (buttonImage, "1", "ChangeKey",       font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 30,  30);
+		button [NumButton++] = new EditButton (buttonImage, "2", "ChangeKey",       font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 30,  30);
+		button [NumButton++] = new EditButton (buttonImage, "3", "ChangeKey",       font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 30,  30);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToControlSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 0, 120, 30);
+		
+		tmpS = audioSet;
+		button [NumButton++] = new Static (buttonImage, "Sound:",  "VolSound", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Static (buttonImage, "Music:",  "VolMusic", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,               GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
 		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 30, 30, 120, 30);
-		
 
 		tmpS = mode;
 		button [NumButton++] = new Button (buttonImage, "Player",   "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
@@ -946,7 +985,7 @@ public:
 		button [NumButton++] = new Static (buttonImage, "Pause",                "Pause", font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
 		button [NumButton++] = new Button (buttonImage, "Leave",           "LeaveToSel", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Settings", "SettingsIntoPause", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "Back",       "BackToPlPause",   font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Button (buttonImage, "Continue",       "BackToPlPause",   font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = reqPass;
 		button [NumButton++] = new EditButton (buttonImage, "",               "Edit", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 120, 30);
@@ -1067,11 +1106,16 @@ public:
 		secondPhase = false;
 		PassEnter = false;
 		inSetIntoPause = false;
+		changeKey = false;
 		state = menu;
 		whichWall = wall;
+		key [0] = 27;
+		key [1] = 28;
+		key [2] = 29;
 		CurrentLVL = 1;
 		timer = 0;
 		NumWall = 0;
+		whatButChange = 0;
 		indexFinish = -1;
 
 		readInfo ();
@@ -1256,45 +1300,6 @@ public:
 
 	void inputKeyboard (char *tmpC, bool fictiv){ //ввод с клавиатуры
 		if (event.type == Event::KeyPressed){
-			if ((strlen (tmpC) < 9 && !fictiv) || (strlen (tmpC) < 4 && fictiv)){
-				if (Keyboard::isKeyPressed (Keyboard::A))             strcat (tmpC, "a");
-				else if (Keyboard::isKeyPressed (Keyboard::B))        strcat (tmpC, "b");
-				else if (Keyboard::isKeyPressed (Keyboard::C))        strcat (tmpC, "c");
-				else if (Keyboard::isKeyPressed (Keyboard::D))        strcat (tmpC, "d");
-				else if (Keyboard::isKeyPressed (Keyboard::E))        strcat (tmpC, "e");
-				else if (Keyboard::isKeyPressed (Keyboard::F))        strcat (tmpC, "f");
-				else if (Keyboard::isKeyPressed (Keyboard::G))        strcat (tmpC, "g");
-				else if (Keyboard::isKeyPressed (Keyboard::H))        strcat (tmpC, "h");
-				else if (Keyboard::isKeyPressed (Keyboard::I))        strcat (tmpC, "i");
-				else if (Keyboard::isKeyPressed (Keyboard::J))        strcat (tmpC, "j");
-				else if (Keyboard::isKeyPressed (Keyboard::K))        strcat (tmpC, "k");
-				else if (Keyboard::isKeyPressed (Keyboard::L))        strcat (tmpC, "l");
-				else if (Keyboard::isKeyPressed (Keyboard::M))        strcat (tmpC, "m");
-				else if (Keyboard::isKeyPressed (Keyboard::N))        strcat (tmpC, "n");
-				else if (Keyboard::isKeyPressed (Keyboard::O))        strcat (tmpC, "o");
-				else if (Keyboard::isKeyPressed (Keyboard::P))        strcat (tmpC, "p");
-				else if (Keyboard::isKeyPressed (Keyboard::Q))        strcat (tmpC, "q");
-				else if (Keyboard::isKeyPressed (Keyboard::R))        strcat (tmpC, "r");
-				else if (Keyboard::isKeyPressed (Keyboard::S))        strcat (tmpC, "s");
-				else if (Keyboard::isKeyPressed (Keyboard::T))        strcat (tmpC, "t");
-				else if (Keyboard::isKeyPressed (Keyboard::U))        strcat (tmpC, "u");
-				else if (Keyboard::isKeyPressed (Keyboard::V))        strcat (tmpC, "v");
-				else if (Keyboard::isKeyPressed (Keyboard::W))        strcat (tmpC, "w");
-				else if (Keyboard::isKeyPressed (Keyboard::X))        strcat (tmpC, "x");
-				else if (Keyboard::isKeyPressed (Keyboard::Y))        strcat (tmpC, "y");
-				else if (Keyboard::isKeyPressed (Keyboard::Z))        strcat (tmpC, "z");
-				else if (Keyboard::isKeyPressed (Keyboard::Period))   strcat (tmpC, ".");
-				else if (Keyboard::isKeyPressed (Keyboard::Num0))     strcat (tmpC, "0");
-				else if (Keyboard::isKeyPressed (Keyboard::Num1))     strcat (tmpC, "1");
-				else if (Keyboard::isKeyPressed (Keyboard::Num2))     strcat (tmpC, "2");
-				else if (Keyboard::isKeyPressed (Keyboard::Num3))     strcat (tmpC, "3");
-				else if (Keyboard::isKeyPressed (Keyboard::Num4))     strcat (tmpC, "4");
-				else if (Keyboard::isKeyPressed (Keyboard::Num5))     strcat (tmpC, "5");
-				else if (Keyboard::isKeyPressed (Keyboard::Num6))     strcat (tmpC, "6");
-				else if (Keyboard::isKeyPressed (Keyboard::Num7))     strcat (tmpC, "7");
-				else if (Keyboard::isKeyPressed (Keyboard::Num8))     strcat (tmpC, "8");
-				else if (Keyboard::isKeyPressed (Keyboard::Num9))     strcat (tmpC, "9");
-			}
 			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       
 				int i = strlen (tmpC);
 				if (i > 0){
@@ -1302,6 +1307,19 @@ public:
 					strcpy (tmpC2, tmpC);
 					strncpy (tmpC, tmpC2, i - 1);
 					tmpC [i - 1] = '\0';
+				}
+			}
+			else if ((strlen (tmpC) < 8 && !fictiv) || (strlen (tmpC) < 4 && fictiv)){
+				char tmpC2 [2];
+				if (event.key.code >= 0 && event.key.code <= 25){
+					tmpC2 [0] = event.key.code + 97;
+					tmpC2 [1] = '\0';
+					strcat (tmpC, tmpC2);
+				}
+				else if (event.key.code >= 26 && event.key.code <= 35){
+					tmpC2 [0] = event.key.code + 22;
+					tmpC2 [1] = '\0';
+					strcat (tmpC, tmpC2);
 				}
 			}
 		}
@@ -1549,11 +1567,26 @@ public:
 					}
 					break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "MusicSlider" && !changeStates){
-					sndClickButt.play (); break;
+				else if (button [i] -> buttClick && button [i] -> name == "ControlsSet" && !changeStates){
+					char tmpC [2];
+
+					for (int k = 0; k < NumButton; k++)
+						if (button [k] -> name == "ChangeKey"){
+							if (key [button [k] -> value - 1] >= 0 && key [button [k] -> value - 1] <= 25){
+								tmpC [0] = key [button [k] -> value - 1] + 65;
+								tmpC [1] = '\0';
+							}
+							else if (key [button [k] -> value - 1] >= 26 && key [button [k] -> value - 1] <= 35){
+								tmpC [0] = key [button [k] -> value - 1] + 22;
+								tmpC [1] = '\0';
+							}
+							button [k] -> updateText (tmpC);
+						}
+					changeState (controlsSet); 
+					break;
 				}
-				else if (button [i] -> buttClick && button [i] -> name == "SoundSlider" && !changeStates){
-					sndClickButt.play (); break;
+				else if (button [i] -> buttClick && button [i] -> name == "AudioSet" && !changeStates){
+					changeState (audioSet); break;
 				}
 			}
 	}
@@ -1840,6 +1873,74 @@ public:
 				}
 			}
 	}
+	void StateAudioSet (){
+		if (changeStates)
+			changeState2 ();
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (((button [i] -> buttClick && button [i] -> name == "BackToSetAudio") || escapeReleased) && !changeStates){
+					writeInfo ();
+					changeState (settings);
+					break;
+				}
+				else if (button [i] -> buttClick && button [i] -> name == "MusicSlider" && !changeStates){
+					sndClickButt.play (); break;
+				}
+				else if (button [i] -> buttClick && button [i] -> name == "SoundSlider" && !changeStates){
+					sndClickButt.play (); break;
+				}
+			}
+	}
+	void StateControlsSet (){
+		if (changeStates)
+			changeState2 ();
+
+		if (anyKeyReleased && changeKey){
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> name == "ChangeKey" && button [i] -> value == whatButChange){
+					char tmpC [2];
+					bool tmpB = true;
+
+					for (int k = 0; k < 3; k++)
+						if (key [k] == event.key.code && k != button [i] -> value - 1)
+							tmpB = false;
+
+					if (event.key.code >= 0 && event.key.code <= 25 && tmpB){
+						tmpC [0] = event.key.code + 65;
+						tmpC [1] = '\0';
+						button [i] -> updateText (tmpC);
+						whatButChange = -1;
+						key [button [i] -> value - 1] = event.key.code;
+					}
+					else if (event.key.code >= 26 && event.key.code <= 35 && tmpB){
+						tmpC [0] = event.key.code + 22;
+						tmpC [1] = '\0';
+						button [i] -> updateText (tmpC);
+						whatButChange = -1;
+						key [button [i] -> value - 1] = event.key.code;
+					}
+					break;
+				}
+		}
+
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (((button [i] -> buttClick && button [i] -> name == "BackToControlSet") || escapeReleased) && !changeStates){
+					writeInfo ();
+					whatButChange = -1;
+					changeState (settings);
+					break;
+				}
+				if (button [i] -> buttClick && button [i] -> name == "ChangeKey" && !changeStates){
+					changeKey = true;
+					sndClickButt.play ();
+					whatButChange = button [i] -> value;
+					break;
+				}
+			}
+	}
 
 	void update (){
 		switch (state){
@@ -1884,6 +1985,12 @@ public:
 			break;
 		case newGame:
 			StateNewGame ();
+			break;
+		case audioSet:
+			StateAudioSet ();
+			break;
+		case controlsSet:
+			StateControlsSet ();
 			break;
 		}
 	}
