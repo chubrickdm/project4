@@ -787,37 +787,39 @@ public:
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool anyKeyReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool playerLVL; //игрок играет в свой созданный уровень?
-	bool changeStates;
-	bool changeKey;
-	StateList whichStateWas;
-	StateList whichStateWill;
-	bool secondPhase;
-	bool inSetIntoPause;
+	bool changeStates; //флаг который показывает, меняется ли состояние в данный момент
+	bool changeKey; //флаг который показывает, вводится ли сейчас какая клавиша (когда меняем клавишу на которую меняется фигура)
+	bool secondPhase; //флаг который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
+	bool inSetIntoPause; //флаг который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
+	StateList whichStateWas; //какое состояние было, нужно для изменения состояний
+	StateList whichStateWill; //какое состояние должно стать, нужно для изменения состояний
+	
 
 	Image wallImage; //загрузка спрайта стен
 	Image wallImagePL;
 	int NumWall; //количество стен
-	Wall *ArrWall [10000]; //массив стен
+	Wall *ArrWall [4000]; //массив стен
 	bool **CoordWall; //координаты стен
 	int indexFinish; //индекс финиша (что б долго не искать)
 	int indexStart; //индекс старта (что б долго не искать)
-	Wall *BorderWall [500];
-	int NumBorderWall;
+	Wall *BorderWall [250]; //массив стен которые будут границей для игрока (нужно для красоты)
+	int NumBorderWall; //количество граничных стен
 
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
-	VertexArray playerLines;
 
-	Background *logo;
+	Background *logo; //логотип
+	Sprite cursor; //курсор
+	Texture textureCursor; //текстура курсора
 	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
 
 	Player *pl; //игрок
 
-	mcText *timePlText;
-	float timePl;
-	float AllTime;
+	mcText *timePlText; //текст, в которм хранится время которые играет игрок
+	float timePl; //само время
+	float AllTime; //общее время игрока проведенного в игре
 
-	int indexFPSBut;
-	int indexTimePlBut;
+	int indexFPSBut; //индекс кнопки на которой выводится значение фпс
+	int indexTimePlBut; //индекс кнопки на которой выводится время игрока
 	int NumButton; //количество кнопок
 	BodyButton *button [100]; //массив кнопок
 
@@ -847,12 +849,11 @@ public:
 		}
 
 		if (state == player || state == pause || state == startLVL){
-			window -> draw (playerLines);
 			int tmpX, tmpY;
 			float tmpX2, tmpY2;
 			tmpX = (int) pl -> x; tmpX -= GLOB_IND_W;
 			tmpY = (int) pl -> y; tmpY -= GLOB_IND_H;
-			for (int i = 0; i < NumWall; i++){ //рисую стены			
+			for (int i = 0; i < NumWall; i++){ //рисую стены которые будут видны игроку, и сдвигаю их в центр		
 				if (abs (ArrWall [i] -> x * EDGE - tmpX) < EDGE * (NUM_SQUARE + 1) / 2 && abs (ArrWall [i] -> y * EDGE - tmpY) < EDGE * (NUM_SQUARE + 1) / 2){
 					tmpX2 = (float) ArrWall [i] -> x * EDGE - tmpX;
 					tmpY2 = (float) ArrWall [i] -> y * EDGE - tmpY;
@@ -862,7 +863,7 @@ public:
 					ArrWall [i] -> draw ();
 				}
 			}
-			for (int i = 0; i < NumBorderWall; i++)
+			for (int i = 0; i < NumBorderWall; i++) //рисую граничные стены которые будут видны игроку, и сдвигаю их в центр
 				if (abs (BorderWall [i] -> x * EDGE - tmpX) < EDGE * (NUM_SQUARE + 1) / 2 && abs (BorderWall [i] -> y * EDGE - tmpY) < EDGE * (NUM_SQUARE + 1) / 2){
 					tmpX2 = (float) BorderWall [i] -> x * EDGE - tmpX;
 					tmpY2 = (float) BorderWall [i] -> y * EDGE - tmpY;
@@ -883,16 +884,19 @@ public:
 			if (button [i] -> drawThis || button [i] -> state == allState)
 				button [i] -> draw ();
 
+		cursor.setPosition (posMouse.x, posMouse.y); //рисую курсор где должен быть курсор
+		window -> draw (cursor);
+
 		window -> display ();
 	}
 
 	void initializeBackground (){
-		Image backgroundImage; //черный фон
-		backgroundImage.loadFromFile ("Resources/Textures/background.png");
+		Image backgroundImage; //
+		backgroundImage.loadFromFile ("Resources/Textures/background.png"); //фон который закрывает обубки стен когда играет игрок
 		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
 		plBackground -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2);
 
-		backgroundImage.loadFromFile ("Resources/Textures/logo.png");
+		backgroundImage.loadFromFile ("Resources/Textures/logo.png"); //логотип
 		logo = new Background (backgroundImage, "Logo", 0, 0, W_BUTTON * 2, H_BUTTON * 2, 392, 91); 
 		logo -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + 6)); 
 	}
@@ -1036,21 +1040,6 @@ public:
 			lines [i].position = Vector2f ((float) GLOB_IND_W, (float) EDGE * k / 2 + GLOB_IND_H);
 			lines [i + 1].position = Vector2f ((float) GLOB_IND_W + NUM_CELL_X * EDGE, (float) EDGE * k / 2 + GLOB_IND_H);
 		}
-
-		playerLines = VertexArray (Lines, 8);
-		for (int i = 0; i < 8; i++)
-			playerLines [i].color = Color (30, 30, 30);
-		playerLines [0].position = Vector2f ((float) GLOBAL_W / 2 - NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 - NUM_SQUARE * SQUARE / 2); 
-		playerLines [1].position = Vector2f ((float) GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 - NUM_SQUARE * SQUARE / 2);
-
-		playerLines [2].position = Vector2f ((float) GLOBAL_W / 2 - NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 - NUM_SQUARE * SQUARE / 2);
-		playerLines [3].position = Vector2f ((float) GLOBAL_W / 2 - NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 + NUM_SQUARE * SQUARE / 2);
-
-		playerLines [4].position = Vector2f ((float) GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 - NUM_SQUARE * SQUARE / 2);
-		playerLines [5].position = Vector2f ((float) GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 + NUM_SQUARE * SQUARE / 2);
-
-		playerLines [6].position = Vector2f ((float) GLOBAL_W / 2 - NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 + NUM_SQUARE * SQUARE / 2);
-		playerLines [7].position = Vector2f ((float) GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2, (float) GLOBAL_H / 2 + NUM_SQUARE * SQUARE / 2);
 	}
 
 	void initialize (){
@@ -1069,6 +1058,12 @@ public:
 		buffer.loadFromFile ("Resources/Sounds/sound.ogg"); //звук
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
+
+		Image tmpI;
+		tmpI.loadFromFile ("Resources/Textures/cursor.png");
+		textureCursor.loadFromImage (tmpI);
+		cursor.setTexture (textureCursor);
+		cursor.setTextureRect (IntRect (0, 0, 17, 24));
 	}
 
 	void initializeWall (){
@@ -2005,6 +2000,7 @@ int main (){
 	Game game;
 	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
 	//system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"); //создание окна
+	system.window -> setMouseCursorVisible (false); //не рисуем курсор
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){
