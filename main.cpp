@@ -83,12 +83,12 @@ public:
 				break;
 			EDGE++;
 		}
-		NUM_SQUARE = 8; 
-		SQUARE = EDGE * NUM_CELL_Y / NUM_SQUARE;
+		NUM_SQUARE = 8; //количество квадратов видемых на экране когда играет игрок
+		SQUARE = EDGE * NUM_CELL_Y / NUM_SQUARE; //размер одного такого квадрата
 
 		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
 		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
-		speed = (float) EDGE / 20; // EDGE /13
+		speed = (float) EDGE / 20; // EDGE /13 //скорость движения игрока
 	}
 };
 
@@ -156,8 +156,8 @@ class Wall : public Body{ //класс стены
 public:
 	Wall (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ //конструктор с именем
 		shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
-		if (name == "Save")            shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-		else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		if (name == "Save")            shape.setTextureRect (IntRect (0, 0,            wTexture, hTexture));
+		else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture,     wTexture, hTexture));
 		else if (name == "Finish")     shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
 		else if (name == "Start")      shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 		else if (name == "Circle")     shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
@@ -172,8 +172,8 @@ public:
 			name = tmpW.name; 
 			wTexture = tmpW.wTexture; hTexture = tmpW.hTexture;
 			shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
-			if (name == "Save")            shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-			else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+			if (name == "Save")            shape.setTextureRect (IntRect (0, 0,            wTexture, hTexture));
+			else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture,     wTexture, hTexture));
 			else if (name == "Finish")     shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
 			else if (name == "Start")      shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 			else if (name == "Circle")     shape.setTextureRect (IntRect (0, hTexture * 4, wTexture, hTexture));
@@ -199,7 +199,6 @@ public:
 	}
 
 	void changeCoord (int x2, int y2){ //функция изменения координат черного заднего фона (центр фона находится где центр игрока)
-		
 		shape.setPosition ((float) x2, (float) y2);
 	}
 
@@ -212,9 +211,9 @@ class Player : public Body{ //класс игрока
 public:
 	int tmpX, tmpY; //переменные которые хранят место куда мы хотим попасть, нажав клавишу
 	bool playerMove; //движется ли игрок
-	StatePlayer statePl;
-	int currDir;
-	float xx, yy;
+	StatePlayer statePl; //состояние игрока соотвествует фигуре
+	int currDir; //текущее направление
+	float xx, yy; //нужны, потому что скорость не целое число, и коорд игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
 public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
 	    xx = (float) x; yy = (float) y; 
@@ -225,7 +224,7 @@ public:
 		shape.setPosition ((float) GLOBAL_W / 2 - SQUARE / 2, (float) GLOBAL_H / 2 - SQUARE / 2);
 	}
 
-	void changeFigure (){
+	void changeFigure (){ //изменение фигуры по нажатию клавиши
 		if (event.type == Event::KeyReleased){
 			if (event.key.code == key [0]){
 				statePl = rectangle;
@@ -242,7 +241,7 @@ public:
 		}
 	}
 
-	void changeFigure2 (){
+	void changeFigure2 (){ //изменение фигуры соотвествующему состоянию игрока
 		if (statePl == rectangle)
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
 		else if (statePl == triangle)
@@ -265,21 +264,21 @@ public:
 		changeFigure ();
 
 		if (playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-			//cout << speed << " -speed" << endl;
+			//cout << speed << " -speed" << endl; //очень удобно проверять физику движения игрока
 			//cout << xx << " " << yy << " -xx & yy" << endl;
 			//cout << tmpX << " " << tmpY << " -tmpX & tmpY" << endl;
 			//cout << xx - tmpX << " " << yy - tmpY << " difference" << endl;
 			//cout << endl;
-			if (abs (xx - (float) tmpX) < speed && abs (yy - (float) tmpY) < speed){ //если мы попали туда куда хотели, то игрок не движется
+			if (abs (xx - (float) tmpX) < speed && abs (yy - (float) tmpY) < speed){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
 				playerMove = false; 
 				xx = (float) tmpX; yy = (float) tmpY;
 				x = tmpX; y = tmpY;
 				xx = (float) x; yy = (float) y;
 			}
-			else{
-				if (x < tmpX)        xx += speed;  
+			else{ //само движение игрока
+				if (x < tmpX)        xx += speed; //движение по горизонтали
 				else if (x > tmpX)   xx -= speed; 
-				else if (y < tmpY)   yy += speed; 
+				else if (y < tmpY)   yy += speed; //движениепо вертикали
 				else if (y > tmpY)   yy -= speed;  
 				x = (int) xx; y = (int) yy;
 			}
@@ -306,15 +305,15 @@ public:
 class BodyButton : public Body{ //тело кнопок
 public:
 	mcText *text; //текст который выводится на кнопке
-	String buttText;
+	String buttText; //текст который будет отображаться на кнопке
 	bool drawThis, buttPressed, buttClick; //рисовать ли кнопку, нажата ли кнопка и кликнули ли по кнопке. Клик- это нажать и отпустить кнопку когда курсор мыши на кнопке
 	Font font; //шрифт
 	StateList state; //каждая кнопка кроме имени имеет группу к которой она относится
 	int value; //значение кнопки
 
-	bool changeForm;
-	float reducePrecent;
-	float enlargePrecent;
+	bool changeForm; //флаг показывающий изменилась ли форма
+	float reducePrecent; //процент уменьшения
+	float enlargePrecent; //процент увелечения
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
@@ -335,7 +334,7 @@ public:
 
 	virtual void updateText (char *Pass) = 0;
 
-	virtual void reduceButton (){
+	virtual void reduceButton (){ //уменьшение кнопки
 		if (changeForm){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
 			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
@@ -348,7 +347,7 @@ public:
 				text -> add (buttText, Color (193, 180, 180));
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
-			reducePrecent -= 4;
+			reducePrecent -= 4; //когда прекратится изменение формы
 			if (reducePrecent < 5){
 				reducePrecent = 100;
 				changeForm = false;
@@ -356,7 +355,7 @@ public:
 		}
 	}
 
-	virtual void enlargeButton (){
+	virtual void enlargeButton (){ //увелечение кнопки
 		if (changeForm){
 			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
@@ -371,7 +370,7 @@ public:
 				text -> clear ();
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
-			enlargePrecent += 4;
+			enlargePrecent += 4; //когда прекратится изменение формы
 			if (enlargePrecent > 100){
 				enlargePrecent = 1;
 				changeForm = false;
@@ -379,7 +378,7 @@ public:
 		}
 	}
 
-	virtual void clearButton (){
+	virtual void clearButton (){ //функция очищения кнопки, нужна что б начать кнопки увеличивать (вторая фаза)
 		shape.setSize (Vector2f (1, 1));
 		text -> clear ();
 	}
@@ -830,13 +829,13 @@ public:
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
-		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt >> AllTime >> key [0] >> key [1] >> key [2];
+		inF >> PassedLVL >> volumBackMusic >> PassEnter >> volSndClickButt >> AllTime >> key [0] >> key [1] >> key [2]; //последние 3-номера клавиш на которые меняется фигура игрока
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
 		ofstream outF ("Resources/Info/Player.txt");
 		outF << PassedLVL << " " << volumBackMusic << " " << PassEnter << " " << volSndClickButt  << " " << AllTime;
-		outF << " " << key [0] << " " << key [1] << " " << key [2] << endl;
+		outF << " " << key [0] << " " << key [1] << " " << key [2] << endl; //последние 3-номера клавиш на которые меняется фигура игрока
 	}
 
 	void draw (){ //главная и единственная функция рисования
@@ -844,7 +843,7 @@ public:
 		window -> clear (Color (40, 36, 62));
 
 		if (state == admin || state == AdSelectLVL || state == AdSaveLVL){
-			window -> draw (lines);
+			window -> draw (lines); //рисую вспомогательные линии для админа
 			for (int i = 0; i < NumWall; i++) //рисую стены
 					ArrWall [i] -> draw ();
 		}
@@ -874,19 +873,19 @@ public:
 					BorderWall [i] -> draw ();
 				}
 			
-			plBackground -> draw ();
+			plBackground -> draw (); //рисую фон, который закрывает обрубки стен которые дергаются
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
-			button [indexDeathPlBut] -> draw ();
+			button [indexDeathPlBut] -> draw (); //рисую кнопку где отображается количество смертей на уровне
 		}
-		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL)
+		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL) //рисуем логотип в большинстве состояний
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
 			if (button [i] -> drawThis || button [i] -> state == allState)
 				button [i] -> draw ();
 
-		cursor.setPosition (posMouse.x, posMouse.y); //рисую курсор где должен быть курсор
+		cursor.setPosition (posMouse.x, posMouse.y); //рисую спрайт курсора где должен быть курсор
 		window -> draw (cursor);
 
 		window -> display ();
@@ -1058,7 +1057,7 @@ public:
 		sndClickButt.setBuffer (buffer);
 		sndClickButt.setVolume (volSndClickButt);
 
-		Image tmpI;
+		Image tmpI; //работа со спрайтом курсора
 		tmpI.loadFromFile ("Resources/Textures/cursor.png");
 		textureCursor.loadFromImage (tmpI);
 		cursor.setTexture (textureCursor);
@@ -1076,7 +1075,7 @@ public:
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				CoordWall [i][j] = false;
 		}
-		NumBorderWall = 0;
+		NumBorderWall = 0; //создание граничнх стен для игрока (что б было красиво)
 		for (int i = -1; i < 65; i++)
 			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, -1, SQUARE, SQUARE, 40, 40);
 		for (int i = -1; i < 65; i++)
@@ -1133,49 +1132,49 @@ public:
 		bool saveDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
-				if (timer > 0.5){
+				if (timer > 0.5){ //стены можно ставить раз в 0.5 сек
 					timer = 0;	
-					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE;
+					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE; //перевожу координаты мыши в игровые
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
 					for (int i = 0; i < NumWall; i++){
 						if (ArrWall [i] -> x == tmpX && ArrWall [i] -> y == tmpY)
-							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){
+							if (ArrWall [i] -> name != "Start" && ArrWall [i] -> name != "Finish"){ //удаляю стену если это не финиш или старт
 								deleted = true;
-								if (ArrWall [i] -> name == "Wall")             wallDeleted = true;
+								if (ArrWall [i] -> name == "Wall")             wallDeleted = true; //запоминаю какую именно стену я удалил (понадобится в дальнейшем)
 								else if (ArrWall [i] -> name == "Circle")      circleDeleted = true;
 								else if (ArrWall [i] -> name == "Rectangle")   rectangleDeleted = true;
 								else if (ArrWall [i] -> name == "Triangle")    triangleDeleted = true;
 								else if (ArrWall [i] -> name == "Save")        saveDeleted = true;
-								if (i != NumWall - 1)
+								if (i != NumWall - 1) //меняю последнюю стену на ту которую надо удалить
 									*ArrWall [i] = *ArrWall [NumWall - 1];
-								if (ArrWall [NumWall - 1] -> name == "Start")
+								if (ArrWall [NumWall - 1] -> name == "Start") //меняю индекс старта и финиша (если вдруг последней стеной оказался старт или финиш
 									indexStart = i;
 								else if (ArrWall [NumWall - 1] -> name == "Finish")
 									indexFinish = i;
 								CoordWall [tmpX][tmpY] = false;
-								delete ArrWall [NumWall - 1];
+								delete ArrWall [NumWall - 1]; //удаляю последнюю стену (мы туда переместили стену которую надо удалить)
 								NumWall--;
 								break;
 							}
 					}
 
 					if (whichWall == startW){
-						if (tmpX != ArrWall [indexFinish] -> x || tmpY != ArrWall [indexFinish] -> y){
-							*ArrWall [indexStart] = *ArrWall [NumWall - 1];
+						if (tmpX != ArrWall [indexFinish] -> x || tmpY != ArrWall [indexFinish] -> y){ //если мы хотим поставить старт не на финиш
+							*ArrWall [indexStart] = *ArrWall [NumWall - 1]; //помещаю старый старт на последнее место
 
-							if (ArrWall [NumWall - 1] -> name == "Finish")
+							if (ArrWall [NumWall - 1] -> name == "Finish") //если двруг на последнем месте был старт
 								indexFinish = indexStart;
 
-							delete ArrWall [NumWall - 1];
+							delete ArrWall [NumWall - 1]; //удаляю старый старт
 							CoordWall [tmpX][tmpY] = false;
 							NumWall--;
 
-							indexStart = NumWall;
+							indexStart = NumWall; //меняю индекс и завожу новый
 							ArrWall [NumWall++] = new Wall (wallImage, "Start", tmpX, tmpY, EDGE, EDGE, 20, 20);
 							Start.x = tmpX; Start.y = tmpY;
 						}
 					}
-					else if (whichWall == finishW){
+					else if (whichWall == finishW){ //аналогично как со стартом
 						if (tmpX != ArrWall [indexStart] -> x || tmpY != ArrWall [indexStart] -> y){
 							*ArrWall [indexFinish] = *ArrWall [NumWall - 1];
 
@@ -1191,13 +1190,13 @@ public:
 							Finish.x = tmpX; Finish.y = tmpY;
 						}
 					}
-					else{ 
+					else{ //если мы хотим поставить не на старт и финиш
 						if ((tmpX == ArrWall [indexStart] -> x && tmpY == ArrWall [indexStart] -> y) || (tmpX == ArrWall [indexFinish] -> x && tmpY == ArrWall [indexFinish] -> y))
 							tmp = 0;
 						else {
 							if ((whichWall == wall) && !wallDeleted){
 								ArrWall [NumWall++] = new Wall (wallImage, "Wall", tmpX, tmpY, EDGE, EDGE, 20, 20);
-								CoordWall [tmpX][tmpY] = true;
+								CoordWall [tmpX][tmpY] = true; //если это стена, то нужно заполнить массив стен
 							}
 							else if ((whichWall == rectangleW) && !rectangleDeleted)   ArrWall [NumWall++] = new Wall (wallImage, "Rectangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
 							else if ((whichWall == triangleW) && !triangleDeleted)     ArrWall [NumWall++] = new Wall (wallImage, "Triangle",  tmpX,  tmpY, EDGE, EDGE, 20, 20);
@@ -1212,7 +1211,7 @@ public:
 		ofstream outF (tmpC);
 		int tmp = 0;
 		outF << NumWall << endl;
-		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
+		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl; //координаты старта, надо перевести
 		outF << lvlDeath << endl;
 		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		outF << ArrWall [indexFinish] -> x << " " << ArrWall [indexFinish] -> y << " Finish" << endl;
@@ -1244,7 +1243,7 @@ public:
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
 		inF >> lvlDeath;
-		Start.x = Start.x * EDGE + GLOB_IND_W;
+		Start.x = Start.x * EDGE + GLOB_IND_W; //координаты старта, надо перевести
 		Start.y = Start.y * EDGE + GLOB_IND_H;
 
 		for (int i = 0; i < NumWall; i++){
@@ -1277,7 +1276,7 @@ public:
 		ifstream inF (tmpC);
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
-		Start.x = Start.x * EDGE + GLOB_IND_W;
+		Start.x = Start.x * EDGE + GLOB_IND_W; //координаты старта, надо перевести
 		Start.y = Start.y * EDGE + GLOB_IND_H;
 		inF >> lvlDeath;
 
@@ -1298,7 +1297,7 @@ public:
 
 	void inputKeyboard (char *tmpC, bool fictiv){ //ввод с клавиатуры
 		if (event.type == Event::KeyPressed){
-			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){       
+			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){ //если нажата кнопка стереть     
 				int i = strlen (tmpC);
 				if (i > 0){
 					char tmpC2 [50];
@@ -1309,12 +1308,12 @@ public:
 			}
 			else if ((strlen (tmpC) < 8 && !fictiv) || (strlen (tmpC) < 4 && fictiv)){
 				char tmpC2 [2];
-				if (event.key.code >= 0 && event.key.code <= 25){
+				if (event.key.code >= 0 && event.key.code <= 25){ //буквы от А до Z
 					tmpC2 [0] = event.key.code + 97;
 					tmpC2 [1] = '\0';
 					strcat (tmpC, tmpC2);
 				}
-				else if (event.key.code >= 26 && event.key.code <= 35){
+				else if (event.key.code >= 26 && event.key.code <= 35){ //цифры от 0 до 9
 					tmpC2 [0] = event.key.code + 22;
 					tmpC2 [1] = '\0';
 					strcat (tmpC, tmpC2);
@@ -1324,7 +1323,7 @@ public:
 			
 	}
 
-	void createWay (){
+	void createWay (){ //функция создания выхода из лабиринта
 		Coordinate fn, sizeMap, st;
 		st.x = (pl -> x - GLOB_IND_W) / EDGE;
 		st.y = (pl -> y - GLOB_IND_H) / EDGE;
@@ -1336,11 +1335,11 @@ public:
 		outputSearch (CoordWall, fn, st, sizeMap);
 	}
 
-	void changeState2 (){
-		if (!secondPhase){
+	void changeState2 (){ //функция изменения состояния
+		if (!secondPhase){ //первая фаза (уменьшение кнопок)
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == whichStateWas){
-					if (button [i] -> changeForm == false){
+					if (button [i] -> changeForm == false){ //уменьшем пок доконца не уменьшили одну кнопку
 						secondPhase = true; state = whichStateWill;
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == whichStateWill){
@@ -1354,11 +1353,11 @@ public:
 					button [i] -> reduceButton ();
 				}
 		}
-		else{
+		else{ //вторя фаза (увелечение кнопок)
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == whichStateWill){
 					button [i] -> enlargeButton (); 
-					if (button [i] -> changeForm == false){
+					if (button [i] -> changeForm == false){ //увеличиваем пока одну доконца не увеличили
 						changeStates = false; secondPhase = false;
 						state = whichStateWill;
 						for (int i = 0; i < NumButton; i++)
@@ -1371,7 +1370,7 @@ public:
 		}
 	}
 
-	void changeState (StateList tmpS){
+	void changeState (StateList tmpS){ //вспомогательная функция для изменения состояния
 		sndClickButt.play ();
 		changeStates = true; 
 		whichStateWas = state; whichStateWill = tmpS;
