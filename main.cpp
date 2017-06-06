@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, newGame, allState,
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, allState,
 	audioSet, controlsSet}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
@@ -25,7 +25,7 @@ public:
 
 	static Event event; //событие
 
-	static int FPS;
+	static int FPS; //значение ФПС
 	static Clock clock; //время
 	static float timer; //таймер
 	static float time; //время
@@ -37,11 +37,10 @@ public:
 	static Sound sndClickButt; //звук нажатия на кнопку
 	static float volSndClickButt; //громкость звука
 
-	static CreateWall whichWall;
+	static CreateWall whichWall; //какая стена выбрана админом в данный момент
 
-	static int key [3];
-
-	static int whatButChange;
+	static int key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
+	static int whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
 
 	static String AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
 	static Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
@@ -147,7 +146,6 @@ public:
 		shape.setPosition ((float) x, (float) y);
 		shape.setTexture (&texture);
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));	
-		
 	}
 
 	virtual void draw () = 0;
@@ -272,12 +270,10 @@ public:
 			//cout << tmpX << " " << tmpY << " -tmpX & tmpY" << endl;
 			//cout << xx - tmpX << " " << yy - tmpY << " difference" << endl;
 			//cout << endl;
-			if (abs (xx - tmpX) < 1 && abs (yy - tmpY) < 1){ //если мы попали туда куда хотели, то игрок не движется
+			if (abs (xx - (float) tmpX) < speed && abs (yy - (float) tmpY) < speed){ //если мы попали туда куда хотели, то игрок не движется
 				playerMove = false; 
-				if (x < tmpX)        x = (int) xx + 1;
-				else if (x > tmpX)   x = (int) xx;
-				else if (y < tmpY)   y = (int) yy + 1;
-				else if (y > tmpY)   y = (int) yy;
+				xx = (float) tmpX; yy = (float) tmpY;
+				x = tmpX; y = tmpY;
 				xx = (float) x; yy = (float) y;
 			}
 			else{
@@ -802,7 +798,6 @@ public:
 	char fileNameAd [50]; //имя файла открытого админом
 	char fileNamePl [70]; //имя файла открытого игроком
 
-	bool offerNewGame;
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool anyKeyReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
@@ -937,11 +932,6 @@ public:
 		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
 		button [NumButton++] = new Button (buttonImage, "No!",        "QuitNo", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 		button [NumButton++] = new Button (buttonImage, "Yes.",       "QuitYes", font, tmpS,    GLOBAL_W / 2, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-
-		tmpS = newGame;
-		button [NumButton++] = new Static (buttonImage, "Start new game?", "NewGame?", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
-		button [NumButton++] = new Button (buttonImage, "Yes!",            "New Game", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Button (buttonImage, "No.",             "Continue Game", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
 
 		tmpS = settings;
 		button [NumButton++] = new Button (buttonImage, "Controls", "ControlsSet",    font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
@@ -1103,7 +1093,6 @@ public:
 		strcpy (Pass, "");
 		strcpy (fileNameAd, "");
 		strcpy (myLVLname, "");
-		offerNewGame = false;
 		lvlComplete = false;
 		playerLVL = false;
 		escapeReleased = false;
@@ -1224,7 +1213,7 @@ public:
 		int tmp = 0;
 		outF << NumWall << endl;
 		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
-		outF << lvlDeath << " " << offerNewGame << endl;
+		outF << lvlDeath << endl;
 		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		outF << ArrWall [indexFinish] -> x << " " << ArrWall [indexFinish] -> y << " Finish" << endl;
 		for (int i = 0; i < NumWall; i++){
@@ -1254,7 +1243,7 @@ public:
 		ifstream inF (tmpC);
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
-		inF >> lvlDeath >> offerNewGame;
+		inF >> lvlDeath;
 		Start.x = Start.x * EDGE + GLOB_IND_W;
 		Start.y = Start.y * EDGE + GLOB_IND_H;
 
@@ -1290,7 +1279,7 @@ public:
 		inF >> Start.x >> Start.y;
 		Start.x = Start.x * EDGE + GLOB_IND_W;
 		Start.y = Start.y * EDGE + GLOB_IND_H;
-		inF >> lvlDeath >> offerNewGame;
+		inF >> lvlDeath;
 
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
@@ -1526,14 +1515,18 @@ public:
 								PassedLVL++;
 							writeInfo ();
 							CurrentLVL++; 
-							offerNewGame = true;
+							Start.x = ArrWall [indexStart] -> x;
+							Start.y = ArrWall [indexStart] -> y;
+							Start.x = Start.x * EDGE + GLOB_IND_W;
+							Start.y = Start.y * EDGE + GLOB_IND_H;
 							saveLVL (fileNamePl);
 							char tmpC [30], *tmpC2;
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
 							char nameFile [30] = "Resources/LVLs/lvl";
 							strcat (nameFile, tmpC2);
 							strcat (nameFile, ".txt");
-							openLVL_PL (nameFile); strcpy (fileNamePl, nameFile);
+							openLVL_PL (nameFile); 
+							strcpy (fileNamePl, nameFile);
 							pl -> changeCoord (Start.x, Start.y);
 							createWay ();
 							enterReleased = false;
@@ -1543,6 +1536,11 @@ public:
 					else{
 						playerLVL = false;
 						NumAnsw = 0;
+						Start.x = ArrWall [indexStart] -> x;
+						Start.y = ArrWall [indexStart] -> y;
+						Start.x = Start.x * EDGE + GLOB_IND_W;
+						Start.y = Start.y * EDGE + GLOB_IND_H;
+						saveLVL (fileNamePl);
 						changeState (selectLVL);
 						lvlComplete = false;
 					}
@@ -1660,16 +1658,14 @@ public:
 						strcat (nameFile, ".txt");
 						strcpy (fileNamePl, nameFile);
 						openLVL_PL (fileNamePl);
-						if (offerNewGame)
-							changeState (newGame);
-						else{
-							pl -> changeCoord (Start.x, Start.y);
-							pl -> statePl = rectangle;
-							pl -> changeFigure2 ();
-							playerLVL = false;
-							createWay ();
-							changeState (startLVL);
-						}
+						
+						pl -> changeCoord (Start.x, Start.y);
+						pl -> statePl = rectangle;
+						pl -> changeFigure2 ();
+						playerLVL = false;
+						createWay ();
+						changeState (startLVL);
+						
 					}
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuSel") || escapeReleased) && !changeStates){
@@ -1755,7 +1751,6 @@ public:
 					Start.y = ArrWall [indexStart] -> y;
 					Start.x = Start.x * EDGE + GLOB_IND_W;
 					Start.y = Start.y * EDGE + GLOB_IND_H;
-					offerNewGame = false;
 					saveLVL (tmpC);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminSave") || escapeReleased) && !changeStates)
@@ -1849,37 +1844,6 @@ public:
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuMyLVL") || escapeReleased) && !changeStates)
 					changeState (selectLVL);
-			}
-	}
-	void StateNewGame (){
-		if (changeStates)
-			changeState2 ();
-		for (int i = 0; i < NumButton; i++)
-			if (button [i] -> drawThis){
-				button [i] -> checkCursor ();
-				if (((button [i] -> buttClick && button [i] -> name == "Continue Game") || escapeReleased) && !changeStates){
-					pl -> changeCoord (Start.x, Start.y);
-					pl -> statePl = rectangle;
-					pl -> changeFigure2 ();
-					playerLVL = false;
-					createWay ();
-					changeState (startLVL);
-				}
-				else if (((button [i] -> buttClick && button [i] -> name == "New Game") || enterReleased) && !changeStates){
-					offerNewGame = false;
-					saveLVL (fileNamePl);
-					openLVL_PL (fileNamePl);
-					Start.x = ArrWall [indexStart] -> x;
-					Start.y = ArrWall [indexStart] -> y;
-					Start.x = Start.x * EDGE + GLOB_IND_W;
-					Start.y = Start.y * EDGE + GLOB_IND_H;
-					pl -> changeCoord (Start.x, Start.y);
-					pl -> statePl = rectangle;
-					pl -> changeFigure2 ();
-					playerLVL = false;
-					createWay ();
-					changeState (startLVL);
-				}
 			}
 	}
 	void StateAudioSet (){
@@ -1991,9 +1955,6 @@ public:
 			break;
 		case myLVLs:
 			StateMyLVLs ();
-			break;
-		case newGame:
-			StateNewGame ();
 			break;
 		case audioSet:
 			StateAudioSet ();
