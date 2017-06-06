@@ -515,7 +515,7 @@ public:
 		
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
-		if (name == "TimePlayer")
+		if (name == "TimePlayer" || name == "DeathPlayer")
 			text -> add (buttText, Color (211, 25, 12));
 		else if (name == "Pause" || name == "StartLVL")
 			text -> add (buttText, Color (193, 180, 180));
@@ -541,6 +541,11 @@ public:
 			strcpy (tmpC, "FPS: ");
 			strcat (tmpC, Pass);
 			text -> add (tmpC);
+		}
+		else if (name == "DeathPlayer"){
+			strcpy (tmpC, "Death: ");
+			strcat (tmpC, Pass);
+			text -> add (tmpC, Color (211, 25, 12));
 		}
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
@@ -781,8 +786,23 @@ public:
 class Game : public System{ //вся механика и инициализация игры в этом классе
 public:
 	StateList state; //состояние игры
+	StateList whichStateWas; //какое состояние было, нужно для изменения состояний
+	StateList whichStateWill; //какое состояние должно стать, нужно для изменения состояний
+
+	float lvlTime; //само время
+	float AllTime; //общее время игрока проведенного в игре
+	int lvlDeath; //количествэо смертей на уровне
 	int CurrentLVL; //текущий уровень
+	int NumWall; //количество стен
+	int NumBorderWall; //количество граничных стен
+	int NumButton; //количество кнопок
+
 	char Pass [30]; //пароль
+	char myLVLname [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
+	char fileNameAd [50]; //имя файла открытого админом
+	char fileNamePl [70]; //имя файла открытого игроком
+
+	bool offerNewGame;
 	bool escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool anyKeyReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
@@ -791,41 +811,27 @@ public:
 	bool changeKey; //флаг который показывает, вводится ли сейчас какая клавиша (когда меняем клавишу на которую меняется фигура)
 	bool secondPhase; //флаг который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
 	bool inSetIntoPause; //флаг который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
-	StateList whichStateWas; //какое состояние было, нужно для изменения состояний
-	StateList whichStateWill; //какое состояние должно стать, нужно для изменения состояний
 	
-
-	Image wallImage; //загрузка спрайта стен
-	Image wallImagePL;
-	int NumWall; //количество стен
-	Wall *ArrWall [4000]; //массив стен
-	bool **CoordWall; //координаты стен
 	int indexFinish; //индекс финиша (что б долго не искать)
 	int indexStart; //индекс старта (что б долго не искать)
-	Wall *BorderWall [250]; //массив стен которые будут границей для игрока (нужно для красоты)
-	int NumBorderWall; //количество граничных стен
-
-	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
-
-	Background *logo; //логотип
-	Sprite cursor; //курсор
-	Texture textureCursor; //текстура курсора
-	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
-
-	Player *pl; //игрок
-
-	mcText *timePlText; //текст, в которм хранится время которые играет игрок
-	float timePl; //само время
-	float AllTime; //общее время игрока проведенного в игре
-
+	int indexDeathPlBut; //индекс кнопки на которой выводится количество смертей на уровне
 	int indexFPSBut; //индекс кнопки на которой выводится значение фпс
 	int indexTimePlBut; //индекс кнопки на которой выводится время игрока
-	int NumButton; //количество кнопок
-	BodyButton *button [100]; //массив кнопок
 
-	char myLVLname [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
-	char fileNameAd [50]; //имя файла открытого админом
-	char fileNamePl [70]; //имя файла открытого игроком
+	Image wallImage; //изображение стен
+	Image wallImagePL; //изображение игрока
+	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
+	Sprite cursor; //курсор
+	Texture textureCursor; //текстура курсора
+	
+	Player *pl; //игрок
+	mcText *timePlText; //текст, в которм хранится время которые играет игрок
+	BodyButton *button [100]; //массив кнопок
+	Wall *ArrWall [4000]; //массив стен
+	bool **CoordWall; //координаты стен
+	Wall *BorderWall [250]; //массив стен которые будут границей для игрока (нужно для красоты)
+	Background *plBackground; //фоновое изображение, черное, которые закрывает лабаринт
+	Background *logo; //логотип
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
@@ -876,6 +882,7 @@ public:
 			plBackground -> draw ();
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
+			button [indexDeathPlBut] -> draw ();
 		}
 		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL)
 			logo -> draw ();
@@ -980,9 +987,11 @@ public:
 
 		tmpS = player;
 		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Button (buttonImage, "Pause", "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6),              W_BUTTON, H_BUTTON, 0, 120, 30);
-		button [NumButton++] = new Static (buttonImage, "Time: 0", "TimePlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		button [NumButton++] = new Button (buttonImage, "Pause",    "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 120, 30);
+		button [NumButton++] = new Static (buttonImage, "Time: 0",  "TimePlayer",   font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
 		indexTimePlBut = NumButton - 1;
+		button [NumButton++] = new Static (buttonImage, "Death: 0", "DeathPlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    120, 30);
+		indexDeathPlBut = NumButton - 1;
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
@@ -1094,7 +1103,8 @@ public:
 		strcpy (Pass, "");
 		strcpy (fileNameAd, "");
 		strcpy (myLVLname, "");
-		lvlComplete = false; //показывает завершен ли первый уровень
+		offerNewGame = false;
+		lvlComplete = false;
 		playerLVL = false;
 		escapeReleased = false;
 		changeStates = false; 
@@ -1110,6 +1120,7 @@ public:
 		CurrentLVL = 1;
 		timer = 0;
 		NumWall = 0;
+		lvlDeath = 0;
 		whatButChange = 0;
 		indexFinish = -1;
 
@@ -1213,6 +1224,7 @@ public:
 		int tmp = 0;
 		outF << NumWall << endl;
 		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl;
+		outF << lvlDeath << " " << offerNewGame << endl;
 		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		outF << ArrWall [indexFinish] -> x << " " << ArrWall [indexFinish] -> y << " Finish" << endl;
 		for (int i = 0; i < NumWall; i++){
@@ -1242,6 +1254,7 @@ public:
 		ifstream inF (tmpC);
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
+		inF >> lvlDeath >> offerNewGame;
 		Start.x = Start.x * EDGE + GLOB_IND_W;
 		Start.y = Start.y * EDGE + GLOB_IND_H;
 
@@ -1277,6 +1290,7 @@ public:
 		inF >> Start.x >> Start.y;
 		Start.x = Start.x * EDGE + GLOB_IND_W;
 		Start.y = Start.y * EDGE + GLOB_IND_H;
+		inF >> lvlDeath >> offerNewGame;
 
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
@@ -1335,21 +1349,21 @@ public:
 
 	void changeState2 (){
 		if (!secondPhase){
-		for (int i = 0; i < NumButton; i++)
-			if (button [i] -> state == whichStateWas){
-				if (button [i] -> changeForm == false){
-					secondPhase = true; state = whichStateWill;
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> state == whichStateWill){
-							button [i] -> drawThis  = true;
-							button [i] -> clearButton ();
-						}
+			for (int i = 0; i < NumButton; i++)
+				if (button [i] -> state == whichStateWas){
+					if (button [i] -> changeForm == false){
+						secondPhase = true; state = whichStateWill;
+						for (int i = 0; i < NumButton; i++)
+							if (button [i] -> state == whichStateWill){
+								button [i] -> drawThis  = true;
+								button [i] -> clearButton ();
+							}
 						else
 							button [i] -> drawThis  = false;
-					break;
+						break;
+					}
+					button [i] -> reduceButton ();
 				}
-				button [i] -> reduceButton ();
-			}
 		}
 		else{
 			for (int i = 0; i < NumButton; i++)
@@ -1370,7 +1384,8 @@ public:
 
 	void changeState (StateList tmpS){
 		sndClickButt.play ();
-		changeStates = true; whichStateWas = state; whichStateWill = tmpS;
+		changeStates = true; 
+		whichStateWas = state; whichStateWill = tmpS;
 		for (int i = 0; i < NumButton; i++){
 			if (button [i] -> state == whichStateWas )
 				button [i] -> changeForm = true;
@@ -1476,6 +1491,7 @@ public:
 				if ((ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [i] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle)){
 					pl -> changeCoord (Start.x, Start.y);
 					changeState (startLVL);
+					lvlDeath++;
 					createWay ();
 					break;
 				}
@@ -1486,30 +1502,32 @@ public:
 				}
 			}
 
+		
+		char tmpC [30];
+		button [indexTimePlBut] -> updateText (_itoa ((int) lvlTime, tmpC, 10));
+		button [indexDeathPlBut] -> updateText (_itoa (lvlDeath, tmpC, 10));
+		lvlTime += time;
+
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> drawThis){
-				if (button [i] -> name == "TimePlayer"){
-					char tmpC [30];
-					_itoa ((int) timePl, tmpC, 10);
-					button [i] -> updateText (tmpC);
-					timePl += time;
-				}
 				button [i] -> checkCursor ();
 				if (((button [i] -> buttClick && button [i] -> name == "BackToMenuPl") || escapeReleased) && !changeStates){
-					timePl -= time;
+					lvlTime -= time;
 					escapeReleased = false;
 					changeState (pause);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && enterReleased)) && !changeStates){
-					AllTime += timePl;
-					timePl = 0;
+					AllTime += lvlTime;
+					lvlTime = 0;
 					sndClickButt.play (); 
 					if (!playerLVL){
 						if (CurrentLVL < 4){
-							if (PassedLVL < 4)
+							if (PassedLVL < 4 && CurrentLVL - 1 == PassedLVL)
 								PassedLVL++;
 							writeInfo ();
-							CurrentLVL++; saveLVL (fileNamePl);
+							CurrentLVL++; 
+							offerNewGame = true;
+							saveLVL (fileNamePl);
 							char tmpC [30], *tmpC2;
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
 							char nameFile [30] = "Resources/LVLs/lvl";
@@ -1641,10 +1659,10 @@ public:
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
 						strcpy (fileNamePl, nameFile);
-						if (button [i] -> value <= PassedLVL)
+						openLVL_PL (fileNamePl);
+						if (offerNewGame)
 							changeState (newGame);
 						else{
-							openLVL_PL (fileNamePl);
 							pl -> changeCoord (Start.x, Start.y);
 							pl -> statePl = rectangle;
 							pl -> changeFigure2 ();
@@ -1716,16 +1734,16 @@ public:
 							edit = false;
 					}
 					inF.close ();
+
+					ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
 					if (edit){
-						ofstream outF ("Resources/LVLs/listLVLs.txt");
 						outF << ++tmpI << endl;
 						for (int i = 0; i < tmpI - 1; i++)
 							outF << tmpC2 [i] << endl;
 						outF << fileNameAd << endl;
-						
+						lvlDeath = 0;
 					}
-					if (!edit){
-						ofstream outF ("Resources/LVLs/listLVLs.txt");
+					else if (!edit){ //редактируем старый уровень
 						outF << tmpI << endl;
 						for (int i = 0; i < tmpI; i++)
 							outF << tmpC2 [i] << endl;
@@ -1737,6 +1755,7 @@ public:
 					Start.y = ArrWall [indexStart] -> y;
 					Start.x = Start.x * EDGE + GLOB_IND_W;
 					Start.y = Start.y * EDGE + GLOB_IND_H;
+					offerNewGame = false;
 					saveLVL (tmpC);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminSave") || escapeReleased) && !changeStates)
@@ -1750,18 +1769,15 @@ public:
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
 				if (((button [i] -> buttClick && button [i] -> name == "LeaveToSel") || enterReleased) && !changeStates){
-					AllTime += timePl;
-					timePl = 0;
+					AllTime += lvlTime;
+					lvlTime = 0;
 					NumAnsw = 0;
 					writeInfo ();
 					saveLVL (fileNamePl);
 					changeState (selectLVL);
 					lvlComplete = false;
-					for (int k = 0; k < NumButton; k++)
-						if (button [k] -> name == "TimePlayer"){
-							button [k] -> updateText ("0");
-							break;
-						}
+					button [indexTimePlBut] -> updateText ("0");
+					button [indexDeathPlBut] -> updateText ("0");
 					break;
 				}
 				if (((button [i] -> buttClick && button [i] -> name == "BackToPlPause") || escapeReleased) && !changeStates){
@@ -1779,14 +1795,11 @@ public:
 		if (anyKeyReleased && !changeStates && !escapeReleased)
 			changeState (player);
 		else if (escapeReleased && !changeStates){
-			AllTime += timePl; timePl = 0;
+			AllTime += lvlTime; lvlTime = 0;
 			NumAnsw = 0; writeInfo ();
 			saveLVL (fileNamePl); 
-			for (int k = 0; k < NumButton; k++)
-				if (button [k] -> name == "TimePlayer"){
-					button [k] -> updateText ("0");
-					break;
-				}
+			button [indexTimePlBut] -> updateText ("0");
+			button [indexDeathPlBut] -> updateText ("0");
 			changeState (selectLVL);
 			lvlComplete = false;
 		}
@@ -1845,7 +1858,6 @@ public:
 			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (((button [i] -> buttClick && button [i] -> name == "Continue Game") || escapeReleased) && !changeStates){
-					openLVL_PL (fileNamePl);
 					pl -> changeCoord (Start.x, Start.y);
 					pl -> statePl = rectangle;
 					pl -> changeFigure2 ();
@@ -1854,6 +1866,8 @@ public:
 					changeState (startLVL);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "New Game") || enterReleased) && !changeStates){
+					offerNewGame = false;
+					saveLVL (fileNamePl);
 					openLVL_PL (fileNamePl);
 					Start.x = ArrWall [indexStart] -> x;
 					Start.y = ArrWall [indexStart] -> y;
