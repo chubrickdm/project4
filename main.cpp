@@ -46,6 +46,7 @@ public:
 	static Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
 	static bool lvlComplete; //показывает завершен уровень
 
+	static float speedChangeSt;
 	static float speed; //скорость с которой движется игрок по уровню
 
 	static bool PassEnter; //введен ли пароль игроком от админ мода
@@ -88,7 +89,9 @@ public:
 
 		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
 		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
-		speed = (float) EDGE / 20; // EDGE /13 //скорость движения игрока
+
+		speed = (float) 3 * EDGE; //сколько игрок пройдет за 1 секунду
+		speedChangeSt = 200; //на сколько процентов уменьшится кнопка за 1 секунду
 	}
 };
 
@@ -123,6 +126,7 @@ Coordinate System::Start;
 Coordinate System::Finish;
 bool System::lvlComplete;
 
+float System::speedChangeSt;
 float System::speed;
 
 bool System::PassEnter;
@@ -269,17 +273,17 @@ public:
 			//cout << tmpX << " " << tmpY << " -tmpX & tmpY" << endl;
 			//cout << xx - tmpX << " " << yy - tmpY << " difference" << endl;
 			//cout << endl;
-			if (abs (xx - (float) tmpX) < speed && abs (yy - (float) tmpY) < speed){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
+			if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
 				playerMove = false; 
 				xx = (float) tmpX; yy = (float) tmpY;
 				x = tmpX; y = tmpY;
 				xx = (float) x; yy = (float) y;
 			}
 			else{ //само движение игрока
-				if (x < tmpX)        xx += speed; //движение по горизонтали
-				else if (x > tmpX)   xx -= speed; 
-				else if (y < tmpY)   yy += speed; //движениепо вертикали
-				else if (y > tmpY)   yy -= speed;  
+				if (x < tmpX)        xx += speed * time; //движение по горизонтали
+				else if (x > tmpX)   xx -= speed * time; 
+				else if (y < tmpY)   yy += speed * time; //движениепо вертикали
+				else if (y > tmpY)   yy -= speed * time;  
 				x = (int) xx; y = (int) yy;
 			}
 		}
@@ -347,8 +351,8 @@ public:
 				text -> add (buttText, Color (193, 180, 180));
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
-			reducePrecent -= 4; //когда прекратится изменение формы
-			if (reducePrecent < 5){
+			reducePrecent -= speedChangeSt * time; //когда прекратится изменение формы
+			if (reducePrecent < speedChangeSt * time){
 				reducePrecent = 100;
 				changeForm = false;
 			}
@@ -370,8 +374,8 @@ public:
 				text -> clear ();
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
-			enlargePrecent += 4; //когда прекратится изменение формы
-			if (enlargePrecent > 100){
+			enlargePrecent += speedChangeSt * time; //когда прекратится изменение формы
+			if (enlargePrecent > 100 - speedChangeSt * time){
 				enlargePrecent = 1;
 				changeForm = false;
 			}
@@ -637,8 +641,8 @@ public:
 			backgroundd.setOrigin ((float) W_BUTTON * reducePrecent / 100 / 2, (float) H_BUTTON * reducePrecent / 100 / 2);
 			backgroundd.setPosition ((float) x2, (float) y2);
 
-			reducePrecent -= 4;
-			if (reducePrecent < 5){
+			reducePrecent -= speedChangeSt * time;
+			if (reducePrecent < speedChangeSt * time){
 				reducePrecent = 100;
 				changeForm = false;
 			}
@@ -655,8 +659,8 @@ public:
 			backgroundd.setOrigin ((float) W_BUTTON * enlargePrecent / 100 / 2, (float) H_BUTTON * enlargePrecent / 100 / 2);
 			backgroundd.setPosition ((float) x2, (float) y2);
 
-			enlargePrecent += 4;
-			if (enlargePrecent > 100){
+			enlargePrecent += speedChangeSt * time;
+			if (enlargePrecent > 100 - speedChangeSt * time){
 				enlargePrecent = 1;
 				changeForm = false;
 			}
@@ -745,8 +749,8 @@ public:
 			picture.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
 			picture.setPosition ((float) x, (float) y);
 
-			reducePrecent -= 4;
-			if (reducePrecent < 5){
+			reducePrecent -= speedChangeSt * time;
+			if (reducePrecent < speedChangeSt * time){
 				reducePrecent = 100;
 				changeForm = false;
 			}
@@ -763,8 +767,8 @@ public:
 			picture.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
 			picture.setPosition ((float) x, (float) y);
 
-			enlargePrecent += 4;
-			if (enlargePrecent > 100){
+			enlargePrecent += speedChangeSt * time;
+			if (enlargePrecent > 100 - speedChangeSt * time){
 				enlargePrecent = 1;
 				changeForm = false;
 			}
@@ -897,7 +901,7 @@ public:
 		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
 		plBackground -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2);
 
-		backgroundImage.loadFromFile ("Resources/Textures/logo.png"); //логотип
+		backgroundImage.loadFromFile ("Resources/Textures/logo2.png"); //логотип
 		logo = new Background (backgroundImage, "Logo", 0, 0, W_BUTTON * 2, H_BUTTON * 2, 392, 91); 
 		logo -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + 6)); 
 	}
