@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, completeLVL, pause, startLVL, myLVLs, allState,
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, AdDeleteLVL, completeLVL, pause, startLVL, myLVLs, allState,
 	audioSet, controlsSet}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
@@ -846,7 +846,7 @@ public:
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
 
-		if (state == admin || state == AdSelectLVL || state == AdSaveLVL){
+		if (state == admin || state == AdSelectLVL || state == AdSaveLVL || state == AdDeleteLVL){
 			window -> draw (lines); //рисую вспомогательные линии для админа
 			for (int i = 0; i < NumWall; i++) //рисую стены
 					ArrWall [i] -> draw ();
@@ -882,7 +882,7 @@ public:
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
 			button [indexDeathPlBut] -> draw (); //рисую кнопку где отображается количество смертей на уровне
 		}
-		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL) //рисуем логотип в большинстве состояний
+		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL && state != AdDeleteLVL) //рисуем логотип в большинстве состояний
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -964,10 +964,11 @@ public:
 
 		Image pictureImage; //загрузка спрайта стен
 		tmpS = admin;
-		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - W_WIN / 4, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Open",   "OpenAd", font, tmpS,       GLOBAL_W / 2,             tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Save",   "SaveAd", font, tmpS,       GLOBAL_W / 2 + W_WIN / 4, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4; //GLOBAL_W / 2 - 3 * (W_WIN - 4 * W_BUTTON) / 10 - 3 * W_BUTTON /2
+		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - 3 * (W_WIN - 4 * W_BUTTON) / 10 - 3 * W_BUTTON /2,  tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Open",   "OpenAd",       font, tmpS, GLOBAL_W / 2 - 1 * (W_WIN - 4 * W_BUTTON) / 10 - 1 * W_BUTTON / 2, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Save",   "SaveAd",       font, tmpS, GLOBAL_W / 2 + 1 * (W_WIN - 4 * W_BUTTON) / 10 + 1 * W_BUTTON / 2, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Delete", "DeleteAd",     font, tmpS, GLOBAL_W / 2 + 3 * (W_WIN - 4 * W_BUTTON) / 10 + 3 * W_BUTTON /2,  tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		pictureImage.loadFromFile ("Resources/Textures/button2.png"); 
 		tmpI = GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
@@ -1021,6 +1022,11 @@ public:
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSave", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+		tmpS = AdDeleteLVL;
+		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
+		button [NumButton++] = new EditButton (buttonImage, "", "AdDeleteLVL", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminDelete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = startLVL;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
@@ -1456,6 +1462,9 @@ public:
 				else if (button [i] -> buttClick && button [i] -> name == "OpenAd" && !changeStates){
 					changeState (AdSelectLVL); break;
 				}
+				else if (button [i] -> buttClick && button [i] -> name == "DeleteAd" && !changeStates){
+					changeState (AdDeleteLVL); break;
+				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased) && !changeStates){
 					changeState (menu); timer = 0; break;
 				}
@@ -1685,7 +1694,7 @@ public:
 			changeState2 ();
 		inputKeyboard (fileNameAd, 0);
 		for (int i = 0; i < NumButton; i++)
-			if (button [i] -> state == AdSelectLVL){
+			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "EditLVL" && !changeStates)
 					button [i] -> updateText (fileNameAd);
@@ -1715,7 +1724,7 @@ public:
 			changeState2 ();
 		inputKeyboard (fileNameAd, 0);
 		for (int i = 0; i < NumButton; i++)
-			if (button [i] -> state == AdSaveLVL){
+			if (button [i] -> drawThis){
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "AdSaveLVL" && !changeStates)
 					button [i] -> updateText (fileNameAd);
@@ -1757,6 +1766,49 @@ public:
 					saveLVL (tmpC);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminSave") || escapeReleased) && !changeStates)
+					changeState (admin);
+			}
+	}
+	void StateAdDeleteLVL (){
+		if (changeStates)
+			changeState2 ();
+		inputKeyboard (fileNameAd, 0);
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (button [i] -> name == "AdDeleteLVL" && !changeStates)
+					button [i] -> updateText (fileNameAd);
+				if (((button [i] -> buttClick && button [i] -> name == "AdDeleteLVL") || enterReleased) && !changeStates){
+					changeState (admin);
+					if (strstr (fileNameAd, "lvl") == NULL || strcspn (fileNameAd, "1234") == NULL){
+						int tmpI; 
+						char tmpC2 [100][30]; 
+						bool isDelete = false;
+						ifstream inF ("Resources/LVLs/listLVLs.txt");
+						inF >> tmpI;
+					
+						for (int j = 0; j < tmpI; j++){
+							inF >> tmpC2 [j];
+							if (strcmp (tmpC2 [j], fileNameAd) == 0)
+								isDelete = true;
+						}
+						inF.close ();
+
+						if (isDelete){
+							char tmpC [50];
+							strcpy (tmpC, "Resources/LVLs/");
+							strcat (tmpC, fileNameAd);
+							strcat (tmpC, ".txt");
+							remove (tmpC);
+							ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
+							outF << tmpI - 1 << endl;
+							for (int i = 0; i < tmpI; i++)
+								if (strcmp (tmpC2 [i], fileNameAd) != 0)
+									outF << tmpC2 [i] << endl;
+						}
+					}
+				}
+				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminDelete") || escapeReleased) && !changeStates)
 					changeState (admin);
 			}
 	}
@@ -1949,6 +2001,9 @@ public:
 			break;
 		case AdSaveLVL:
 			StateAdSaveLVL ();
+			break;
+		case AdDeleteLVL:
+			StateAdDeleteLVL ();
 			break;
 		case pause:
 			StatePause ();
