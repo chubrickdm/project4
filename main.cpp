@@ -10,7 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, AdDeleteLVL, completeLVL, pause, startLVL, myLVLs, allState,
+enum StateList {menu, mode, admin, player, settings, exitt, reqPass, selectLVL, AdSelectLVL, AdSaveLVL, AdDeleteLVL, AdListLVL, completeLVL, pause, startLVL, myLVLs, allState,
 	audioSet, controlsSet}; //основное перечесление которое отвечает за состо€ние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
@@ -150,6 +150,11 @@ public:
 		shape.setPosition ((float) x, (float) y);
 		shape.setTexture (&texture);
 		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));	
+	}
+
+	Body (String Name, int X, int Y, int W, int H, int WTexture, int HTexture){
+		x = X; y = Y; w = W; h = H; name = Name;
+		wTexture = WTexture; hTexture = HTexture;
 	}
 
 	virtual void draw () = 0;
@@ -314,6 +319,7 @@ public:
 	Font font; //шрифт
 	StateList state; //кажда€ кнопка кроме имени имеет группу к которой она относитс€
 	int value; //значение кнопки
+	Color color; //цвет текста кнопки
 
 	bool changeForm; //флаг показывающий изменилась ли форма
 	float reducePrecent; //процент уменьшени€
@@ -325,11 +331,25 @@ public:
 		drawThis = false; buttClick = false; buttPressed = false; 
 		changeForm = false; reducePrecent = 100; enlargePrecent = 1;
 
+		color = Color::Black; //по умолчанию текст черный
 		text = new mcText (&font); //создаем текст который будет отображатьс€ на кнопке
 		text -> changeSize (SIZE_TEXT); //размер текста
-		text -> add (buttText);
+		text -> add (buttText, color);
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 		shape.setOrigin ((float) w / 2, (float) h / 2);
+	}
+
+	BodyButton (String Text, String Name, Font &Font, StateList &State, int X, int Y) : //дл€ статика сделана перегрузка
+		    Body (Name, X, Y, 1, 1, 1, 1){
+	    font = Font; state = State; buttText = Text;
+		drawThis = false; buttClick = false; buttPressed = false; 
+		changeForm = false; reducePrecent = 100; enlargePrecent = 1;
+
+		color = Color::Black;
+		text = new mcText (&font); //создаем текст который будет отображатьс€ на кнопке
+		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> add (buttText, color);
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
 
 	void draw (){ }
@@ -345,10 +365,7 @@ public:
 			shape.setPosition ((float) x, (float) y);
 			text -> clear ();
 			text -> changeSize (SIZE_TEXT * (int) reducePrecent / 100); //размер текста
-			if (name != "Pause" && name != "Leave?" && name != "StartLVL")
-				text -> add (buttText);
-			else
-				text -> add (buttText, Color (193, 180, 180));
+			text -> add (buttText, color);
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
 			reducePrecent -= speedChangeSt * time; //когда прекратитс€ изменение формы
@@ -366,10 +383,7 @@ public:
 			shape.setPosition ((float) x, (float) y);
 			text -> clear ();
 			text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
-			if (name != "Pause" && name != "Leave?" && name != "StartLVL")
-				text -> add (buttText);
-			else
-				text -> add (buttText, Color (193, 180, 180));
+			text -> add (buttText, color);
 			if (name == "Edit")
 				text -> clear ();
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
@@ -509,17 +523,17 @@ public:
 
 class Static : public BodyButton{
 public:
-	Static (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
-		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){ 
-		
+	Static (String Text, String Name, Font &Font, StateList &State, int X, int Y, Color ccolor) : //перегрузка дл€ задани€ цвета текста
+		    BodyButton (Text, Name, Font, State, X, Y){ 
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
-		if (name == "TimePlayer" || name == "DeathPlayer")
-			text -> add (buttText, Color (211, 25, 12));
-		else if (name == "Pause" || name == "StartLVL")
-			text -> add (buttText, Color (193, 180, 180));
+		color = ccolor;
+		text -> add (buttText, color);
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
+
+	Static (String Text, String Name, Font &Font, StateList &State, int X, int Y) : //по умолчанию цвет текста будет черный
+		    BodyButton (Text, Name, Font, State, X, Y){ }
 
 	void draw (){
 		text -> draw (window);
@@ -795,6 +809,7 @@ public:
 	int NumWall; //количество стен
 	int NumBorderWall; //количество граничных стен
 	int NumButton; //количество кнопок
+	int NumListLVL; //количество уровней в списке (что б потом знать сколько удал€ть последних кнопок)
 
 	char Pass [30]; //пароль
 	char myLVLname [50];  //им€ файла открытого игроком, и уровень при этом созданный игроком
@@ -882,7 +897,7 @@ public:
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображаетс€ врем€ (не хотелось захламл€ть код лишними if)
 			button [indexDeathPlBut] -> draw (); //рисую кнопку где отображаетс€ количество смертей на уровне
 		}
-		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL && state != AdDeleteLVL) //рисуем логотип в большинстве состо€ний
+		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL && state != AdDeleteLVL && state != AdListLVL) //рисуем логотип в большинстве состо€ний
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -920,118 +935,123 @@ public:
 
 		tmpS = allState;
 		indexFPSBut = NumButton;
-		button [NumButton++] = new Static (buttonImage, "FPS: 0", "FPS", font, tmpS, GLOBAL_W / 2 - W_WIN / 2 + W_BUTTON / 2, GLOBAL_H / 2 + H_WIN / 2 - H_BUTTON / 2, W_BUTTON, H_BUTTON, 188, 45);
+		button [NumButton++] = new Static ("FPS: 0", "FPS", font, tmpS, GLOBAL_W / 2 - W_WIN / 2 + W_BUTTON / 2, GLOBAL_H / 2 + H_WIN / 2 - H_BUTTON / 2);
 
 		tmpS = completeLVL;
 		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = menu;
-		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Mode",    "Mode", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Mode",    "Mode",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Setting", "Settings", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Exit",    "Exit", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Exit",    "Exit",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = exitt;
-		button [NumButton++] = new Static (buttonImage, "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "No!",        "QuitNo", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Yes.",       "QuitYes", font, tmpS,    GLOBAL_W / 2, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static (             "Quit game?", "Quit game?", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
+		button [NumButton++] = new Button (buttonImage, "No!",        "QuitNo",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Yes.",       "QuitYes",    font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = settings;
-		button [NumButton++] = new Button (buttonImage, "Controls", "ControlsSet",    font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Controls", "ControlsSet",   font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Audio",    "AudioSet",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenuSet", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = controlsSet;
-		button [NumButton++] = new Static (buttonImage, "Rectangle:", "Rectangle",  font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 188, 45);
-		button [NumButton++] = new Static (buttonImage, "Triangle:", "Triangle",    font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 188, 45);
-		button [NumButton++] = new Static (buttonImage, "Circle:", "Circle",        font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 188, 45);
-		button [NumButton++] = new EditButton (buttonImage, "1", "ChangeKey",       font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
-		button [NumButton++] = new EditButton (buttonImage, "2", "ChangeKey",       font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
-		button [NumButton++] = new EditButton (buttonImage, "3", "ChangeKey",       font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToControlSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static (                 "Rectangle:", "Rectangle",        font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6));
+		button [NumButton++] = new Static (                 "Triangle:",  "Triangle",         font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6));
+		button [NumButton++] = new Static (                 "Circle:",    "Circle",           font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
+		button [NumButton++] = new EditButton (buttonImage, "1",          "ChangeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
+		button [NumButton++] = new EditButton (buttonImage, "2",          "ChangeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
+		button [NumButton++] = new EditButton (buttonImage, "3",          "ChangeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "Back",           "BackToControlSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 0, 188, 45);
 		
 		tmpS = audioSet;
-		button [NumButton++] = new Static (buttonImage, "Sound:",  "VolSound", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Static (buttonImage, "Music:",  "VolMusic", font, tmpS,      GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,               GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 47, 45, 188, 45);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", font, tmpS,   GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 47, 45, 188, 45);
+		button [NumButton++] = new Static (             "Sound:",  "VolSound",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6));
+		button [NumButton++] = new Static (             "Music:",  "VolMusic",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
+		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider",    font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 47, 45, 188, 45);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider",    font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 47, 45, 188, 45);
 
 		tmpS = mode;
-		button [NumButton++] = new Button (buttonImage, "Player",   "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Admin",    "AdminMode", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Admin",  "AdminMode",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		Image pictureImage; //загрузка спрайта стен
 		tmpS = admin;
-		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4; //GLOBAL_W / 2 - 3 * (W_WIN - 4 * W_BUTTON) / 10 - 3 * W_BUTTON /2
-		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - 3 * (W_WIN - 4 * W_BUTTON) / 10 - 3 * W_BUTTON /2,  tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Open",   "OpenAd",       font, tmpS, GLOBAL_W / 2 - 1 * (W_WIN - 4 * W_BUTTON) / 10 - 1 * W_BUTTON / 2, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Save",   "SaveAd",       font, tmpS, GLOBAL_W / 2 + 1 * (W_WIN - 4 * W_BUTTON) / 10 + 1 * W_BUTTON / 2, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Delete", "DeleteAd",     font, tmpS, GLOBAL_W / 2 + 3 * (W_WIN - 4 * W_BUTTON) / 10 + 3 * W_BUTTON /2,  tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4; //GLOBAL_W / 2 - (W_WIN - 5 * W_BUTTON) / 6 
+		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - 2 * W_BUTTON - 6 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Open",     "OpenAd",       font, tmpS, GLOBAL_W / 2 - 1 * W_BUTTON - 3 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Save",     "SaveAd",       font, tmpS, GLOBAL_W / 2 + 0 * W_BUTTON + 0 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Delete",   "DeleteAd",     font, tmpS, GLOBAL_W / 2 + 1 * W_BUTTON + 3 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "List lvl", "ListAd",       font, tmpS, GLOBAL_W / 2 + 2 * W_BUTTON + 6 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		pictureImage.loadFromFile ("Resources/Textures/button2.png"); 
 		tmpI = GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle", font, tmpS,  GLOBAL_W / 2 - 6 - H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Circle", font, tmpS,    GLOBAL_W / 2 - 3 - H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Wall", font, tmpS,      GLOBAL_W / 2,                    tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Start", font, tmpS,     GLOBAL_W / 2 + 3 + H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30); 
-		button [NumButton++] = new PictureButton (buttonImage, "Finish", font, tmpS,    GLOBAL_W / 2 + 6 + H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Save", font, tmpS,      GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle",  font, tmpS, GLOBAL_W / 2 - 6 - H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Circle",    font, tmpS, GLOBAL_W / 2 - 3 - H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Wall",      font, tmpS, GLOBAL_W / 2,                    tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Start",     font, tmpS, GLOBAL_W / 2 + 3 + H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30); 
+		button [NumButton++] = new PictureButton (buttonImage, "Finish",    font, tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Save",      font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
 
 		tmpS = player;
 		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
 		button [NumButton++] = new Button (buttonImage, "Pause",    "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Static (buttonImage, "Time: 0",  "TimePlayer",   font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Static (             "Time: 0",  "TimePlayer",   font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + 6), Color (211, 25, 12));
 		indexTimePlBut = NumButton - 1;
-		button [NumButton++] = new Static (buttonImage, "Death: 0", "DeathPlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Static (             "Death: 0", "DeathPlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + 6), Color (211, 25, 12));
 		indexDeathPlBut = NumButton - 1;
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static (buttonImage, "Pause",                "Pause", font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "Leave",           "LeaveToSel", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static (             "Pause",    "Pause",             font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), Color (193, 180, 180));
+		button [NumButton++] = new Button (buttonImage, "Leave",    "LeaveToSel",        font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Settings", "SettingsIntoPause", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Continue",       "BackToPlPause",   font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Continue", "BackToPlPause",     font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = reqPass;
-		button [NumButton++] = new EditButton (buttonImage, "",               "Edit", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 188, 45);
-		button [NumButton++] = new Static (buttonImage, "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 188, 45);
+		button [NumButton++] = new EditButton (buttonImage, "",               "Edit",            font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 188, 45);
+		button [NumButton++] = new Static (                 "Enter 4 characters", "RequestPass", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
 
 		tmpS = myLVLs;
-		button [NumButton++] = new EditButton (buttonImage, "",                "InputMyLVL", font, tmpS,      GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Static (buttonImage, "Enter name your LVL", "StaticMyLVL", font, tmpS,     GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new EditButton (buttonImage, "",                    "InputMyLVL",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Static (                 "Enter name your LVL", "StaticMyLVL",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6));
+		button [NumButton++] = new Button (buttonImage,     "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = selectLVL;
 		tmpI = GLOBAL_H / 2 - 3 * (H_BUTTON + 6);
-		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 1, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 - (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 + (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL", font, tmpS,     GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);
-		button [NumButton++] = new Static (buttonImage, "Select LVL", "SelectStatic", font, tmpS,  GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 1, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6));
 
 		tmpS = AdSelectLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL", font, tmpS,        GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL",        font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = AdSaveLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSave", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = AdDeleteLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new EditButton (buttonImage, "", "AdDeleteLVL", font, tmpS,       GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new EditButton (buttonImage, "", "AdDeleteLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminDelete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+		tmpS = AdListLVL;
+		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminList", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = startLVL;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static (buttonImage, "Press Escape to leave", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 188, 45);
-		button [NumButton++] = new Static (buttonImage, "Press any key to start", "StartLVL", font, tmpS,  tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 188, 45);
+		button [NumButton++] = new Static ("Press Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), Color (193, 180, 180));
 	}
 
 	void initializeLine (){
@@ -1349,7 +1369,7 @@ public:
 		if (!secondPhase){ //перва€ фаза (уменьшение кнопок)
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == whichStateWas){
-					if (button [i] -> changeForm == false){ //уменьшем пок доконца не уменьшили одну кнопку
+					if (button [i] -> changeForm == false){ //уменьшaем покa доконца не уменьшили одну кнопку
 						secondPhase = true; state = whichStateWill;
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == whichStateWill){
@@ -1358,6 +1378,14 @@ public:
 							}
 						else
 							button [i] -> drawThis  = false;
+
+						if (whichStateWas == AdListLVL){
+							for (int k = NumButton - 1; k > NumButton - NumListLVL - 1; k--)
+								delete button [k];
+							NumButton -= NumListLVL;
+							NumListLVL = 0;
+						}
+
 						break;
 					}
 					button [i] -> reduceButton ();
@@ -1464,6 +1492,28 @@ public:
 				}
 				else if (button [i] -> buttClick && button [i] -> name == "DeleteAd" && !changeStates){
 					changeState (AdDeleteLVL); break;
+				}
+				else if (button [i] -> buttClick && button [i] -> name == "ListAd" && !changeStates){
+					Font font;
+					font.loadFromFile ("Resources/Fonts/modeka.otf");
+					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					char tmpC [50];
+					int tmpI;
+					StateList tmpS = AdListLVL;
+					inF >> tmpI;
+					for (int i = 0; i < tmpI; i++){
+						inF >> tmpC;
+						if (strstr (tmpC, "lvl") == NULL || strcspn (tmpC, "1234") == NULL){
+							button [NumButton++] = new Static (tmpC, "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
+							NumListLVL++;
+						}
+					}
+					button [NumButton++] = new Static ("List of LVLs:", "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
+					NumListLVL++;
+
+					changeState (AdListLVL); 
+
+					break;
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToMenuAd") || escapeReleased) && !changeStates){
 					changeState (menu); timer = 0; break;
@@ -1812,6 +1862,17 @@ public:
 					changeState (admin);
 			}
 	}
+	void StateAdListLVL (){
+		if (changeStates)
+			changeState2 ();
+		for (int i = 0; i < NumButton; i++)
+			if (button [i] -> drawThis){
+				button [i] -> checkCursor ();
+				if (((button [i] -> buttClick && button [i] -> name == "BackToAdminList") || escapeReleased) && !changeStates){
+					changeState (admin); break;
+				}
+			}
+	}
 	void StatePause (){
 		if (changeStates)
 			changeState2 ();
@@ -2004,6 +2065,9 @@ public:
 			break;
 		case AdDeleteLVL:
 			StateAdDeleteLVL ();
+			break;
+		case AdListLVL:
+			StateAdListLVL ();
 			break;
 		case pause:
 			StatePause ();
