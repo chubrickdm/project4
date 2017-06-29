@@ -75,7 +75,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="algorithm.h" />
+    <ClInclude Include="searchWay.h" />
     <ClInclude Include="forMcText.h" />
     <ClInclude Include="mcText.h" />
     <ClInclude Include="view.h" />

@@ -32,11 +32,11 @@
     <ClInclude Include="mcText.h">
       <Filter>Заголовочные файлы\Text</Filter>
     </ClInclude>
-    <ClInclude Include="algorithm.h">
-      <Filter>Заголовочные файлы\GamePlay</Filter>
-    </ClInclude>
     <ClInclude Include="view.h">
       <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="searchWay.h">
+      <Filter>Заголовочные файлы\GamePlay</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

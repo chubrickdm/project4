@@ -1,4 +1,5 @@
 //»спользу€ циклическую очередь алгоритм выхода из лабиринта
+#pragma once
 #include <iostream>
 #include <fstream>
 using namespace std;

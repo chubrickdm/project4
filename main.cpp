@@ -3,7 +3,7 @@
 #include <iostream> //для сяутов и синов
 #include <fstream> //для работы с файлами (записывается туда уровни инфо об игроке и т.д.)
 #include "forMcText.h" //взял библиотеку по ссылке kychka-pc.ru/wiki/svobodnaya-baza-znanij-sfml/test/sistemnyj-modul-system-module/potoki-threads/sfsound-sfmusic
-#include "algorithm.h" //написанная мной функция для нахождения минимального пути в лабиринте (поиск в ширину) или волновой поиск
+#include "searchWay.h" //написанная мной функция для нахождения минимального пути в лабиринте (поиск в ширину) или волновой поиск
 #include <Windows.h> //нужна что б узнать разрешение экрана игрока
 #include "view.h" //управление камерой
 using namespace std;
@@ -18,40 +18,36 @@ enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
 class System{ //основной класс игры, в котором хранится все самое выжное
 public:
-	static Vector2i mousePosWin; //координаты мыши относ. окна
-	static Vector2f posMouse; //координаты мыши относ. карты
-
+	static Vector2i     mousePosWin; //координаты мыши относ. окна
+	static Vector2f     posMouse; //координаты мыши относ. карты
 	static RenderWindow *window; //окно, в котором запускается игра
+	static Event        event; //событие
 
-	static Event event; //событие
-
-	static int FPS; //значение ФПС
-	static Clock clock; //время
-	static float timer; //таймер
-	static float time; //время
-
-	static Music backgroundMusic; //фоновая музыка
-	static float volumBackMusic; //громокость фоновой музыки
-
-	static SoundBuffer buffer; //буфер для звука нажатия на кнопки
-	static Sound sndClickButt; //звук нажатия на кнопку
-	static float volSndClickButt; //громкость звука
-
-	static CreateWall whichWall; //какая стена выбрана админом в данный момент
-
-	static int key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
-	static int whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
-
-	static String AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
-	static Coordinate Start, Finish; //координаты начала (откуда игрок стартует) и конца (куда должен придти)
-	static bool lvlComplete; //показывает завершен уровень
-
-	static float speedChangeSt;
-	static float speed; //скорость с которой движется игрок по уровню
-
-	static bool PassEnter; //введен ли пароль игроком от админ мода
-	static int PassedLVL; //сколько пройдено уровней
-
+	static float        timer; //таймер
+	static float        time; //время
+	static int          FPS; //значение ФПС
+	static Clock        clock; //время
+	
+	static float        volumBackMusic; //громокость фоновой музыки
+	static float        volSndClickButt; //громкость звука
+	static Music        backgroundMusic; //фоновая музыка
+	static SoundBuffer  buffer; //буфер для звука нажатия на кнопки
+	static Sound        sndClickButt; //звук нажатия на кнопку
+	
+	static bool         PassEnter; //введен ли пароль игроком от админ мода
+	static bool         lvlComplete; //показывает завершен уровень
+	static float        speedChangeSt; //скорость изменения размера кнопок при изменении состояния
+	static float        speed; //скорость с которой движется игрок по уровню
+	static int          keyCodePressed; //какая клавиша была нажата
+	static int          key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
+	static int          whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
+	static int          PassedLVL; //сколько пройдено уровней
+	static CreateWall   whichWall; //какая стена выбрана админом в данный момент
+	static String       AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
+	static Coordinate   Start; //координаты старта (откуда игрок стартует) 
+	static Coordinate   Finish; //координаты финиша (куда должен придти)
+	
+	
 	int GLOBAL_W;
 	int GLOBAL_H;
 	int W_WIN;
@@ -96,41 +92,34 @@ public:
 };
 
 //инициализируем всё, нужно что б если переменная менялась где-то, то она менялась и во всех классах наследниках
-Vector2i System::mousePosWin;
-Vector2f System::posMouse;
-
+Vector2i      System::mousePosWin; //системные переменные
+Vector2f      System::posMouse;
 RenderWindow* System::window;
+Event         System::event;
 
-Event System::event;
+float         System::timer; //переменные связанные со временем
+float         System::time;
+int           System::FPS;
+Clock         System::clock;
 
-int System::FPS;
-Clock System::clock;
-float System::timer;
-float System::time;
+float         System::volSndClickButt; //переменные связанные с музыкой и звуками
+float         System::volumBackMusic;
+Music         System::backgroundMusic;
+SoundBuffer   System::buffer;
+Sound         System::sndClickButt;
 
-Music System::backgroundMusic;
-float System::volumBackMusic;
-
-SoundBuffer System::buffer;
-Sound System::sndClickButt;
-float System::volSndClickButt;
-
-CreateWall System::whichWall;
-
-int System::key [3];
-
-int System::whatButChange;
-
-String System::AdOrPlMode;
-Coordinate System::Start;
-Coordinate System::Finish;
-bool System::lvlComplete;
-
-float System::speedChangeSt;
-float System::speed;
-
-bool System::PassEnter;
-int System::PassedLVL;
+bool          System::PassEnter; //внтуригровая логика
+bool          System::lvlComplete;
+float         System::speedChangeSt;
+float         System::speed;
+int           System::keyCodePressed;
+int           System::key [3];
+int           System::whatButChange;
+int           System::PassedLVL;
+CreateWall    System::whichWall;
+String        System::AdOrPlMode;
+Coordinate    System::Start;
+Coordinate    System::Finish;
 
 
 class Body : public System{ //класс который служит основой для всех других классов с графикой
@@ -234,32 +223,27 @@ public:
 	}
 
 	void changeFigure (){ //изменение фигуры по нажатию клавиши
-		if (event.type == Event::KeyReleased){
-			if (event.key.code == key [0]){
-				statePl = rectangle;
-				shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-			}
-			else if (event.key.code == key [1]){
-				statePl = triangle;
-				shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
-			}
-			else if (event.key.code == key [2]){
-				statePl = circle;
-				shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-			}
+		if (keyCodePressed == key [0]){
+			statePl = rectangle;
+			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		}
+		else if (keyCodePressed == key [1]){
+			statePl = triangle;
+			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+		}
+		else if (keyCodePressed == key [2]){
+			statePl = circle;
+			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 		}
 	}
 
 	void changeFigure2 (){ //изменение фигуры соотвествующему состоянию игрока
-		if (statePl == rectangle)
-			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-		else if (statePl == triangle)
-			shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
-		else if (statePl == circle)
-			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+		if (statePl == rectangle)     shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
+		else if (statePl == triangle) shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
+		else if (statePl == circle)   shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 	}
 
-	void update (bool **CoordWall){
+	void update (){
 		//может быть нажата одновременно только одна клавиша
 		if (currDir < NumMoves && !playerMove){
 			if (Direction [currDir] == 4)        tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
@@ -911,8 +895,8 @@ public:
 	}
 
 	void initializeBackground (){
-		Image backgroundImage; //
-		backgroundImage.loadFromFile ("Resources/Textures/background.png"); //фон который закрывает обубки стен когда играет игрок
+		Image backgroundImage;
+		backgroundImage.loadFromFile ("Resources/Textures/background.png"); //фон который закрывает обрубки стен когда играет игрок
 		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
 		plBackground -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2);
 
@@ -979,7 +963,7 @@ public:
 
 		Image pictureImage; //загрузка спрайта стен
 		tmpS = admin;
-		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4; //GLOBAL_W / 2 - (W_WIN - 5 * W_BUTTON) / 6 
+		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - 2 * W_BUTTON - 6 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Open",     "OpenAd",       font, tmpS, GLOBAL_W / 2 - 1 * W_BUTTON - 3 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Save",     "SaveAd",       font, tmpS, GLOBAL_W / 2 + 0 * W_BUTTON + 0 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
@@ -1535,7 +1519,7 @@ public:
 			changeState2 ();
 
 		if (!changeStates)
-			pl -> update (CoordWall);
+			pl -> update ();
 
 		for (int i = 0; i < NumWall; i++)
 			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
@@ -1786,34 +1770,36 @@ public:
 					bool edit = true;
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					inF >> tmpI;
-					for (int i = 0; i < tmpI; i++){
-						inF >> tmpC2 [i];
-						if (strcmp (tmpC2 [i], fileNameAd) == 0)
-							edit = false;
-					}
-					inF.close ();
+					if (tmpI - 4 < 16){
+						for (int i = 0; i < tmpI; i++){
+							inF >> tmpC2 [i];
+							if (strcmp (tmpC2 [i], fileNameAd) == 0)
+								edit = false;
+						}
+						inF.close ();
 
-					ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
-					if (edit){
-						outF << ++tmpI << endl;
-						for (int i = 0; i < tmpI - 1; i++)
-							outF << tmpC2 [i] << endl;
-						outF << fileNameAd << endl;
-						lvlDeath = 0;
+						ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
+						if (edit){
+							outF << ++tmpI << endl;
+							for (int i = 0; i < tmpI - 1; i++)
+								outF << tmpC2 [i] << endl;
+							outF << fileNameAd << endl;
+							lvlDeath = 0;
+						}
+						else if (!edit){ //редактируем старый уровень
+							outF << tmpI << endl;
+							for (int i = 0; i < tmpI; i++)
+								outF << tmpC2 [i] << endl;
+						}
+						char tmpC [100] = "Resources/LVLs/";
+						strcat (tmpC, fileNameAd);
+						strcat (tmpC, ".txt");
+						Start.x = ArrWall [indexStart] -> x;
+						Start.y = ArrWall [indexStart] -> y;
+						Start.x = Start.x * EDGE + GLOB_IND_W;
+						Start.y = Start.y * EDGE + GLOB_IND_H;
+						saveLVL (tmpC);
 					}
-					else if (!edit){ //редактируем старый уровень
-						outF << tmpI << endl;
-						for (int i = 0; i < tmpI; i++)
-							outF << tmpC2 [i] << endl;
-					}
-					char tmpC [100] = "Resources/LVLs/";
-					strcat (tmpC, fileNameAd);
-					strcat (tmpC, ".txt");
-					Start.x = ArrWall [indexStart] -> x;
-					Start.y = ArrWall [indexStart] -> y;
-					Start.x = Start.x * EDGE + GLOB_IND_W;
-					Start.y = Start.y * EDGE + GLOB_IND_H;
-					saveLVL (tmpC);
 				}
 				else if (((button [i] -> buttClick && button [i] -> name == "BackToAdminSave") || escapeReleased) && !changeStates)
 					changeState (admin);
@@ -1903,8 +1889,10 @@ public:
 		if (changeStates)
 			changeState2 ();
 		pl -> changeFigure ();
-		if (anyKeyReleased && !changeStates && !escapeReleased)
-			changeState (player);
+		if (anyKeyReleased && !changeStates && !escapeReleased){
+			if (event.key.code != key [0] && event.key.code != key [1] && event.key.code != key [2])
+				changeState (player);
+		}
 		else if (escapeReleased && !changeStates){
 			AllTime += lvlTime; lvlTime = 0;
 			NumAnsw = 0; writeInfo ();
@@ -2123,17 +2111,23 @@ int main (){
 			if (system.event.type == Event::KeyReleased && system.event.key.code == 58) game.enterReleased = true; //флаг, о том нажат ли ентер
 			else game.enterReleased = false; 
 			if (system.event.type == Event::KeyReleased) game.anyKeyReleased = true; //флаг, о том нажата ли какая-либо кнопка
-			else game.anyKeyReleased = false; 
-		}		
+			else game.anyKeyReleased = false;
+
+			if (system.event.type == Event::KeyPressed) //нужна при изменении формы игрока, что б менялась при нажатии клавиши, а не отпускании
+				system.keyCodePressed = system.event.key.code;
+		}
 		if (!isUpdate){ //обновляем игру если не зашли в предыдущий while
 			game.update ();
 			game.escapeReleased = false;
 			game.enterReleased = false;
 			game.anyKeyReleased = false;
 		}
-		if (game.state == player) //обновляем игрока всегда
-			game.StatePlayer ();
+		
 		isUpdate = false;
+		if (game.state == player)
+			game.StatePlayer ();
+		system.keyCodePressed = -1;
+
 		game.draw ();
 	}
 	return 0;
