@@ -71,8 +71,8 @@ public:
 		EDGE = 10; //размер одной клетки
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
-		W_BUTTON = W_WIN / 10; //ширина кнопки
-		H_BUTTON = H_WIN / 20; //высота кнопки
+		W_BUTTON = W_WIN / 9.6; //ширина кнопки
+		H_BUTTON = H_WIN / 19; //высота кнопки
 		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
 
 		while (1){
@@ -219,7 +219,8 @@ public:
 		playerMove = false;
 		currDir = 0; statePl = rectangle; 
 		shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
-		shape.setPosition ((float) GLOBAL_W / 2 - SQUARE / 2, (float) GLOBAL_H / 2 - SQUARE / 2);
+		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
 	void changeFigure (){ //изменение фигуры по нажатию клавиши
@@ -376,6 +377,16 @@ public:
 			if (enlargePrecent > 100 - speedChangeSt * time){
 				enlargePrecent = 1;
 				changeForm = false;
+
+				shape.setSize (Vector2f ((float) w, (float) h));
+				shape.setOrigin ((float) w / 2, (float) h / 2);
+				shape.setPosition ((float) x, (float) y);
+				text -> clear ();
+				text -> changeSize (SIZE_TEXT); //размер текста
+				text -> add (buttText, color);
+				if (name == "Edit")
+					text -> clear ();
+				text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 			}
 		}
 	}
@@ -419,6 +430,7 @@ public:
 		buttClick = false;
 		if (!buttLocked){
 			if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y - h / 2) && (posMouse.y <= y + h / 2)){ //если курсор мыши находится на кнопке
+				//cout << "x & y - " << x << " & " << y << " w & h - " << w << " & " << h << " wT & hT - " << wTexture << " & " << hTexture << endl;
 				if (Mouse::isButtonPressed (Mouse::Left)) //и если нажали на нее
 					buttPressed = true;
 				else{
@@ -430,14 +442,14 @@ public:
 				if (name == "SelectLVL")
 					shape.setTextureRect (IntRect (wTexture, 4 * hTexture, wTexture, hTexture));
 			}
-			else{
+			else{ //если курсор не на кнопке
 				buttPressed = false; //если курсор не на мыши то кнопка обычного вида
 				shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
 				if (name == "SelectLVL")
 					shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 			}
 		}
-		else{
+		else{ //если кнопка заблокирована
 			shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 			if (name == "SelectLVL")
 				shape.setTextureRect (IntRect (3 * wTexture, 4 * hTexture, wTexture, hTexture));
@@ -920,9 +932,6 @@ public:
 		tmpS = allState;
 		indexFPSBut = NumButton;
 		button [NumButton++] = new Static ("FPS: 0", "FPS", font, tmpS, GLOBAL_W / 2 - W_WIN / 2 + W_BUTTON / 2, GLOBAL_H / 2 + H_WIN / 2 - H_BUTTON / 2);
-
-		tmpS = completeLVL;
-		button [NumButton++] = new Button (buttonImage, "End lvl", "lvlComplete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = menu;
 		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
@@ -1551,7 +1560,7 @@ public:
 					escapeReleased = false;
 					changeState (pause);
 				}
-				else if (((button [i] -> buttClick && button [i] -> name == "lvlComplete") || (lvlComplete && enterReleased)) && !changeStates){
+				else if (lvlComplete && !changeStates){
 					AllTime += lvlTime;
 					lvlTime = 0;
 					sndClickButt.play (); 
@@ -1591,21 +1600,6 @@ public:
 						lvlComplete = false;
 					}
 				}
-			}
-
-			if (lvlComplete){
-				for (int i = 0; i < NumButton; i++)
-					if (button [i] -> name == "lvlComplete"){
-						button [i] -> drawThis = true;
-						break;
-					}
-			}
-			else{
-				for (int i = 0; i < NumButton; i++)
-					if (button [i] -> name == "lvlComplete"){
-						button [i] -> drawThis = false;
-						break;
-					}
 			}
 	}
 	void StateSettings (){
