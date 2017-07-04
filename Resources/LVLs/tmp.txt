@@ -1,6 +1,6 @@
 33
 0 0
-29
+56
 0 0 Start
 7 0 Finish
 1 0 Wall

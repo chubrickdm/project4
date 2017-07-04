@@ -1,5 +1,4 @@
 ﻿  main.cpp
-main.cpp(74): warning C4244: =: преобразование "double" в "int", возможна потеря данных
   Создание кода
   Создание кода завершено
   myProject4.vcxproj -> D:\Димона\Универ\Прога\Projects\Game\myProject4\Release\myProject4.exe

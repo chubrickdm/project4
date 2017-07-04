@@ -71,7 +71,7 @@ public:
 		EDGE = 10; //размер одной клетки
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
-		W_BUTTON = W_WIN / 9.6; //ширина кнопки
+		W_BUTTON = (int) (W_WIN / 9.6); //ширина кнопки
 		H_BUTTON = H_WIN / 19; //высота кнопки
 		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
 
@@ -123,13 +123,14 @@ Coordinate    System::Finish;
 
 
 class Body : public System{ //класс который служит основой для всех других классов с графикой
-public:
-	int x, y; //координаты
+protected:
 	int w, h; //ширина, высота
 	Texture texture; //текстура
-	String name; //имя
 	RectangleShape shape; //текстура
 	int wTexture, hTexture; //что бы масштабировать текстуру, нужно знать какой именно кусок тайла масштабировать
+public:
+	int x, y; //координаты
+	String name; //имя
 public:
 	Body (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture){
 		x = X; y = Y; w = W; h = H; name = Name;
@@ -206,21 +207,61 @@ public:
 };
 
 class Player : public Body{ //класс игрока
-public:
+private:
 	int tmpX, tmpY; //переменные которые хранят место куда мы хотим попасть, нажав клавишу
 	bool playerMove; //движется ли игрок
-	StatePlayer statePl; //состояние игрока соотвествует фигуре
-	int currDir; //текущее направление
 	float xx, yy; //нужны, потому что скорость не целое число, и коорд игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
+	float reducePrecent; //процент уменьшения
+	float rotation; //угол на который поворачивается игрок при эффекте конца уровня и начале игры
+	float enlargePrecent; //процент увелечения
+public:
+	int currDir; //текущее направление
+	StatePlayer statePl; //состояние игрока соотвествует фигуре
+	bool enlargePl; //флаг, который идет ли эффект начала игры
+private:
+	void reduce (){ //уменьшение игрока (конец уровня)
+		shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
+		shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
+		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+		shape.setRotation (rotation);
+
+		rotation += (float) (speedChangeSt * time * 1.5);
+		reducePrecent -= speedChangeSt * time / 3; //когда прекратится изменение формы 
+		if (reducePrecent < speedChangeSt * time / 3){
+			reducePrecent = 100; lvlComplete = true;
+			rotation = 0;
+		}
+	}
 public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
 	    xx = (float) x; yy = (float) y; 
-		tmpX = x; tmpY = y; 
+		tmpX = x; tmpY = y;
 		playerMove = false;
+		reducePrecent = 100; rotation = 0; enlargePrecent = 1; enlargePl = false;
+
 		currDir = 0; statePl = rectangle; 
 		shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
 		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 		shape.setOrigin ((float) w / 2, (float) h / 2);
+	}
+
+	void enlarge (){ //увелечение игрока (вначале игры)
+		if (enlargePl){
+			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
+			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
+			shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+			shape.setRotation (rotation);
+
+			rotation += (float) (speedChangeSt * time * 1.5);
+			enlargePrecent += speedChangeSt * time / 3; //когда прекратится изменение формы
+			if (enlargePrecent > 100 - speedChangeSt * time / 3){
+				enlargePrecent = 1; enlargePl = false;
+				shape.setSize (Vector2f ((float) w, (float) h));
+				shape.setOrigin ((float) w / 2, (float) h / 2);
+				shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+				shape.setRotation (0); rotation = 0;
+			}
+		}
 	}
 
 	void changeFigure (){ //изменение фигуры по нажатию клавиши
@@ -245,46 +286,51 @@ public:
 	}
 
 	void update (){
-		//может быть нажата одновременно только одна клавиша
-		if (currDir < NumMoves && !playerMove){
-			if (Direction [currDir] == 4)        tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
-			else if (Direction [currDir] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
-			else if (Direction [currDir] == 2)   tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
-			else if (Direction [currDir] == 3)   tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
-			currDir++; playerMove = true;
-			xx = (float) x; yy = (float) y;
+		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
+			reduce ();
 		}
-
-		changeFigure ();
-
-		if (playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-			//cout << speed << " -speed" << endl; //очень удобно проверять физику движения игрока
-			//cout << xx << " " << yy << " -xx & yy" << endl;
-			//cout << tmpX << " " << tmpY << " -tmpX & tmpY" << endl;
-			//cout << xx - tmpX << " " << yy - tmpY << " difference" << endl;
-			//cout << endl;
-			if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
-				playerMove = false; 
-				xx = (float) tmpX; yy = (float) tmpY;
-				x = tmpX; y = tmpY;
+		else{
+			if (currDir < NumMoves && !playerMove){
+				if (Direction [currDir] == 4)        tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
+				else if (Direction [currDir] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
+				else if (Direction [currDir] == 2)   tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
+				else if (Direction [currDir] == 3)   tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
+				currDir++; playerMove = true;
 				xx = (float) x; yy = (float) y;
 			}
-			else{ //само движение игрока
-				if (x < tmpX)        xx += speed * time; //движение по горизонтали
-				else if (x > tmpX)   xx -= speed * time; 
-				else if (y < tmpY)   yy += speed * time; //движениепо вертикали
-				else if (y > tmpY)   yy -= speed * time;  
-				x = (int) xx; y = (int) yy;
+
+			changeFigure ();
+
+			if (playerMove){ //проверяем, нет ли стены на том месте куда мы хотим перейти
+				//cout << speed << " -speed" << endl; //очень удобно проверять физику движения игрока
+				//cout << xx << " " << yy << " -xx & yy" << endl;
+				//cout << tmpX << " " << tmpY << " -tmpX & tmpY" << endl;
+				//cout << xx - tmpX << " " << yy - tmpY << " difference" << endl;
+				//cout << endl;
+				if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
+					playerMove = false; 
+					xx = (float) tmpX; yy = (float) tmpY;
+					x = tmpX; y = tmpY;
+					xx = (float) x; yy = (float) y;
+				}
+				else{ //само движение игрока
+					if (x < tmpX)        xx += speed * time; //движение по горизонтали
+					else if (x > tmpX)   xx -= speed * time; 
+					else if (y < tmpY)   yy += speed * time; //движениепо вертикали
+					else if (y > tmpY)   yy -= speed * time;  
+					x = (int) xx; y = (int) yy;
+				}
 			}
 		}
-
-		if (x == Finish.x && y == Finish.y) //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
-			lvlComplete = true;
-		else
-			lvlComplete = false; 
 	}
 
 	void changeCoord (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+		shape.setSize (Vector2f ((float) w, (float) h));
+		shape.setOrigin ((float) w / 2, (float) h / 2);
+		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+		shape.setRotation (0);
+		rotation = 360 - ((FPS * (100 / speedChangeSt) * 3) * (float) (speedChangeSt * time * 1.5));
+
 		x = x2; y = y2; 
 		xx = (float) x; yy = (float) y;
 		tmpX = x; tmpY = y; 
@@ -297,15 +343,17 @@ public:
 
 
 class BodyButton : public Body{ //тело кнопок
-public:
+protected:
+	Color color; //цвет текста кнопки
 	mcText *text; //текст который выводится на кнопке
 	String buttText; //текст который будет отображаться на кнопке
-	bool drawThis, buttPressed, buttClick; //рисовать ли кнопку, нажата ли кнопка и кликнули ли по кнопке. Клик- это нажать и отпустить кнопку когда курсор мыши на кнопке
+private:
 	Font font; //шрифт
+public:
+	bool drawThis, buttPressed, buttClick; //рисовать ли кнопку, нажата ли кнопка и кликнули ли по кнопке. Клик- это нажать и отпустить кнопку когда курсор мыши на кнопке
 	StateList state; //каждая кнопка кроме имени имеет группу к которой она относится
 	int value; //значение кнопки
-	Color color; //цвет текста кнопки
-
+	
 	bool changeForm; //флаг показывающий изменилась ли форма
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
@@ -561,7 +609,7 @@ public:
 };
 
 class HorizontScrollBar : public BodyButton{
-public:
+private:
 	int leftBorder, rightBorder; //левая и правая граница по которой может перемещаться кнопка (не вся доступная область, т.к. кнопка имеет ширину)
 	RectangleShape backgroundd;
 	int wBground;
@@ -684,7 +732,7 @@ public:
 };
 
 class PictureButton : public BodyButton{
-public:
+private:
 	Texture pictureT;
 	RectangleShape picture;
 	int wPicture;
@@ -1530,6 +1578,7 @@ public:
 		if (!changeStates)
 			pl -> update ();
 
+		pl -> enlarge ();
 		for (int i = 0; i < NumWall; i++)
 			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
 				if ((ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [i] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle)){
@@ -1547,7 +1596,7 @@ public:
 			}
 
 		
-		char tmpC [30];
+		char tmpC [30]; //обновление времени и количества смертей
 		button [indexTimePlBut] -> updateText (_itoa ((int) lvlTime, tmpC, 10));
 		button [indexDeathPlBut] -> updateText (_itoa (lvlDeath, tmpC, 10));
 		lvlTime += time;
@@ -1564,6 +1613,7 @@ public:
 					AllTime += lvlTime;
 					lvlTime = 0;
 					sndClickButt.play (); 
+					lvlComplete = false;
 					if (!playerLVL){
 						if (CurrentLVL < 4){
 							if (PassedLVL < 4 && CurrentLVL - 1 == PassedLVL)
@@ -1583,6 +1633,7 @@ public:
 							openLVL_PL (nameFile); 
 							strcpy (fileNamePl, nameFile);
 							pl -> changeCoord (Start.x, Start.y);
+							pl -> enlargePl = true;
 							createWay ();
 							enterReleased = false;
 							changeState (startLVL);
@@ -1597,7 +1648,6 @@ public:
 						Start.y = Start.y * EDGE + GLOB_IND_H;
 						saveLVL (fileNamePl);
 						changeState (selectLVL);
-						lvlComplete = false;
 					}
 				}
 			}
@@ -1702,6 +1752,7 @@ public:
 						pl -> changeCoord (Start.x, Start.y);
 						pl -> statePl = rectangle;
 						pl -> changeFigure2 ();
+						pl -> enlargePl = true;
 						playerLVL = false;
 						createWay ();
 						changeState (startLVL);
@@ -1883,6 +1934,7 @@ public:
 		if (changeStates)
 			changeState2 ();
 		pl -> changeFigure ();
+		pl -> enlarge ();
 		if (anyKeyReleased && !changeStates && !escapeReleased){
 			if (event.key.code != key [0] && event.key.code != key [1] && event.key.code != key [2])
 				changeState (player);
@@ -1925,6 +1977,7 @@ public:
 								pl -> changeCoord (Start.x, Start.y);
 								pl -> statePl = rectangle;
 								pl -> changeFigure2 ();
+								pl -> enlargePl = true;
 
 								playerLVL = true;
 								createWay ();
