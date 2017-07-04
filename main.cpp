@@ -879,7 +879,7 @@ public:
 	Image wallImagePL; //изображение игрока
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
 	Sprite cursor; //курсор
-	Texture textureCursor; //текстура курсора
+	Texture textureCursor; //текстура курсора 
 	
 	Player *pl; //игрок
 	mcText *timePlText; //текст, в которм хранится время которые играет игрок
