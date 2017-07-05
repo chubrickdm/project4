@@ -1,10 +1,10 @@
 7
 0 0
-1
+2
 0 0 Start
 7 0 Finish
+3 1 Save
 4 0 Wall
+4 1 Circle
 4 2 Wall
 4 3 Wall
-4 1 Circle
-3 1 Save

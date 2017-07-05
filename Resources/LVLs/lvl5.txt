@@ -1,11 +1,11 @@
 8
 0 0
-2
+3
 0 0 Start
 7 0 Finish
+3 3 Save
 4 0 Wall
 4 1 Wall
 4 2 Wall
 4 3 Triangle
 4 4 Triangle
-3 3 Save

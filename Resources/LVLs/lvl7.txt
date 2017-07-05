@@ -3,13 +3,13 @@
 3
 54 26 Start
 56 20 Finish
-55 24 Save
 53 25 Wall
-54 25 Wall
-55 25 Wall
-57 25 Wall
-57 24 Wall
-57 23 Wall
-56 23 Wall
-55 23 Wall
 54 24 Triangle
+54 25 Wall
+55 23 Wall
+55 24 Save
+55 25 Wall
+56 23 Wall
+57 23 Wall
+57 24 Wall
+57 25 Wall

@@ -877,13 +877,13 @@ public:
 	}
 
 	void saveLVL (char *tmpC){ //сохранение уровня админом
-		Coordinate tmp1, tmp2;
+		Coordinate tmp1, tmp2; //сохраняем координаты старта и финиша
 		tmp1.x = ArrWall [indexStart] -> x;
 		tmp1.y = ArrWall [indexStart] -> y;
 		tmp2.x = ArrWall [indexFinish] -> x;
 		tmp2.y = ArrWall [indexFinish] -> y;
-		quickSort (0, NumWall - 1, ArrWall);
-		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1);
+		quickSort (0, NumWall - 1, ArrWall); //сортируем
+		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1); //после сортировки находим индексы старта и финиша
 		indexFinish = binSearch (0, NumWall - 1, ArrWall, tmp2);
 
 		ofstream outF (tmpC);
@@ -938,13 +938,13 @@ public:
 			}
 		}
 
-		Coordinate tmp1, tmp2;
+		Coordinate tmp1, tmp2; //сохраняем координаты старта и финиша
 		tmp1.x = ArrWall [indexStart] -> x;
 		tmp1.y = ArrWall [indexStart] -> y;
 		tmp2.x = ArrWall [indexFinish] -> x;
 		tmp2.y = ArrWall [indexFinish] -> y;
-		quickSort (0, NumWall - 1, ArrWall);
-		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1);
+		quickSort (0, NumWall - 1, ArrWall); //сортируем
+		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1); //после сортировки находим индексы старта и финиша
 		indexFinish = binSearch (0, NumWall - 1, ArrWall, tmp2);
 	}
 
@@ -981,13 +981,13 @@ public:
 			}
 		}
 
-		Coordinate tmp1, tmp2;
+		Coordinate tmp1, tmp2; //сохраняем координаты старта и финиша
 		tmp1.x = ArrWall [indexStart] -> x;
 		tmp1.y = ArrWall [indexStart] -> y;
 		tmp2.x = ArrWall [indexFinish] -> x;
 		tmp2.y = ArrWall [indexFinish] -> y;
-		quickSort (0, NumWall - 1, ArrWall);
-		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1);
+		quickSort (0, NumWall - 1, ArrWall); //сортируем
+		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1); //после сортировки находим индексы старта и финиша
 		indexFinish = binSearch (0, NumWall - 1, ArrWall, tmp2);
 	}
 
@@ -1202,23 +1202,27 @@ public:
 
 		if (!changeStates)
 			pl -> update ();
-
 		pl -> enlarge ();
-		for (int i = 0; i < NumWall; i++)
-			if ((ArrWall [i] -> x * EDGE + GLOB_IND_W == pl -> x) && (ArrWall [i] -> y * EDGE + GLOB_IND_H == pl -> y)){
-				if ((ArrWall [i] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [i] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [i] -> name == "Triangle" && pl -> statePl != triangle)){
-					pl -> changeCoord (Start.x, Start.y);
-					changeState (startLVL);
-					lvlDeath++;
-					createWay ();
-					break;
-				}
-				else if (ArrWall [i] -> name == "Save"){
-					Start.x = ArrWall [i] -> x * EDGE + GLOB_IND_W;
-					Start.y = ArrWall [i] -> y * EDGE + GLOB_IND_H;
-					createWay ();
-				}
+
+		Coordinate tmp;
+		int tmpIndex;
+		tmp.x = (pl -> x - GLOB_IND_W) / EDGE;
+		tmp.y = (pl -> y - GLOB_IND_H) / EDGE;
+		tmpIndex = binSearch (0, NumWall - 1, ArrWall, tmp);
+
+		if (tmpIndex != -1 && pl -> x == pl -> xx && pl -> y == pl -> yy){
+			if ((ArrWall [tmpIndex] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [tmpIndex] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [tmpIndex] -> name == "Triangle" && pl -> statePl != triangle)){
+				pl -> changeCoord (Start.x, Start.y);
+				changeState (startLVL);
+				lvlDeath++;
+				createWay ();
 			}
+			else if (ArrWall [tmpIndex] -> name == "Save"){
+				Start.x = ArrWall [tmpIndex] -> x * EDGE + GLOB_IND_W;
+				Start.y = ArrWall [tmpIndex] -> y * EDGE + GLOB_IND_H;
+				createWay ();
+			}
+		}
 
 		
 		char tmpC [30]; //обновление времени и количества смертей
