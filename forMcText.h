@@ -1,3 +1,4 @@
+#pragma once
 #include "mcText.h"
 
 void mcText::data()

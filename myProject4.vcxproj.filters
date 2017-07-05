@@ -16,8 +16,11 @@
     <Filter Include="Заголовочные файлы\Text">
       <UniqueIdentifier>{5011cd41-eb3a-4140-bbf6-4edac30e3328}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\GamePlay">
+    <Filter Include="Заголовочные файлы\AdditionalAlgorithms">
       <UniqueIdentifier>{ce7d9fef-4001-42cb-8354-c8abd442eb61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\System">
+      <UniqueIdentifier>{a9345250-3265-4ae3-854e-3ff115c0e044}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -32,11 +35,26 @@
     <ClInclude Include="mcText.h">
       <Filter>Заголовочные файлы\Text</Filter>
     </ClInclude>
-    <ClInclude Include="view.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="searchWay.h">
-      <Filter>Заголовочные файлы\GamePlay</Filter>
+      <Filter>Заголовочные файлы\AdditionalAlgorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="system.h">
+      <Filter>Заголовочные файлы\System</Filter>
+    </ClInclude>
+    <ClInclude Include="body.h">
+      <Filter>Заголовочные файлы\System</Filter>
+    </ClInclude>
+    <ClInclude Include="general classes.h">
+      <Filter>Заголовочные файлы\System</Filter>
+    </ClInclude>
+    <ClInclude Include="view.h">
+      <Filter>Заголовочные файлы\System</Filter>
+    </ClInclude>
+    <ClInclude Include="quickSort.h">
+      <Filter>Заголовочные файлы\AdditionalAlgorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="binSearch.h">
+      <Filter>Заголовочные файлы\AdditionalAlgorithms</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
