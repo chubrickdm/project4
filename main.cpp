@@ -329,6 +329,7 @@ public:
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 		shape.setRotation (0);
+		enlargePrecent = 1; reducePrecent = 100;
 		rotation = 360 - ((FPS * (100 / speedChangeSt) * 3) * (float) (speedChangeSt * time * 1.5));
 
 		x = x2; y = y2; 
@@ -1066,8 +1067,13 @@ public:
 		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
+		tmpI = GLOBAL_H / 2 - 2 * (H_BUTTON + 6);
+		button [NumButton++] = new Button (buttonImage, "5",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 5, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "6",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 6, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "7",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8,     tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 7, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "8",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,         (W_BUTTON - 4) / 4, H_BUTTON, 8, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6));
 
 		tmpS = AdSelectLVL;
@@ -1615,8 +1621,8 @@ public:
 					sndClickButt.play (); 
 					lvlComplete = false;
 					if (!playerLVL){
-						if (CurrentLVL < 4){
-							if (PassedLVL < 4 && CurrentLVL - 1 == PassedLVL)
+						if (CurrentLVL < 8){
+							if (PassedLVL < 8 && CurrentLVL - 1 == PassedLVL)
 								PassedLVL++;
 							writeInfo ();
 							CurrentLVL++; 
@@ -1637,6 +1643,16 @@ public:
 							createWay ();
 							enterReleased = false;
 							changeState (startLVL);
+						}
+						else{
+							Start.x = ArrWall [indexStart] -> x;
+							Start.y = ArrWall [indexStart] -> y;
+							Start.x = Start.x * EDGE + GLOB_IND_W;
+							Start.y = Start.y * EDGE + GLOB_IND_H;
+							saveLVL (fileNamePl);
+							PassedLVL = 8;
+							writeInfo ();
+							changeState (selectLVL);
 						}
 					}
 					else{
@@ -1815,7 +1831,7 @@ public:
 					bool edit = true;
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					inF >> tmpI;
-					if (tmpI - 4 < 16){
+					if (tmpI - 8 < 16){
 						for (int i = 0; i < tmpI; i++){
 							inF >> tmpC2 [i];
 							if (strcmp (tmpC2 [i], fileNameAd) == 0)
@@ -1861,7 +1877,7 @@ public:
 					button [i] -> updateText (fileNameAd);
 				if (((button [i] -> buttClick && button [i] -> name == "AdDeleteLVL") || enterReleased) && !changeStates){
 					changeState (admin);
-					if (strstr (fileNameAd, "lvl") == NULL || strcspn (fileNameAd, "1234") == NULL){
+					if (strstr (fileNameAd, "lvl") == NULL || strcspn (fileNameAd, "12345678") == NULL){
 						int tmpI; 
 						char tmpC2 [100][30]; 
 						bool isDelete = false;
@@ -1969,7 +1985,7 @@ public:
 					for (int j = 0; j < tmpI; j++){
 						inF >> tmpC2;
 						if (strcmp (tmpC2, myLVLname) == 0){
-							if (strstr (myLVLname, "lvl") == NULL || strcspn (myLVLname, "1234") == NULL){
+							if (strstr (myLVLname, "lvl") == NULL || strcspn (myLVLname, "12345678") == NULL){
 								strcat (tmpC, myLVLname);
 								strcat (tmpC, ".txt");
 								openLVL_PL (tmpC);

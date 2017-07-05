@@ -1,9 +1,0 @@
-6
-0 0
-0
-0 0 Start
-1 0 Finish
-63 7 Wall
-62 7 Wall
-61 7 Wall
-60 7 Wall

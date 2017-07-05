@@ -1,0 +1,8 @@
+5
+4 30
+2
+4 30 Start
+15 30 Finish
+9 30 Save
+10 30 Triangle
+11 30 Triangle
