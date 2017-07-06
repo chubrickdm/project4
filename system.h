@@ -27,8 +27,10 @@ public:
 	static float        volumBackMusic; //громокость фоновой музыки
 	static float        volSndClickButt; //громкость звука
 	static Music        backgroundMusic; //фонова€ музыка
-	static SoundBuffer  buffer; //буфер дл€ звука нажати€ на кнопки
+	static SoundBuffer  bufferClickButt; //буфер дл€ звука нажати€ на кнопки
 	static Sound        sndClickButt; //звук нажати€ на кнопку
+	static SoundBuffer  bufferTeleport; //буфер дл€ звука телепорта игрока к сохранению
+	static Sound        sndTeleport; //звук телепорта игрока к сохранению
 	
 	static bool         lvlComplete; //показывает завершен уровень
 	static float        speedChangeSt; //скорость изменени€ размера кнопок при изменении состо€ни€

@@ -67,6 +67,7 @@ public:
 	float xx, yy; //нужны, потому что скорость не целое число, и коорд игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
 	int currDir; //текущее направление
 	StatePlayer statePl; //состояние игрока соотвествует фигуре
+	bool playerTP; //флаг, который показывает игрок телепортируется ли
 	bool enlargePl; //флаг, который идет ли эффект начала игры
 private:
 	void reduce (){ //уменьшение игрока (конец уровня)
@@ -86,7 +87,7 @@ public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
 	    xx = (float) x; yy = (float) y; 
 		tmpX = x; tmpY = y;
-		playerMove = false;
+		playerMove = false; playerTP = false;
 		reducePrecent = 100; rotation = 0; enlargePrecent = 1; enlargePl = false;
 
 		currDir = 0; statePl = rectangle; 
@@ -139,7 +140,7 @@ public:
 		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
 			reduce ();
 		}
-		else{
+		else if (!playerTP){
 			if (currDir < NumMoves && !playerMove){
 				if (Direction [currDir] == 4)        tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
 				else if (Direction [currDir] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
@@ -185,6 +186,25 @@ public:
 		x = x2; y = y2; 
 		xx = (float) x; yy = (float) y;
 		tmpX = x; tmpY = y; 
+	}
+
+	void teleportation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+		shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
+		shape.setSize (Vector2f ((float) w * (1 - timer / 0.3f), (float) h * (1 - timer / 0.3f)));
+		shape.setOrigin ((float) w * (1 - timer / 0.3f) / 2, (float) h * (1 - timer / 0.3f) / 2);
+		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+		playerTP = true;
+		if (timer > 0.3){
+			timer = 0;
+			x = x2; y = y2; 
+			xx = (float) x; yy = (float) y;
+			tmpX = x; tmpY = y; 
+			playerTP = false;
+			shape.setSize (Vector2f ((float) w, (float) h));
+			shape.setOrigin ((float) w / 2, (float) h / 2);
+			shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+			changeFigure2 ();
+		}
 	}
 
 	void draw (){ 

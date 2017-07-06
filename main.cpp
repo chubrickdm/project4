@@ -28,8 +28,10 @@ Clock         System::clock;
 float         System::volSndClickButt; //переменные связанные с музыкой и звуками
 float         System::volumBackMusic;
 Music         System::backgroundMusic;
-SoundBuffer   System::buffer;
+SoundBuffer   System::bufferClickButt;
 Sound         System::sndClickButt;
+SoundBuffer   System::bufferTeleport;
+Sound         System::sndTeleport;
 
 bool          System::lvlComplete; //внтуригровая логика
 float         System::speedChangeSt;
@@ -723,9 +725,13 @@ public:
 		backgroundMusic.setLoop (true);
 		backgroundMusic.setVolume (volumBackMusic);
 
-		buffer.loadFromFile ("Resources/Sounds/button-30.wav"); //звук
-		sndClickButt.setBuffer (buffer);
+		bufferClickButt.loadFromFile ("Resources/Sounds/button-30.wav"); //звук нажатия на кнопку
+		sndClickButt.setBuffer (bufferClickButt);
 		sndClickButt.setVolume (volSndClickButt);
+
+		bufferTeleport.loadFromFile ("Resources/Sounds/teleportation.wav"); //звук телепортации игрока
+		sndTeleport.setBuffer (bufferTeleport);
+		sndTeleport.setVolume (volSndClickButt);
 
 		Image tmpI; //работа со спрайтом курсора
 		tmpI.loadFromFile ("Resources/Textures/cursor.png");
@@ -801,7 +807,7 @@ public:
 		bool saveDeleted = false;
 		if (Mouse::isButtonPressed (Mouse::Left))
 			if ((posMouse.x >= GLOB_IND_W) && (posMouse.x <= GLOB_IND_W + NUM_CELL_X * EDGE) && (posMouse.y >= GLOB_IND_H) && (posMouse.y <= GLOB_IND_H + NUM_CELL_Y * EDGE))
-				if (timer > 0.5){ //стены можно ставить раз в 0.5 сек
+				if (timer > 0.3){ //стены можно ставить раз в 0.3 сек
 					timer = 0;	
 					tmpX = (int) posMouse.x; tmpX -= GLOB_IND_W; tmp = tmpX % EDGE; tmpX -= tmp; tmpX /= EDGE; //перевожу координаты мыши в игровые
 					tmpY = (int) posMouse.y; tmpY -= GLOB_IND_H; tmp = tmpY % EDGE; tmpY -= tmp; tmpY /= EDGE;
@@ -1045,11 +1051,16 @@ public:
 						else
 							button [i] -> drawThis  = false;
 
-						if (whichStateWas == AdListLVL){
+						if (whichStateWas == AdListLVL){ //мы с/оздали динамически кнопки, надо их удалить когда закрываем список
 							for (int k = NumButton - 1; k > NumButton - NumListLVL - 1; k--)
 								delete button [k];
 							NumButton -= NumListLVL;
 							NumListLVL = 0;
+						}
+						else if ((whichStateWas == selectLVL || whichStateWas == myLVLs) && whichStateWill == startLVL){
+							openLVL_PL (fileNamePl);
+							pl -> changeCoord (Start.x, Start.y);
+							createWay ();
 						}
 
 						break;
@@ -1169,7 +1180,7 @@ public:
 					inF >> tmpI;
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC;
-						if (strstr (tmpC, "lvl") == NULL || strcspn (tmpC, "1234") == NULL){
+						if (strstr (tmpC, "lvl") == NULL || strpbrk (tmpC, "12345678") == NULL || strlen (tmpC) > 4){
 							button [NumButton++] = new Static (tmpC, "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
 							NumListLVL++;
 						}
@@ -1212,10 +1223,16 @@ public:
 
 		if (tmpIndex != -1 && pl -> x == pl -> xx && pl -> y == pl -> yy){
 			if ((ArrWall [tmpIndex] -> name == "Rectangle" && pl -> statePl != rectangle) || (ArrWall [tmpIndex] -> name == "Circle" && pl -> statePl != circle) || (ArrWall [tmpIndex] -> name == "Triangle" && pl -> statePl != triangle)){
-				pl -> changeCoord (Start.x, Start.y);
-				changeState (startLVL);
-				lvlDeath++;
-				createWay ();
+				if (!pl -> playerTP)
+					sndTeleport.play ();
+				pl -> teleportation (Start.x, Start.y); 
+				timer += time;
+				
+				if (!pl -> playerTP){
+					changeState (startLVL);
+					lvlDeath++;
+					createWay ();
+				}
 			}
 			else if (ArrWall [tmpIndex] -> name == "Save"){
 				Start.x = ArrWall [tmpIndex] -> x * EDGE + GLOB_IND_W;
@@ -1361,14 +1378,15 @@ public:
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
 						strcpy (fileNamePl, nameFile);
-						openLVL_PL (fileNamePl);
+						//openLVL_PL (fileNamePl);
 						
-						pl -> changeCoord (Start.x, Start.y);
+						//pl -> changeCoord (Start.x, Start.y);
 						pl -> statePl = rectangle;
 						pl -> changeFigure2 ();
 						pl -> enlargePl = true;
 						playerLVL = false;
-						createWay ();
+						timer = 0;
+						//createWay ();
 						changeState (startLVL);
 						
 					}
@@ -1475,7 +1493,7 @@ public:
 					button [i] -> updateText (fileNameAd);
 				if (((button [i] -> buttClick && button [i] -> name == "AdDeleteLVL") || enterReleased) && !changeStates){
 					changeState (admin);
-					if (strstr (fileNameAd, "lvl") == NULL || strcspn (fileNameAd, "12345678") == NULL){
+					if (strstr (fileNameAd, "lvl") == NULL || strpbrk (fileNameAd, "12345678") == NULL || strlen (fileNameAd) > 4){
 						int tmpI; 
 						char tmpC2 [100][30]; 
 						bool isDelete = false;
@@ -1583,18 +1601,19 @@ public:
 					for (int j = 0; j < tmpI; j++){
 						inF >> tmpC2;
 						if (strcmp (tmpC2, myLVLname) == 0){
-							if (strstr (myLVLname, "lvl") == NULL || strcspn (myLVLname, "12345678") == NULL){
+							if (strstr (myLVLname, "lvl") == NULL || strpbrk (myLVLname, "12345678") == NULL || strlen (myLVLname) > 4){
 								strcat (tmpC, myLVLname);
 								strcat (tmpC, ".txt");
-								openLVL_PL (tmpC);
+								//openLVL_PL (tmpC);
 								strcpy (fileNamePl, tmpC);
-								pl -> changeCoord (Start.x, Start.y);
+								//pl -> changeCoord (Start.x, Start.y);
 								pl -> statePl = rectangle;
 								pl -> changeFigure2 ();
 								pl -> enlargePl = true;
 
+								timer = 0;
 								playerLVL = true;
-								createWay ();
+								//createWay ();
 								findLVL = true;
 								changeState (startLVL);
 							}
