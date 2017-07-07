@@ -6,8 +6,8 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, selectLVL, AdSelectLVL, AdSaveLVL, AdDeleteLVL, AdListLVL, completeLVL, pause, startLVL, myLVLs, allState,
-	audioSet, controlsSet}; //основное перечесление которое отвечает за состояние игры
+enum StateList {menu, mode, admin, player, settings, exitt, selectLVL, adminOpenLVL, adminSaveLVL, adminDeleteLVL, adminListLVL, completeLVL, pause, startLVL, myLVLs, allState,
+	audioSetting, controlSeting, loadingLVL}; //основное перечесление которое отвечает за состояние игры
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 

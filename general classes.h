@@ -36,7 +36,7 @@ public:
 		window -> draw (shape);
 	}
 
-	void changeCoord (int tmpX, int tmpY){
+	void changeLocation (int tmpX, int tmpY){
 		shape.setPosition ((float) tmpX, (float) tmpY);
 	}
 };
@@ -47,7 +47,7 @@ public:
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
-	void changeCoord (int x2, int y2){ //функция изменения координат черного заднего фона (центр фона находится где центр игрока)
+	void changeLocation (int x2, int y2){ //функция изменения координат черного заднего фона (центр фона находится где центр игрока)
 		shape.setPosition ((float) x2, (float) y2);
 	}
 
@@ -73,7 +73,7 @@ public:
 	int currDirection; //текущее направление
 	StatePlayer state; //состояние игрока соотвествует фигуре
 private:
-	void reduce (){ //уменьшение игрока (конец уровня)
+	void EFF_reduce (){ //уменьшение игрока (конец уровня)
 		shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
 		shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
 		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
@@ -87,7 +87,7 @@ private:
 		}
 	}
 
-	void EFtransformation (){
+	void EFF_transformation (){
 		if (F_secPhaseTransformation){
 			shape.setSize (Vector2f ((float) w * timer / 0.15f, (float) h * timer / 0.15f));
 			shape.setOrigin ((float) w * timer / 0.15f / 2, (float) h * timer / 0.15f / 2);
@@ -103,7 +103,7 @@ private:
 			F_secPhaseTransformation = true;
 			timer = 0;
 			state = stateWill;
-			changeFigure2 ();
+			changeFigureStatic ();
 		}
 		else if (timer >= 0.15f && F_secPhaseTransformation){
 			timer = 0;
@@ -128,7 +128,7 @@ public:
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
-	void enlarge (){ //увелечение игрока (вначале игры)
+	void EFF_enlarge (){ //увелечение игрока (вначале игры)
 		if (F_enlarge){
 			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
@@ -147,7 +147,7 @@ public:
 		}
 	}
 
-	void changeFigure (){ //изменение фигуры по нажатию клавиши
+	void changeFigureKey (){ //изменение фигуры по нажатию клавиши
 		if (!F_secPhaseTransformation){
 			if (keyCodePressed == key [0]){
 				if (state != rectangle){
@@ -167,11 +167,11 @@ public:
 		}
 
 		if (F_transformation){
-			EFtransformation (); timer += time;
+			EFF_transformation (); timer += time;
 		}
 	}
 
-	void changeFigure2 (){ //изменение фигуры соотвествующему состоянию игрока
+	void changeFigureStatic (){ //изменение фигуры соотвествующему состоянию игрока
 		if (state == rectangle)     shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture));
 		else if (state == triangle) shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
 		else if (state == circle)   shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
@@ -179,7 +179,7 @@ public:
 
 	void update (){
 		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
-			reduce (); F_transformation = false; F_secPhaseTransformation = false;
+			EFF_reduce (); F_transformation = false; F_secPhaseTransformation = false;
 		}
 		else if (!F_teleportation){
 			if (currDirection < NumMoves && !F_move){
@@ -193,7 +193,7 @@ public:
 
 			
 
-			changeFigure ();
+			changeFigureKey ();
 
 			if (F_move){ //проверяем, нет ли стены на том месте куда мы хотим перейти
 				//cout << speed << " -speed" << endl; //очень удобно проверять физику движения игрока
@@ -218,7 +218,7 @@ public:
 		}
 	}
 
-	void changeCoord (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+	void changeLocation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
 		shape.setSize (Vector2f ((float) w, (float) h));
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
@@ -231,7 +231,7 @@ public:
 		tmpX = x; tmpY = y; 
 	}
 
-	void teleportation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+	void EFF_teleportation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
 		shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 		shape.setSize (Vector2f ((float) w * (1 - timer / 0.3f), (float) h * (1 - timer / 0.3f)));
 		shape.setOrigin ((float) w * (1 - timer / 0.3f) / 2, (float) h * (1 - timer / 0.3f) / 2);
@@ -246,7 +246,7 @@ public:
 			shape.setSize (Vector2f ((float) w, (float) h));
 			shape.setOrigin ((float) w / 2, (float) h / 2);
 			shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
-			changeFigure2 ();
+			changeFigureStatic ();
 		}
 	}
 
@@ -305,7 +305,7 @@ public:
 
 	virtual void updateText (char *Pass) = 0;
 
-	virtual void reduceButton (){ //уменьшение кнопки
+	virtual void EFF_reduce (){ //уменьшение кнопки
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
 			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
@@ -323,7 +323,7 @@ public:
 		}
 	}
 
-	virtual void enlargeButton (){ //увелечение кнопки
+	virtual void EFF_enlarge (){ //увелечение кнопки
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
@@ -353,7 +353,7 @@ public:
 		}
 	}
 
-	virtual void clearButton (){ //функция очищения кнопки, нужна что б начать кнопки увеличивать (вторая фаза)
+	virtual void clear (){ //функция очищения кнопки, нужна что б начать кнопки увеличивать (вторая фаза)
 		shape.setSize (Vector2f (1, 1));
 		text -> clear ();
 	}

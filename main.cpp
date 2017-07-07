@@ -287,7 +287,7 @@ public:
 
 	void updateText (char *Pass){ }
 
-	void reduceButton (){
+	void EFF_reduce (){
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
 			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
@@ -305,7 +305,7 @@ public:
 		}
 	}
 
-	void enlargeButton (){
+	void EFF_enlarge (){
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
@@ -323,7 +323,7 @@ public:
 		}
 	}
 
-	void clearButton (){
+	void clear (){
 		shape.setSize (Vector2f (1, 1));
 		backgroundd.setSize (Vector2f (1, 1));
 	}
@@ -395,7 +395,7 @@ public:
 
 	void updateText (char *Pass){ }
 
-	void reduceButton (){
+	void EFF_reduce (){
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
 			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
@@ -413,7 +413,7 @@ public:
 		}
 	}
 
-	void enlargeButton (){
+	void EFF_enlarge (){
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
@@ -431,7 +431,7 @@ public:
 		}
 	}
 
-	void clearButton (){
+	void clear (){
 		shape.setSize (Vector2f (1, 1));
 		picture.setSize (Vector2f (1, 1));
 	}
@@ -444,32 +444,32 @@ public:
 	StateList whichStateWas; //какое состояние было, нужно для изменения состояний
 	StateList whichStateWill; //какое состояние должно стать, нужно для изменения состояний
 
-	float lvlTime; //само время
+	float lvlTime; //время проведенное игроком на уровне
 	float AllTime; //общее время игрока проведенного в игре
 	int CurrentLVL; //текущий уровень
 	int NumLVLDeath; //количествэо смертей на уровне
 	int NumWall; //количество стен
-	int NumBorderWall; //количество граничных стен
+	int NumBorderWall; //количество стаен границы
 	int NumButton; //количество кнопок
 	int NumListLVL; //количество уровней в списке (что б потом знать сколько удалять последних кнопок)
 
 	char Pass [30]; //пароль
-	char myLVLname [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
-	char fileNameAd [50]; //имя файла открытого админом
-	char fileNamePl [70]; //имя файла открытого игроком
+	char playerLVLOpenByPlayer [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
+	char lvlOpenByAdmin [50]; //имя файла открытого админом
+	char lvlOpenByPlayer [70]; //имя файла открытого игроком
 
-	bool F_escapeReleased; //флаг равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
-	bool F_enterReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
-	bool F_anyKeyReleased; //флаг равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
-	bool F_isPlayerLVL; //игрок играет в свой созданный уровень?
-	bool F_changeStates; //флаг который показывает, меняется ли состояние в данный момент
-	bool F_changeKey; //флаг который показывает, вводится ли сейчас какая клавиша (когда меняем клавишу на которую меняется фигура)
-	bool F_secPhaseChangeState; //флаг который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
-	bool F_inSetingIntoPause; //флаг который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
+	bool F_escapeReleased; //флаг, равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
+	bool F_enterReleased; //флаг, равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
+	bool F_anyKeyReleased; //флаг, равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
+	bool F_isPlayerLVL; //флаг, который показывает игрок играет в свой созданный уровень или нет
+	bool F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
+	bool F_changeKey; //флаг, который показывает, вводится ли сейчас какая клавиша (когда меняем клавишу на которую меняется фигура)
+	bool F_secPhaseChangeState; //флаг, который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
+	bool F_inSetingIntoPause; //флаг, который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
 	
 	int indexFinish; //индекс финиша (что б долго не искать)
 	int indexStart; //индекс старта (что б долго не искать)
-	int indexDeathPlBut; //индекс кнопки на которой выводится количество смертей на уровне
+	int indexDeathPlayerBut; //индекс кнопки на которой выводится количество смертей на уровне
 	int indexFPSBut; //индекс кнопки на которой выводится значение фпс
 	int indexTimePlBut; //индекс кнопки на которой выводится время игрока
 
@@ -502,7 +502,7 @@ public:
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
 
-		if (state == admin || state == AdSelectLVL || state == AdSaveLVL || state == AdDeleteLVL){
+		if (state == admin || state == adminOpenLVL || state == adminSaveLVL || state == adminDeleteLVL){
 			window -> draw (lines); //рисую вспомогательные линии для админа
 			for (int i = 0; i < NumWall; i++) //рисую стены
 					ArrWall [i] -> draw ();
@@ -520,7 +520,7 @@ public:
 					tmpY2 = (float) ArrWall [i] -> y * EDGE - tmpY;
 					tmpX2 = tmpX2 * ((float) SQUARE / (float) EDGE);
 					tmpY2 = tmpY2 * ((float) SQUARE / (float) EDGE);
-					ArrWall [i] -> changeCoord (GLOBAL_W / 2 + (int) tmpX2 - SQUARE / 2, GLOBAL_H / 2 + (int) tmpY2 - SQUARE / 2);
+					ArrWall [i] -> changeLocation (GLOBAL_W / 2 + (int) tmpX2 - SQUARE / 2, GLOBAL_H / 2 + (int) tmpY2 - SQUARE / 2);
 					ArrWall [i] -> draw ();
 				}
 			}
@@ -531,16 +531,16 @@ public:
 					tmpY2 = (float) BorderWall [i] -> y * EDGE - tmpY;
 					tmpX2 = tmpX2 * ((float) SQUARE / (float) EDGE);
 					tmpY2 = tmpY2 * ((float) SQUARE / (float) EDGE);
-					BorderWall [i] -> changeCoord (GLOBAL_W / 2 + (int) tmpX2 - SQUARE / 2, GLOBAL_H / 2 + (int) tmpY2 - SQUARE / 2);
+					BorderWall [i] -> changeLocation (GLOBAL_W / 2 + (int) tmpX2 - SQUARE / 2, GLOBAL_H / 2 + (int) tmpY2 - SQUARE / 2);
 					BorderWall [i] -> draw ();
 				}
 			
 			plBackground -> draw (); //рисую фон, который закрывает обрубки стен которые дергаются
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
-			button [indexDeathPlBut] -> draw (); //рисую кнопку где отображается количество смертей на уровне
+			button [indexDeathPlayerBut] -> draw (); //рисую кнопку где отображается количество смертей на уровне
 		}
-		else if (state != admin && state != AdSelectLVL && state != AdSaveLVL && state!= completeLVL && state != AdDeleteLVL && state != AdListLVL) //рисуем логотип в большинстве состояний
+		else if (state != admin && state != adminOpenLVL && state != adminSaveLVL && state!= completeLVL && state != adminDeleteLVL && state != adminListLVL) //рисуем логотип в большинстве состояний
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
@@ -557,14 +557,14 @@ public:
 		Image backgroundImage;
 		backgroundImage.loadFromFile ("Resources/Textures/background.png"); //фон который закрывает обрубки стен когда играет игрок
 		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
-		plBackground -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2);
+		plBackground -> changeLocation (GLOBAL_W / 2, GLOBAL_H / 2);
 
 		backgroundImage.loadFromFile ("Resources/Textures/logo2.png"); //логотип
 		logo = new Background (backgroundImage, "Logo", 0, 0, W_BUTTON * 2, H_BUTTON * 2, 392, 91); 
-		logo -> changeCoord (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + 6)); 
+		logo -> changeLocation (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + 6)); 
 	}
 
-	void initializeButton (){
+	void initializeButtons (){
 		Font font;
 		font.loadFromFile ("Resources/Fonts/modeka.otf");
 
@@ -596,7 +596,7 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Audio",    "AudioSet",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenuSet", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
 
-		tmpS = controlsSet;
+		tmpS = controlSeting;
 		button [NumButton++] = new Static (                 "Rectangle:", "Rectangle",        font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6));
 		button [NumButton++] = new Static (                 "Triangle:",  "Triangle",         font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6));
 		button [NumButton++] = new Static (                 "Circle:",    "Circle",           font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
@@ -605,7 +605,7 @@ public:
 		button [NumButton++] = new EditButton (buttonImage, "3",          "F_changeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "Back",           "BackToControlSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 0, 188, 45);
 		
-		tmpS = audioSet;
+		tmpS = audioSetting;
 		button [NumButton++] = new Static (             "Sound:",  "VolSound",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6));
 		button [NumButton++] = new Static (             "Music:",  "VolMusic",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
 		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON, H_BUTTON, 0, 188, 45);
@@ -641,7 +641,7 @@ public:
 		button [NumButton++] = new Static (             "Time: 0",  "TimePlayer",   font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + 6), Color (211, 25, 12));
 		indexTimePlBut = NumButton - 1;
 		button [NumButton++] = new Static (             "Death: 0", "DeathPlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + 6), Color (211, 25, 12));
-		indexDeathPlBut = NumButton - 1;
+		indexDeathPlayerBut = NumButton - 1;
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
@@ -670,22 +670,22 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,           H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + 6));
 
-		tmpS = AdSelectLVL;
+		tmpS = adminOpenLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL",        font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
-		tmpS = AdSaveLVL;
+		tmpS = adminSaveLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSave", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
-		tmpS = AdDeleteLVL;
+		tmpS = adminDeleteLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new EditButton (buttonImage, "", "AdDeleteLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminDelete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
-		tmpS = AdListLVL;
+		tmpS = adminListLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminList", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
@@ -695,7 +695,7 @@ public:
 		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), Color (193, 180, 180));
 	}
 
-	void initializeLine (){
+	void initializeLines (){
 		
 		lines = VertexArray (Lines, (NUM_CELL_Y + NUM_CELL_X + 4) * 2); //массив линий
 		int i = 0; //i-счетчик линий занесенных в массив
@@ -711,7 +711,7 @@ public:
 		}
 	}
 
-	void initialize (){
+	void initializeSomething (){
 		Start.x = GLOB_IND_H; Start.y = GLOB_IND_H + NUM_CELL_Y * EDGE; //инициализируем стартовую точку
 		Finish.x = GLOB_IND_W + NUM_CELL_X * EDGE; Finish.y = GLOB_IND_H; //инициализируем финиш
 
@@ -739,7 +739,7 @@ public:
 		cursor.setTextureRect (IntRect (0, 0, 23, 27));
 	}
 
-	void initializeWall (){
+	void initializeWalls (){
 		wallImage.loadFromFile ("Resources/Textures/wall.png");
 		wallImagePL.loadFromFile ("Resources/Textures/wall2.png");
 	
@@ -765,8 +765,8 @@ public:
 	Game (){ //конструктор в котором инициализируем основные параметры
 		AdOrPlMode = "PlayerMode"; //строка хранящая имя текущего мода игры (игрок или админ)
 		strcpy (Pass, "");
-		strcpy (fileNameAd, "");
-		strcpy (myLVLname, "");
+		strcpy (lvlOpenByAdmin, "");
+		strcpy (playerLVLOpenByPlayer, "");
 		F_lvlComplete = false;
 		F_isPlayerLVL = false;
 		F_escapeReleased = false;
@@ -787,10 +787,10 @@ public:
 		indexFinish = -1;
 
 		readInfo ();
-		initialize (); //вызываем остальные инициализации
-		initializeButton ();
-		initializeLine ();
-		initializeWall ();
+		initializeSomething (); //вызываем остальные инициализации
+		initializeButtons ();
+		initializeLines ();
+		initializeWalls ();
 		initializeBackground ();
 	}
 
@@ -1036,7 +1036,7 @@ public:
 		outputSearch (wallCoordinate, fn, st, sizeMap);
 	}
 
-	void changeState2 (){ //функция изменения состояния
+	void changeState (){ //функция изменения состояния
 		if (!F_secPhaseChangeState){ //первая фаза (уменьшение кнопок)
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == whichStateWas){
@@ -1045,32 +1045,32 @@ public:
 						for (int i = 0; i < NumButton; i++)
 							if (button [i] -> state == whichStateWill){
 								button [i] -> F_draw  = true;
-								button [i] -> clearButton ();
+								button [i] -> clear ();
 							}
 						else
 							button [i] -> F_draw  = false;
 
-						if (whichStateWas == AdListLVL){ //мы с/оздали динамически кнопки, надо их удалить когда закрываем список
+						if (whichStateWas == adminListLVL){ //мы создали динамически кнопки, надо их удалить когда закрываем список
 							for (int k = NumButton - 1; k > NumButton - NumListLVL - 1; k--)
 								delete button [k];
 							NumButton -= NumListLVL;
 							NumListLVL = 0;
 						}
 						else if ((whichStateWas == selectLVL || whichStateWas == myLVLs) && whichStateWill == startLVL){
-							openLVL_PL (fileNamePl);
-							pl -> changeCoord (Start.x, Start.y);
+							openLVL_PL (lvlOpenByPlayer);
+							pl -> changeLocation (Start.x, Start.y);
 							createWay ();
 						}
 
 						break;
 					}
-					button [i] -> reduceButton ();
+					button [i] -> EFF_reduce ();
 				}
 		}
 		else{ //вторя фаза (увелечение кнопок)
 			for (int i = 0; i < NumButton; i++)
 				if (button [i] -> state == whichStateWill){
-					button [i] -> enlargeButton (); 
+					button [i] -> EFF_enlarge (); 
 					if (button [i] -> F_transformation == false){ //увеличиваем пока одну доконца не увеличили
 						F_changeStates = false; F_secPhaseChangeState = false;
 						state = whichStateWill;
@@ -1084,7 +1084,7 @@ public:
 		}
 	}
 
-	void changeState (StateList tmpS){ //вспомогательная функция для изменения состояния
+	void startChangeState (StateList tmpS){ //вспомогательная функция для изменения состояния
 		sndClickButt.play ();
 		F_changeStates = true; 
 		whichStateWas = state; whichStateWill = tmpS;
@@ -1099,12 +1099,12 @@ public:
 
 	void StateMenu (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> F_click && button [i] -> name == "Mode" && !F_changeStates){
-					changeState (mode);
+					startChangeState (mode);
 					break;
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "Go!") || F_enterReleased) && !F_changeStates){
@@ -1115,31 +1115,31 @@ public:
 						indexStart = 0;
 						indexFinish = 1;
 						whichWall = wall;
-						changeState (admin);
+						startChangeState (admin);
 					}
 					if (AdOrPlMode == "PlayerMode"){  
 						writeInfo ();
-						changeState (selectLVL);
+						startChangeState (selectLVL);
 					}
 					break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "Settings" && !F_changeStates){
-					changeState (settings); break;
+					startChangeState (settings); break;
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "Exit") || F_escapeReleased) && !F_changeStates){
 					writeInfo ();
-					changeState (exitt); break;
+					startChangeState (exitt); break;
 				}
 			}
 	}
 	void StateMode (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "BackToMenu") || F_escapeReleased) && !F_changeStates){
-					changeState (menu); break;
+					startChangeState (menu); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "AdminMode" && !F_changeStates){
 					 sndClickButt.play ();
@@ -1155,19 +1155,19 @@ public:
 	void StateAdmin (){
 		timer += time;
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		createWalls ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> F_click && button [i] -> name == "SaveAd" && !F_changeStates){
-					changeState (AdSaveLVL); break;
+					startChangeState (adminSaveLVL); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "OpenAd" && !F_changeStates){
-					changeState (AdSelectLVL); break;
+					startChangeState (adminOpenLVL); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "DeleteAd" && !F_changeStates){
-					changeState (AdDeleteLVL); break;
+					startChangeState (adminDeleteLVL); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "ListAd" && !F_changeStates){
 					Font font;
@@ -1175,7 +1175,7 @@ public:
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					char tmpC [50];
 					int tmpI;
-					StateList tmpS = AdListLVL;
+					StateList tmpS = adminListLVL;
 					inF >> tmpI;
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC;
@@ -1187,12 +1187,12 @@ public:
 					button [NumButton++] = new Static ("List of LVLs:", "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
 					NumListLVL++;
 
-					changeState (AdListLVL); 
+					startChangeState (adminListLVL); 
 
 					break;
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToMenuAd") || F_escapeReleased) && !F_changeStates){
-					changeState (menu); timer = 0; break;
+					startChangeState (menu); timer = 0; break;
 				}
 			}
 
@@ -1208,11 +1208,11 @@ public:
 	}
 	void StatePlayer (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 
 		if (!F_changeStates)
 			pl -> update ();
-		pl -> enlarge ();
+		pl -> EFF_enlarge ();
 
 		Coordinate tmp;
 		int tmpIndex;
@@ -1225,11 +1225,11 @@ public:
 				if (!pl -> F_teleportation){
 					sndTeleport.play (); timer = 0;
 				}
-				pl -> teleportation (Start.x, Start.y); 
+				pl -> EFF_teleportation (Start.x, Start.y); 
 				timer += time;
 				
 				if (!pl -> F_teleportation){
-					changeState (startLVL);
+					startChangeState (startLVL);
 					NumLVLDeath++;
 					createWay ();
 				}
@@ -1244,7 +1244,7 @@ public:
 		
 		char tmpC [30]; //обновление времени и количества смертей
 		button [indexTimePlBut] -> updateText (_itoa ((int) lvlTime, tmpC, 10));
-		button [indexDeathPlBut] -> updateText (_itoa (NumLVLDeath, tmpC, 10));
+		button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC, 10));
 		lvlTime += time;
 
 		for (int i = 0; i < NumButton; i++)
@@ -1253,7 +1253,7 @@ public:
 				if (((button [i] -> F_click && button [i] -> name == "BackToMenuPl") || F_escapeReleased) && !F_changeStates){
 					lvlTime -= time;
 					F_escapeReleased = false;
-					changeState (pause);
+					startChangeState (pause);
 				}
 				else if (F_lvlComplete && !F_changeStates){
 					AllTime += lvlTime;
@@ -1270,29 +1270,29 @@ public:
 							Start.y = ArrWall [indexStart] -> y;
 							Start.x = Start.x * EDGE + GLOB_IND_W;
 							Start.y = Start.y * EDGE + GLOB_IND_H;
-							saveLVL (fileNamePl);
+							saveLVL (lvlOpenByPlayer);
 							char tmpC [30], *tmpC2;
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
 							char nameFile [30] = "Resources/LVLs/lvl";
 							strcat (nameFile, tmpC2);
 							strcat (nameFile, ".txt");
 							openLVL_PL (nameFile); 
-							strcpy (fileNamePl, nameFile);
-							pl -> changeCoord (Start.x, Start.y);
+							strcpy (lvlOpenByPlayer, nameFile);
+							pl -> changeLocation (Start.x, Start.y);
 							pl -> F_enlarge = true;
 							createWay ();
 							F_enterReleased = false;
-							changeState (startLVL);
+							startChangeState (startLVL);
 						}
 						else{
 							Start.x = ArrWall [indexStart] -> x;
 							Start.y = ArrWall [indexStart] -> y;
 							Start.x = Start.x * EDGE + GLOB_IND_W;
 							Start.y = Start.y * EDGE + GLOB_IND_H;
-							saveLVL (fileNamePl);
+							saveLVL (lvlOpenByPlayer);
 							PassedLVL = 8;
 							writeInfo ();
-							changeState (selectLVL);
+							startChangeState (selectLVL);
 						}
 					}
 					else{
@@ -1302,24 +1302,24 @@ public:
 						Start.y = ArrWall [indexStart] -> y;
 						Start.x = Start.x * EDGE + GLOB_IND_W;
 						Start.y = Start.y * EDGE + GLOB_IND_H;
-						saveLVL (fileNamePl);
-						changeState (selectLVL);
+						saveLVL (lvlOpenByPlayer);
+						startChangeState (selectLVL);
 					}
 				}
 			}
 	}
 	void StateSettings (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "BackToMenuSet") || F_escapeReleased) && !F_changeStates){
 					writeInfo ();
 					if (!F_inSetingIntoPause)
-						changeState (menu);
+						startChangeState (menu);
 					else{
-						changeState (pause);
+						startChangeState (pause);
 						F_inSetingIntoPause = false;
 					}
 					break;
@@ -1339,22 +1339,22 @@ public:
 							}
 							button [k] -> updateText (tmpC);
 						}
-					changeState (controlsSet); 
+					startChangeState (controlSeting); 
 					break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "AudioSet" && !F_changeStates){
-					changeState (audioSet); break;
+					startChangeState (audioSetting); break;
 				}
 			}
 	}
 	void StateExitt (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "QuitNo") || F_escapeReleased) && !F_changeStates){
-					changeState (menu); break;
+					startChangeState (menu); break;
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "QuitYes") || F_enterReleased) && !F_changeStates){
 					sndClickButt.play (); 
@@ -1364,7 +1364,7 @@ public:
 	}
 	void StateSelectLVL (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		char tmpC2 [30];
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
@@ -1377,37 +1377,37 @@ public:
 						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
 						strcat (nameFile, ".txt");
-						strcpy (fileNamePl, nameFile);
+						strcpy (lvlOpenByPlayer, nameFile);
 						
 						pl -> state = rectangle;
-						pl -> changeFigure2 ();
+						pl -> changeFigureStatic ();
 						pl -> F_enlarge = true;
 						F_isPlayerLVL = false;
 						timer = 0;
-						changeState (startLVL);
+						startChangeState (startLVL);
 						
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToMenuSel") || F_escapeReleased) && !F_changeStates){
-					changeState (menu); break;
+					startChangeState (menu); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "My lvls" && !F_changeStates){
 					readInfo ();
-					changeState (myLVLs); break;
+					startChangeState (myLVLs); break;
 				}
 			}
 	}
-	void StateAdSelectLVL (){
+	void StateAdminOpenLVL (){
 		if (F_changeStates)
-			changeState2 ();
-		inputKeyboard (fileNameAd, 0);
+			changeState ();
+		inputKeyboard (lvlOpenByAdmin, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "EditLVL" && !F_changeStates)
-					button [i] -> updateText (fileNameAd);
+					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "EditLVL") || F_enterReleased) && !F_changeStates){
-					changeState (admin);
+					startChangeState (admin);
 					char tmpC [100] = "Resources/LVLs/";
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					char tmpC2 [30];
@@ -1415,8 +1415,8 @@ public:
 					inF >> tmpI;
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC2;
-						if (strcmp (tmpC2, fileNameAd) == 0){
-							strcat (tmpC, fileNameAd);
+						if (strcmp (tmpC2, lvlOpenByAdmin) == 0){
+							strcat (tmpC, lvlOpenByAdmin);
 							strcat (tmpC, ".txt");
 							openLVL_AD (tmpC);
 							break;
@@ -1424,20 +1424,20 @@ public:
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminSel") || F_escapeReleased) && !F_changeStates)
-					changeState (admin);
+					startChangeState (admin);
 			}
 	}
-	void StateAdSaveLVL (){
+	void StateAdminSaveLVL (){
 		if (F_changeStates)
-			changeState2 ();
-		inputKeyboard (fileNameAd, 0);
+			changeState ();
+		inputKeyboard (lvlOpenByAdmin, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "AdSaveLVL" && !F_changeStates)
-					button [i] -> updateText (fileNameAd);
+					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "AdSaveLVL") || F_enterReleased) && !F_changeStates){
-					changeState (admin);
+					startChangeState (admin);
 
 					int tmpI; 
 					char tmpC2 [100][30]; 
@@ -1447,7 +1447,7 @@ public:
 					if (tmpI - 8 < 16){
 						for (int i = 0; i < tmpI; i++){
 							inF >> tmpC2 [i];
-							if (strcmp (tmpC2 [i], fileNameAd) == 0)
+							if (strcmp (tmpC2 [i], lvlOpenByAdmin) == 0)
 								edit = false;
 						}
 						inF.close ();
@@ -1457,7 +1457,7 @@ public:
 							outF << ++tmpI << endl;
 							for (int i = 0; i < tmpI - 1; i++)
 								outF << tmpC2 [i] << endl;
-							outF << fileNameAd << endl;
+							outF << lvlOpenByAdmin << endl;
 							NumLVLDeath = 0;
 						}
 						else if (!edit){ //редактируем старый уровень
@@ -1466,7 +1466,7 @@ public:
 								outF << tmpC2 [i] << endl;
 						}
 						char tmpC [100] = "Resources/LVLs/";
-						strcat (tmpC, fileNameAd);
+						strcat (tmpC, lvlOpenByAdmin);
 						strcat (tmpC, ".txt");
 						Start.x = ArrWall [indexStart] -> x;
 						Start.y = ArrWall [indexStart] -> y;
@@ -1476,21 +1476,21 @@ public:
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminSave") || F_escapeReleased) && !F_changeStates)
-					changeState (admin);
+					startChangeState (admin);
 			}
 	}
-	void StateAdDeleteLVL (){
+	void StateAdminDeleteLVL (){
 		if (F_changeStates)
-			changeState2 ();
-		inputKeyboard (fileNameAd, 0);
+			changeState ();
+		inputKeyboard (lvlOpenByAdmin, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "AdDeleteLVL" && !F_changeStates)
-					button [i] -> updateText (fileNameAd);
+					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "AdDeleteLVL") || F_enterReleased) && !F_changeStates){
-					changeState (admin);
-					if (strstr (fileNameAd, "lvl") == NULL || strpbrk (fileNameAd, "12345678") == NULL || strlen (fileNameAd) > 4){
+					startChangeState (admin);
+					if (strstr (lvlOpenByAdmin, "lvl") == NULL || strpbrk (lvlOpenByAdmin, "12345678") == NULL || strlen (lvlOpenByAdmin) > 4){
 						int tmpI; 
 						char tmpC2 [100][30]; 
 						bool isDelete = false;
@@ -1499,7 +1499,7 @@ public:
 					
 						for (int j = 0; j < tmpI; j++){
 							inF >> tmpC2 [j];
-							if (strcmp (tmpC2 [j], fileNameAd) == 0)
+							if (strcmp (tmpC2 [j], lvlOpenByAdmin) == 0)
 								isDelete = true;
 						}
 						inF.close ();
@@ -1507,35 +1507,35 @@ public:
 						if (isDelete){
 							char tmpC [50];
 							strcpy (tmpC, "Resources/LVLs/");
-							strcat (tmpC, fileNameAd);
+							strcat (tmpC, lvlOpenByAdmin);
 							strcat (tmpC, ".txt");
 							remove (tmpC);
 							ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
 							outF << tmpI - 1 << endl;
 							for (int i = 0; i < tmpI; i++)
-								if (strcmp (tmpC2 [i], fileNameAd) != 0)
+								if (strcmp (tmpC2 [i], lvlOpenByAdmin) != 0)
 									outF << tmpC2 [i] << endl;
 						}
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminDelete") || F_escapeReleased) && !F_changeStates)
-					changeState (admin);
+					startChangeState (admin);
 			}
 	}
-	void StateAdListLVL (){
+	void StateAdminListLVL (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "BackToAdminList") || F_escapeReleased) && !F_changeStates){
-					changeState (admin); break;
+					startChangeState (admin); break;
 				}
 			}
 	}
 	void StatePause (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> state == pause){
 				button [i] -> checkCursor ();
@@ -1544,49 +1544,49 @@ public:
 					lvlTime = 0;
 					NumAnsw = 0;
 					writeInfo ();
-					saveLVL (fileNamePl);
-					changeState (selectLVL);
+					saveLVL (lvlOpenByPlayer);
+					startChangeState (selectLVL);
 					F_lvlComplete = false;
 					button [indexTimePlBut] -> updateText ("0");
-					button [indexDeathPlBut] -> updateText ("0");
+					button [indexDeathPlayerBut] -> updateText ("0");
 					break;
 				}
 				if (((button [i] -> F_click && button [i] -> name == "BackToPlPause") || F_escapeReleased) && !F_changeStates){
-					changeState (player); break;
+					startChangeState (player); break;
 				}
 				if (((button [i] -> F_click && button [i] -> name == "SettingsIntoPause") || F_escapeReleased) && !F_changeStates){
-					changeState (settings); F_inSetingIntoPause = true; break;
+					startChangeState (settings); F_inSetingIntoPause = true; break;
 				}
 			}
 	}
 	void StateStartLVL (){
 		if (F_changeStates)
-			changeState2 ();
-		pl -> changeFigure ();
-		pl -> enlarge ();
+			changeState ();
+		pl -> changeFigureKey ();
+		pl -> EFF_enlarge ();
 		if (F_anyKeyReleased && !F_changeStates && !F_escapeReleased){
 			if (event.key.code != key [0] && event.key.code != key [1] && event.key.code != key [2])
-				changeState (player);
+				startChangeState (player);
 		}
 		else if (F_escapeReleased && !F_changeStates){
 			AllTime += lvlTime; lvlTime = 0;
 			NumAnsw = 0; writeInfo ();
-			saveLVL (fileNamePl); 
+			saveLVL (lvlOpenByPlayer); 
 			button [indexTimePlBut] -> updateText ("0");
-			button [indexDeathPlBut] -> updateText ("0");
-			changeState (selectLVL);
+			button [indexDeathPlayerBut] -> updateText ("0");
+			startChangeState (selectLVL);
 			F_lvlComplete = false;
 		}
 	}
 	void StateMyLVLs (){
 		if (F_changeStates)
-			changeState2 ();
-		inputKeyboard (myLVLname, 0);
+			changeState ();
+		inputKeyboard (playerLVLOpenByPlayer, 0);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> name == "InputMyLVL" && !F_changeStates)
-						button [i] -> updateText (myLVLname);
+						button [i] -> updateText (playerLVLOpenByPlayer);
 				if (((button [i] -> F_click && button [i] -> name == "InputMyLVL") || F_enterReleased) && !F_changeStates){
 					sndClickButt.play (); 
 					char tmpC [100] = "Resources/LVLs/";
@@ -1597,19 +1597,19 @@ public:
 					inF >> tmpI;
 					for (int j = 0; j < tmpI; j++){
 						inF >> tmpC2;
-						if (strcmp (tmpC2, myLVLname) == 0){
-							if (strstr (myLVLname, "lvl") == NULL || strpbrk (myLVLname, "12345678") == NULL || strlen (myLVLname) > 4){
-								strcat (tmpC, myLVLname);
+						if (strcmp (tmpC2, playerLVLOpenByPlayer) == 0){
+							if (strstr (playerLVLOpenByPlayer, "lvl") == NULL || strpbrk (playerLVLOpenByPlayer, "12345678") == NULL || strlen (playerLVLOpenByPlayer) > 4){
+								strcat (tmpC, playerLVLOpenByPlayer);
 								strcat (tmpC, ".txt");
-								strcpy (fileNamePl, tmpC);
+								strcpy (lvlOpenByPlayer, tmpC);
 								pl -> state = rectangle;
-								pl -> changeFigure2 ();
+								pl -> changeFigureStatic ();
 								pl -> F_enlarge = true;
 
 								timer = 0;
 								F_isPlayerLVL = true;
 								findLVL = true;
-								changeState (startLVL);
+								startChangeState (startLVL);
 							}
 							break;
 						}
@@ -1618,21 +1618,21 @@ public:
 					if (!findLVL)
 						for (int k = 0; k < NumButton; k++)
 							if (button [k] -> name == "InputMyLVL")
-								strcpy (myLVLname, "");
+								strcpy (playerLVLOpenByPlayer, "");
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToMenuMyLVL") || F_escapeReleased) && !F_changeStates)
-					changeState (selectLVL);
+					startChangeState (selectLVL);
 			}
 	}
-	void StateAudioSet (){
+	void StateAudioSeting (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "BackToSetAudio") || F_escapeReleased) && !F_changeStates){
 					writeInfo ();
-					changeState (settings);
+					startChangeState (settings);
 					break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "MusicSlider" && !F_changeStates){
@@ -1643,9 +1643,9 @@ public:
 				}
 			}
 	}
-	void StateControlsSet (){
+	void StateControlSeting (){
 		if (F_changeStates)
-			changeState2 ();
+			changeState ();
 
 		if (F_anyKeyReleased && F_changeKey){
 			for (int i = 0; i < NumButton; i++)
@@ -1681,7 +1681,7 @@ public:
 				if (((button [i] -> F_click && button [i] -> name == "BackToControlSet") || F_escapeReleased) && !F_changeStates){
 					writeInfo ();
 					whatButChange = -1;
-					changeState (settings);
+					startChangeState (settings);
 					break;
 				}
 				if (button [i] -> F_click && button [i] -> name == "F_changeKey" && !F_changeStates){
@@ -1716,17 +1716,17 @@ public:
 		case selectLVL:
 			StateSelectLVL ();
 			break;
-		case AdSelectLVL:
-			StateAdSelectLVL ();
+		case adminOpenLVL:
+			StateAdminOpenLVL ();
 			break;
-		case AdSaveLVL:
-			StateAdSaveLVL ();
+		case adminSaveLVL:
+			StateAdminSaveLVL ();
 			break;
-		case AdDeleteLVL:
-			StateAdDeleteLVL ();
+		case adminDeleteLVL:
+			StateAdminDeleteLVL ();
 			break;
-		case AdListLVL:
-			StateAdListLVL ();
+		case adminListLVL:
+			StateAdminListLVL ();
 			break;
 		case pause:
 			StatePause ();
@@ -1737,11 +1737,11 @@ public:
 		case myLVLs:
 			StateMyLVLs ();
 			break;
-		case audioSet:
-			StateAudioSet ();
+		case audioSetting:
+			StateAudioSeting ();
 			break;
-		case controlsSet:
-			StateControlsSet ();
+		case controlSeting:
+			StateControlSeting ();
 			break;
 		}
 	}
