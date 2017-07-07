@@ -32,7 +32,7 @@ public:
 	static SoundBuffer  bufferTeleport; //буфер для звука телепорта игрока к сохранению
 	static Sound        sndTeleport; //звук телепорта игрока к сохранению
 	
-	static bool         lvlComplete; //показывает завершен уровень
+	static bool         F_lvlComplete; //показывает завершен уровень
 	static float        speedChangeSt; //скорость изменения размера кнопок при изменении состояния
 	static float        speed; //скорость с которой движется игрок по уровню
 	static int          keyCodePressed; //какая клавиша была нажата
