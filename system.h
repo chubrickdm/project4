@@ -24,8 +24,8 @@ public:
 	static int          FPS; //значение ФПС
 	static Clock        clock; //время
 	
-	static float        volumBackMusic; //громокость фоновой музыки
-	static float        volSndClickButt; //громкость звука
+	static float        volumeMusic; //громокость фоновой музыки
+	static float        volumeSound; //громкость звука
 	static Music        backgroundMusic; //фоновая музыка
 	static SoundBuffer  bufferClickButt; //буфер для звука нажатия на кнопки
 	static Sound        sndClickButt; //звук нажатия на кнопку

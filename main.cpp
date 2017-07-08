@@ -25,8 +25,8 @@ float         System::time;
 int           System::FPS;
 Clock         System::clock;
 
-float         System::volSndClickButt; //переменные связанные с музыкой и звуками
-float         System::volumBackMusic;
+float         System::volumeSound; //переменные связанные с музыкой и звуками
+float         System::volumeMusic;
 Music         System::backgroundMusic;
 SoundBuffer   System::bufferClickButt;
 Sound         System::sndClickButt;
@@ -115,7 +115,7 @@ class EditButton : public BodyButton{
 public:
 	EditButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
-		if (name == "F_changeKey")
+		if (name == "ChangeKey")
 			shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
 		if (Text == "1")      value = 1;
 		else if (Text == "2") value = 2;
@@ -138,17 +138,17 @@ public:
 				F_pressed = false;
 			}
 			shape.setTextureRect (IntRect (0, hTexture, wTexture, hTexture)); //если наведен курсор на мышку, то кнопка меняет текстуру
-			if (name == "F_changeKey")
+			if (name == "ChangeKey")
 				shape.setTextureRect (IntRect (wTexture, 4 * hTexture, wTexture, hTexture));
 		}
 		else{
 			F_pressed = false; //если курсор не на мыши то кнопка обычного вида
 			shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
-			if (name == "F_changeKey")
+			if (name == "ChangeKey")
 				shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 		}
 		
-		if (name == "F_changeKey" && whatButChange == value)
+		if (name == "ChangeKey" && whatButChange == value)
 			shape.setTextureRect (IntRect (2 * wTexture, 4 * hTexture, wTexture, hTexture));
 	}
 
@@ -228,12 +228,12 @@ public:
 
 		shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 		if (name == "MusicSlider"){ //считываем с файла данные об настройках игрока, и устанавливаем кнопку в нужное пложение
-			shape.setPosition ((float) leftBorder + volumBackMusic * (rightBorder - leftBorder) / 100, (float) y);
-			x = leftBorder + (int) volumBackMusic * (rightBorder - leftBorder) / 100;
+			shape.setPosition ((float) leftBorder + volumeMusic * (rightBorder - leftBorder) / 100, (float) y);
+			x = leftBorder + (int) volumeMusic * (rightBorder - leftBorder) / 100;
 		}
 		if (name == "SoundSlider"){
-			shape.setPosition ((float) leftBorder + volSndClickButt * (rightBorder - leftBorder) / 100, (float) y);
-			x = leftBorder + (int) volSndClickButt * (rightBorder - leftBorder) / 100;
+			shape.setPosition ((float) leftBorder + volumeSound * (rightBorder - leftBorder) / 100, (float) y);
+			x = leftBorder + (int) volumeSound * (rightBorder - leftBorder) / 100;
 		}
 	}
 
@@ -249,24 +249,26 @@ public:
 					shape.setPosition ((float) posMouse.x, (float) y);
 					x = (int) posMouse.x; F_pressed = true;
 					if (name == "MusicSlider"){ //меняем значение грмоксоти музыки
-						volumBackMusic = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						backgroundMusic.setVolume (volumBackMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						volumeMusic = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
+						backgroundMusic.setVolume (volumeMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
 					}
 					if (name == "SoundSlider"){ //меняем значение громкости звуков
-						volSndClickButt = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						sndClickButt.setVolume (volSndClickButt); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						volumeSound = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
+						sndClickButt.setVolume (volumeSound); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						sndTeleport.setVolume (volumeSound);
 					}
 				}
 				if (F_pressed){ //если кнопка зажата
 					shape.setPosition ((float) posMouse.x, (float) y);
 					x = (int) posMouse.x; 
 					if (name == "MusicSlider"){ //меняем значение грмоксоти музыки
-						volumBackMusic = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						backgroundMusic.setVolume (volumBackMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						volumeMusic = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
+						backgroundMusic.setVolume (volumeMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
 					}
 					if (name == "SoundSlider"){ //меняем значение громкости звуков
-						volSndClickButt = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						sndClickButt.setVolume (volSndClickButt); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						volumeSound = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
+						sndClickButt.setVolume (volumeSound); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						sndTeleport.setVolume (volumeSound);
 					}
 				}
 
@@ -489,12 +491,12 @@ public:
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
-		inF >> PassedLVL >> volumBackMusic >> volSndClickButt >> AllTime >> key [0] >> key [1] >> key [2]; //последние 3-номера клавиш на которые меняется фигура игрока
+		inF >> PassedLVL >> volumeMusic >> volumeSound >> AllTime >> key [0] >> key [1] >> key [2]; //последние 3-номера клавиш на которые меняется фигура игрока
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
 		ofstream outF ("Resources/Info/Player.txt");
-		outF << PassedLVL << " " << volumBackMusic << " " << volSndClickButt  << " " << AllTime;
+		outF << PassedLVL << " " << volumeMusic << " " << volumeSound  << " " << AllTime;
 		outF << " " << key [0] << " " << key [1] << " " << key [2] << endl; //последние 3-номера клавиш на которые меняется фигура игрока
 	}
 
@@ -600,10 +602,10 @@ public:
 		button [NumButton++] = new Static (                 "Rectangle:", "Rectangle",        font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 3 * (H_BUTTON + 6));
 		button [NumButton++] = new Static (                 "Triangle:",  "Triangle",         font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6));
 		button [NumButton++] = new Static (                 "Circle:",    "Circle",           font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + 6));
-		button [NumButton++] = new EditButton (buttonImage, "1",          "F_changeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
-		button [NumButton++] = new EditButton (buttonImage, "2",          "F_changeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
-		button [NumButton++] = new EditButton (buttonImage, "3",          "F_changeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "Back",           "BackToControlSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new EditButton (buttonImage, "1",          "ChangeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 3 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
+		button [NumButton++] = new EditButton (buttonImage, "2",          "ChangeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 2 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
+		button [NumButton++] = new EditButton (buttonImage, "3",          "ChangeKey",        font, tmpS, GLOBAL_W / 2 + W_BUTTON / 4, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), W_BUTTON / 4, H_BUTTON, 47,  45);
+		button [NumButton++] = new Button (buttonImage,     "Back",       "BackToControlSet", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * (H_BUTTON + 6), W_BUTTON,     H_BUTTON, 0, 188, 45);
 		
 		tmpS = audioSetting;
 		button [NumButton++] = new Static (             "Sound:",  "VolSound",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * (H_BUTTON + 6));
@@ -693,6 +695,9 @@ public:
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
 		button [NumButton++] = new Static ("Press Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + 6), Color (193, 180, 180));
 		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + 6), Color (193, 180, 180));
+
+		tmpS = loadingLVL;
+		button [NumButton++] = new Static ("Loading...", "LoadingLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2, Color (193, 180, 180));
 	}
 
 	void initializeLines (){
@@ -722,15 +727,15 @@ public:
 		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
-		backgroundMusic.setVolume (volumBackMusic);
+		backgroundMusic.setVolume (volumeMusic);
 
 		bufferClickButt.loadFromFile ("Resources/Sounds/button-30.wav"); //звук нажатия на кнопку
 		sndClickButt.setBuffer (bufferClickButt);
-		sndClickButt.setVolume (volSndClickButt);
+		sndClickButt.setVolume (volumeSound);
 
 		bufferTeleport.loadFromFile ("Resources/Sounds/teleportation.wav"); //звук телепортации игрока
 		sndTeleport.setBuffer (bufferTeleport);
-		sndTeleport.setVolume (volSndClickButt);
+		sndTeleport.setVolume (volumeSound);
 
 		Image tmpI; //работа со спрайтом курсора
 		tmpI.loadFromFile ("Resources/Textures/cursor.png");
@@ -1056,12 +1061,6 @@ public:
 							NumButton -= NumListLVL;
 							NumListLVL = 0;
 						}
-						else if ((whichStateWas == selectLVL || whichStateWas == myLVLs) && whichStateWill == startLVL){
-							openLVL_PL (lvlOpenByPlayer);
-							pl -> changeLocation (Start.x, Start.y);
-							createWay ();
-						}
-
 						break;
 					}
 					button [i] -> EFF_reduce ();
@@ -1209,8 +1208,7 @@ public:
 	void StatePlayer (){
 		if (F_changeStates)
 			changeState ();
-
-		if (!F_changeStates)
+		else
 			pl -> update ();
 		pl -> EFF_enlarge ();
 
@@ -1328,7 +1326,7 @@ public:
 					char tmpC [2];
 
 					for (int k = 0; k < NumButton; k++)
-						if (button [k] -> name == "F_changeKey"){
+						if (button [k] -> name == "ChangeKey"){
 							if (key [button [k] -> value - 1] >= 0 && key [button [k] -> value - 1] <= 25){
 								tmpC [0] = key [button [k] -> value - 1] + 65;
 								tmpC [1] = '\0';
@@ -1384,7 +1382,7 @@ public:
 						pl -> F_enlarge = true;
 						F_isPlayerLVL = false;
 						timer = 0;
-						startChangeState (startLVL);
+						startChangeState (loadingLVL);
 						
 					}
 				}
@@ -1609,7 +1607,7 @@ public:
 								timer = 0;
 								F_isPlayerLVL = true;
 								findLVL = true;
-								startChangeState (startLVL);
+								startChangeState (loadingLVL);
 							}
 							break;
 						}
@@ -1649,7 +1647,7 @@ public:
 
 		if (F_anyKeyReleased && F_changeKey){
 			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> name == "F_changeKey" && button [i] -> value == whatButChange){
+				if (button [i] -> name == "ChangeKey" && button [i] -> value == whatButChange){
 					char tmpC [2];
 					bool tmpB = true;
 
@@ -1684,13 +1682,28 @@ public:
 					startChangeState (settings);
 					break;
 				}
-				if (button [i] -> F_click && button [i] -> name == "F_changeKey" && !F_changeStates){
+				if (button [i] -> F_click && button [i] -> name == "ChangeKey" && !F_changeStates){
 					F_changeKey = true;
 					sndClickButt.play ();
 					whatButChange = button [i] -> value;
 					break;
 				}
 			}
+	}
+	void StateLoadingLVL (){
+		if (F_changeStates)
+			changeState ();
+		
+		timer += time;
+		if (timer >= 0.5 && timer < 1.5){
+			openLVL_PL (lvlOpenByPlayer);
+			pl -> changeLocation (Start.x, Start.y);
+			createWay ();			
+		}
+		else if (timer >= 2.5){
+			timer = 0;
+			startChangeState (startLVL);
+		}
 	}
 
 	void update (){
@@ -1742,6 +1755,9 @@ public:
 			break;
 		case controlSeting:
 			StateControlSeting ();
+			break;
+		case loadingLVL:
+			StateLoadingLVL ();
 			break;
 		}
 	}

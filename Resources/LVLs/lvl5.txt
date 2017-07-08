@@ -1,6 +1,6 @@
 8
-3 3
-3
+0 0
+4
 0 0 Start
 7 0 Finish
 3 3 Save
