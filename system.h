@@ -48,6 +48,7 @@ public:
 	int GLOBAL_W;
 	int GLOBAL_H;
 	int W_WIN;
+	int INTERVAL;
 	int H_WIN;
 	int EDGE;
 	int NUM_CELL_X; 
@@ -70,6 +71,7 @@ public:
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
 		W_BUTTON = (int) (W_WIN / 9.6); //ширина кнопки
 		H_BUTTON = H_WIN / 19; //высота кнопки
+		INTERVAL = H_BUTTON / 10;
 		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
 
 		while (1){
