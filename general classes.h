@@ -58,7 +58,7 @@ public:
 
 class Player : public Body{ //класс игрока
 private:
-	bool F_move; //флаг, который показывает движется ли игрок
+	
 	bool F_transformation; //флаг, который показывается трансформируется ли игрок
 	bool F_secPhaseTransformation; //флаг, который показывает вторая ли фаза трансформации игрока сейчас
 	float reducePrecent; //процент уменьшения
@@ -67,6 +67,7 @@ private:
 	int tmpX, tmpY; //переменные которые хранят место куда мы хотим попасть, нажав клавишу
 	StatePlayer stateWill; //хранит состояние в которое трансформируется игрок
 public:
+	bool F_move; //флаг, который показывает движется ли игрок
 	bool F_teleportation; //флаг, который показывает игрок телепортируется ли
 	bool F_enlarge; //флаг, который идет ли эффект начала игры
 	float xx, yy; //нужны, потому что скорость не целое число, и коорд игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
@@ -191,21 +192,15 @@ public:
 				xx = (float) x; yy = (float) y;
 			}
 
-			
 
 			changeFigureKey ();
 
 			if (F_move){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-				//cout << speed << " -speed" << endl; //очень удобно проверять физику движения игрока
 				//cout << xx << " " << yy << " -xx & yy" << endl;
-				//cout << tmpX << " " << tmpY << " -tmpX & tmpY" << endl;
-				//cout << xx - tmpX << " " << yy - tmpY << " difference" << endl;
-				//cout << endl;
 				if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
 					F_move = false; 
 					xx = (float) tmpX; yy = (float) tmpY;
 					x = tmpX; y = tmpY;
-					xx = (float) x; yy = (float) y;
 				}
 				else{ //само движение игрока
 					if (x < tmpX)        xx += speed * time; //движение по горизонтали
@@ -242,6 +237,7 @@ public:
 			x = x2; y = y2; 
 			xx = (float) x; yy = (float) y;
 			tmpX = x; tmpY = y; 
+
 			F_teleportation = false; F_transformation = false; F_secPhaseTransformation = false;
 			shape.setSize (Vector2f ((float) w, (float) h));
 			shape.setOrigin ((float) w / 2, (float) h / 2);
@@ -270,11 +266,13 @@ public:
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
 	int value; //значение кнопки
-	StateList state; //каждая кнопка кроме имени имеет группу к которой она относится
+	TypeState type;
+	SubtypeState subtype;
 public:
-	BodyButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
+	BodyButton (Image &image, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
-	    font = Font; state = State; buttText = Text;
+	    font = Font; buttText = Text; 
+		subtype = Subtype; type = findType (subtype); 
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
 
@@ -286,9 +284,10 @@ public:
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
-	BodyButton (String Text, String Name, Font &Font, StateList &State, int X, int Y) : //для статика сделана перегрузка
+	BodyButton (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y) : //для статика сделана перегрузка
 		    Body (Name, X, Y, 1, 1, 1, 1){
-	    font = Font; state = State; buttText = Text;
+	    font = Font; buttText = Text;
+		subtype = Subtype; type = findType (subtype);
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
 

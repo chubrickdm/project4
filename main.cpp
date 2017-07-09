@@ -50,11 +50,11 @@ class Button : public BodyButton{
 private:
 	bool F_locked; //флаг, который показывает заблокирована ли кнопка
 public:
-	Button (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int Value, int WTexture, int HTexture) : 
-		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
+	Button (Image &image, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int Value, int WTexture, int HTexture) : 
+		    BodyButton (image, Text, Name, Font, Subtype, X, Y, W, H, WTexture, HTexture){
 		value = Value; F_locked = false;
 
-		if (state == menu)
+		if (subtype == menu)
 			F_draw = true;
 		else
 			F_draw = false;
@@ -113,8 +113,8 @@ public:
 
 class EditButton : public BodyButton{
 public:
-	EditButton (Image &image, String Text, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture) : 
-		    BodyButton (image, Text, Name, Font, State, X, Y, W, H, WTexture, HTexture){
+	EditButton (Image &image, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
+		    BodyButton (image, Text, Name, Font, Subtype, X, Y, W, H, WTexture, HTexture){
 		if (name == "ChangeKey")
 			shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
 		if (Text == "1")      value = 1;
@@ -165,17 +165,24 @@ public:
 
 class Static : public BodyButton{
 public:
-	Static (String Text, String Name, Font &Font, StateList &State, int X, int Y, Color ccolor) : //перегрузка для задания цвета текста
-		    BodyButton (Text, Name, Font, State, X, Y){ 
+	Static (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, Color ccolor) : //перегрузка для задания цвета текста
+		    BodyButton (Text, Name, Font, Subtype, X, Y){ 
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
 		color = ccolor;
 		text -> add (buttText, color);
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+
+		if (subtype == wholeType)
+			type = player;
 	}
 
-	Static (String Text, String Name, Font &Font, StateList &State, int X, int Y) : //по умолчанию цвет текста будет черный
-		    BodyButton (Text, Name, Font, State, X, Y){ }
+	Static (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y) : //по умолчанию цвет текста будет черный
+		    BodyButton (Text, Name, Font, Subtype, X, Y){ 
+		color = Color (0, 0, 0);
+		if (subtype == wholeType)
+			type = player;
+	}
 
 	void draw (){
 		text -> draw (window);
@@ -187,21 +194,23 @@ public:
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
 		char tmpC [40];
-		if (name == "TimePlayer"){
+
+		if (name == "TimePlayer")
 			strcpy (tmpC, "Time: ");
-			strcat (tmpC, Pass);
-			text -> add (tmpC, Color (211, 25, 12));
-		}
-		else if (name == "FPS"){
+		else if (name == "FPS")
 			strcpy (tmpC, "FPS: ");
-			strcat (tmpC, Pass);
-			text -> add (tmpC);
-		}
-		else if (name == "DeathPlayer"){
+		else if (name == "DeathPlayer")
 			strcpy (tmpC, "Death: ");
-			strcat (tmpC, Pass);
-			text -> add (tmpC, Color (211, 25, 12));
-		}
+		else if (name == "ControlRec")
+			strcpy (tmpC, "Rectangle: ");
+		else if (name == "ControlTri")
+			strcpy (tmpC, "Triangle: ");
+		else if (name == "ControlCir")
+			strcpy (tmpC, "Circle: ");
+
+		strcat (tmpC, Pass);
+		text -> add (tmpC, color);
+		buttText = tmpC;
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
 };
@@ -214,8 +223,8 @@ private:
 	int hBground;
 	int x2, y2;
 public:
-	HorizontScrollBar (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int tmpBordL, int tmpBordR, int WTexture, int HTexture, int WBground, int HBground) : 
-		    BodyButton (image, "", Name, Font, State, X, Y, W, H, WTexture, HTexture){ 
+	HorizontScrollBar (Image &image, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int tmpBordL, int tmpBordR, int WTexture, int HTexture, int WBground, int HBground) : 
+		    BodyButton (image, "", Name, Font, Subtype, X, Y, W, H, WTexture, HTexture){ 
         leftBorder = tmpBordL; rightBorder = tmpBordR;
 		wBground = WBground; hBground = HBground;
 		x2 = x; y2 = y;
@@ -339,8 +348,8 @@ private:
 	int hPicture;
 	CreateWall typeWall;
 public:
-	PictureButton (Image &image, String Name, Font &Font, StateList &State, int X, int Y, int W, int H, int WTexture, int HTexture, Image &Ipicture, int WPicture, int HPicture) : 
-		    BodyButton (image, "", Name, Font, State, X, Y, W, H, WTexture, HTexture){
+	PictureButton (Image &image, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture, Image &Ipicture, int WPicture, int HPicture) : 
+		    BodyButton (image, "", Name, Font, Subtype, X, Y, W, H, WTexture, HTexture){
 		
 		shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
         texturePicture.loadFromImage (Ipicture);
@@ -442,9 +451,10 @@ public:
 
 class Game : public System{ //вся механика и инициализация игры в этом классе
 public:
-	StateList state; //состояние игры
-	StateList whichStateWas; //какое состояние было, нужно для изменения состояний
-	StateList whichStateWill; //какое состояние должно стать, нужно для изменения состояний
+	TypeState type; //текущий тип
+	SubtypeState subtype; //текущий подтип
+	SubtypeState whichStateWas; //какое состояние было, нужно для изменения состояний
+	SubtypeState whichStateWill; //какое состояние должно стать, нужно для изменения состояний
 
 	float lvlTime; //время проведенное игроком на уровне
 	float AllTime; //общее время игрока проведенного в игре
@@ -460,6 +470,10 @@ public:
 	char lvlOpenByAdmin [50]; //имя файла открытого админом
 	char lvlOpenByPlayer [70]; //имя файла открытого игроком
 
+	bool F_playerOnStart;
+	bool F_loadLVL;
+	bool F_reduceWholeType;
+	bool F_enlargeWholeType; 
 	bool F_escapeReleased; //флаг, равен 1 если ескейп отпустили (ну его нажали, а потом отпустили)
 	bool F_enterReleased; //флаг, равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
 	bool F_anyKeyReleased; //флаг, равен 1 если Enter отпустили (ну его нажали, а потом отпустили)
@@ -474,7 +488,7 @@ public:
 	int indexDeathPlayerBut; //индекс кнопки на которой выводится количество смертей на уровне
 	int indexFPSBut; //индекс кнопки на которой выводится значение фпс
 	int indexTimePlBut; //индекс кнопки на которой выводится время игрока
-	int indexControlBut [4];
+	int indexControlBut [4]; //индексы кнопок, на котором изображено управление
 
 	Image wallImage; //изображение стен
 	Image wallImagePL; //изображение игрока
@@ -505,13 +519,13 @@ public:
 		window -> setView (view); //обновляем камеру
 		window -> clear (Color (40, 36, 62));
 
-		if (state == admin || state == adminOpenLVL || state == adminSaveLVL || state == adminDeleteLVL){
+		if (type == admin && subtype != listLVL){
 			window -> draw (lines); //рисую вспомогательные линии для админа
 			for (int i = 0; i < NumWall; i++) //рисую стены
 					ArrWall [i] -> draw ();
 		}
 
-		if (state == player || state == pause || state == startLVL){
+		if (type == player){
 			int tmpX, tmpY;
 			float tmpX2, tmpY2;
 			tmpX = (int) pl -> x; tmpX -= GLOB_IND_W;
@@ -545,12 +559,13 @@ public:
 			for (int i = 0; i < 3; i++)
 				button [indexControlBut [i]] -> draw ();
 		}
-		else if (state != admin && state != adminOpenLVL && state != adminSaveLVL && state!= completeLVL && state != adminDeleteLVL && state != adminListLVL) //рисуем логотип в большинстве состояний
+		else if (type == menu || subtype == loadingLVL) //рисуем логотип в большинстве состояний
 			logo -> draw ();
 
 		for (int i = 0; i < NumButton; i++) //рисую кнопки
-			if (button [i] -> F_draw || button [i] -> state == allState)
+			if (button [i] -> F_draw)
 				button [i] -> draw ();
+		button [indexFPSBut] -> draw ();
 
 		cursor.setPosition (posMouse.x, posMouse.y); //рисую спрайт курсора где должен быть курсор
 		window -> draw (cursor);
@@ -576,16 +591,33 @@ public:
 		Image buttonImage; //загрузка спрайта стен
 		buttonImage.loadFromFile ("Resources/Textures/button.png");
 
-		StateList tmpS;
+		SubtypeState tmpS;
 		int tmpI;
 
 		NumButton = 0;
+
+		tmpS = wholeType;
+		indexControlBut [0] = NumButton + 0;
+		indexControlBut [1] = NumButton + 1;
+		indexControlBut [2] = NumButton + 2;
+		indexTimePlBut = NumButton + 3;
+		indexDeathPlayerBut = NumButton + 4;
+		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
+		button [NumButton++] = new Static ("Rectangle: 1", "ControlRec",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 2 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Triangle: 2",  "ControlTri",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 3 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Circle: 3",    "ControlCir",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 4 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Time: 0",      "TimePlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
+		button [NumButton++] = new Static ("Death: 0",     "DeathPlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
+
+		tmpS = loadingLVL;
+		button [NumButton++] = new Static ("Loading...", "LoadingLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2, Color (193, 180, 180));
 
 		tmpS = allState;
 		indexFPSBut = NumButton;
 		button [NumButton++] = new Static ("FPS: 0", "FPS", font, tmpS, GLOBAL_W / 2 - W_WIN / 2 + W_BUTTON / 2, GLOBAL_H / 2 + H_WIN / 2 - H_BUTTON / 2);
 
-		tmpS = menu;
+
+		tmpS = launcher;
 		tmpI = H_BUTTON + INTERVAL;
 		button [NumButton++] = new Button (buttonImage, "Go!",     "Go!",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Mode",    "Mode",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
@@ -628,8 +660,30 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Admin",  "AdminMode",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenu", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
+		tmpS = selectLVL;
+		tmpI = GLOBAL_H / 2 - 3 * (H_BUTTON + INTERVAL);
+		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 1, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);
+		tmpI = GLOBAL_H / 2 - 2 * (H_BUTTON + INTERVAL);
+		button [NumButton++] = new Button (buttonImage, "5",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 5, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "6",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 6, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "7",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 7, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "8",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 8, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), W_BUTTON,           H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON,           H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + INTERVAL));
+
+		tmpS = playerLVL;
+		tmpI = H_BUTTON + INTERVAL;
+		button [NumButton++] = new EditButton (buttonImage, "",                    "InputMyLVL",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Static (                 "Enter name your LVL", "StaticMyLVL",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * tmpI);
+		button [NumButton++] = new Button (buttonImage,     "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+
 		Image pictureImage; //загрузка спрайта стен
-		tmpS = admin;
+		tmpS = editLVL;
 		tmpI = GLOBAL_H / 2 + (H_WIN + NUM_CELL_Y * EDGE) / 4;
 		button [NumButton++] = new Button (buttonImage, "Back",     "BackToMenuAd", font, tmpS, GLOBAL_W / 2 - 2 * W_BUTTON - 6 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Open",     "OpenAd",       font, tmpS, GLOBAL_W / 2 - 1 * W_BUTTON - 3 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
@@ -646,19 +700,29 @@ public:
 		button [NumButton++] = new PictureButton (buttonImage, "Finish",    font, tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
 		button [NumButton++] = new PictureButton (buttonImage, "Save",      font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
 
-		tmpS = player;
-		indexTimePlBut = NumButton + 1;
-		indexDeathPlayerBut = NumButton + 2;
-		indexControlBut [0] = NumButton + 3;
-		indexControlBut [1] = NumButton + 4;
-		indexControlBut [2] = NumButton + 5;
+		tmpS = openLVL;
+		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
+		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL",        font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+		tmpS = saveLVL;
+		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
+		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSave", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+		tmpS = deleteLVL;
+		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
+		button [NumButton++] = new EditButton (buttonImage, "", "AdDeleteLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminDelete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+		tmpS = listLVL;
+		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
+		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminList", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+
+
+		tmpS = play;
 		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
 		button [NumButton++] = new Button (buttonImage,    "Pause",       "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Static ("Time: 0",      "TimePlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
-		button [NumButton++] = new Static ("Death: 0",     "DeathPlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
-		button [NumButton++] = new Static ("Rectangle: 1", "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 2 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-		button [NumButton++] = new Static ("Triangle: 2",  "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 3 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-		button [NumButton++] = new Static ("Circle: 3",    "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 4 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
@@ -667,53 +731,10 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Settings", "SettingsIntoPause", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Continue", "BackToPlPause",     font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
 
-		tmpS = myLVLs;
-		tmpI = H_BUTTON + INTERVAL;
-		button [NumButton++] = new EditButton (buttonImage, "",                    "InputMyLVL",      font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 2 * tmpI, W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Static (                 "Enter name your LVL", "StaticMyLVL",     font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * tmpI);
-		button [NumButton++] = new Button (buttonImage,     "Back",                "BackToMenuMyLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-
-		tmpS = selectLVL;
-		tmpI = GLOBAL_H / 2 - 3 * (H_BUTTON + INTERVAL);
-		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 1, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);
-		tmpI = GLOBAL_H / 2 - 2 * (H_BUTTON + INTERVAL);
-		button [NumButton++] = new Button (buttonImage, "5",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 5, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "6",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 6, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "7",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 7, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "8",          "SelectLVL",     font, tmpS, GLOBAL_W / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 8, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), W_BUTTON,           H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON,           H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 4 * (H_BUTTON + INTERVAL));
-
-		tmpS = adminOpenLVL;
-		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new EditButton (buttonImage, "", "EditLVL",        font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSel", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-
-		tmpS = adminSaveLVL;
-		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new EditButton (buttonImage, "", "AdSaveLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminSave", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-
-		tmpS = adminDeleteLVL;
-		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new EditButton (buttonImage, "", "AdDeleteLVL",       font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - tmpI, W_BUTTON, H_BUTTON,    188, 45);
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminDelete", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-
-		tmpS = adminListLVL;
-		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new Button (buttonImage, "Back", "BackToAdminList", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-
 		tmpS = startLVL;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
 		button [NumButton++] = new Static ("Press Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
 		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-
-		tmpS = loadingLVL;
-		button [NumButton++] = new Static ("Loading...", "LoadingLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2, Color (193, 180, 180));
 	}
 
 	void initializeLines (){
@@ -758,6 +779,19 @@ public:
 		textureCursor.loadFromImage (tmpI);
 		cursor.setTexture (textureCursor);
 		cursor.setTextureRect (IntRect (0, 0, 23, 27));
+
+		char tmpC [2];
+		for (int i = 0; i < 3; i++){
+			if (key [i] >= 0 && key [i] <= 25){
+				tmpC [0] = key [i] + 65;
+				tmpC [1] = '\0';
+			}
+			else if (key [i] >= 26 && key [i] <= 35){
+				tmpC [0] = key [i] + 22;
+				tmpC [1] = '\0';
+			}
+			button [indexControlBut [i]] -> updateText (tmpC);
+		}
 	}
 
 	void initializeWalls (){
@@ -795,7 +829,12 @@ public:
 		F_secPhaseChangeState = false;
 		F_inSetingIntoPause = false;
 		F_changeKey = false;
-		state = menu;
+		F_enlargeWholeType = false;
+		F_reduceWholeType = false;
+		F_loadLVL = false;
+		F_playerOnStart = false;
+		type = menu;
+		subtype = launcher;
 		whichWall = wall;
 		key [0] = 27;
 		key [1] = 28;
@@ -808,8 +847,8 @@ public:
 		indexFinish = -1;
 
 		readInfo ();
-		initializeSomething (); //вызываем остальные инициализации
-		initializeButtons ();
+		initializeButtons (); //вызываем остальные инициализации
+		initializeSomething ();
 		initializeLines ();
 		initializeWalls ();
 		initializeBackground ();
@@ -902,7 +941,7 @@ public:
 				}	
 	}
 
-	void saveLVL (char *tmpC){ //сохранение уровня админом
+	void saveLVL_AD (char *tmpC){ //сохранение уровня админом
 		Coordinate tmp1, tmp2; //сохраняем координаты старта и финиша
 		tmp1.x = ArrWall [indexStart] -> x;
 		tmp1.y = ArrWall [indexStart] -> y;
@@ -1047,8 +1086,8 @@ public:
 
 	void createWay (){ //функция создания выхода из лабиринта
 		Coordinate fn, sizeMap, st;
-		st.x = (pl -> x - GLOB_IND_W) / EDGE;
-		st.y = (pl -> y - GLOB_IND_H) / EDGE;
+		st.x = (Start.x - GLOB_IND_W) / EDGE;
+		st.y = (Start.y - GLOB_IND_H) / EDGE;
 		fn.x = (Finish.x - GLOB_IND_W) / EDGE;
 		fn.y = (Finish.y - GLOB_IND_H) / EDGE;
 		pl -> currDirection = 0;
@@ -1059,54 +1098,71 @@ public:
 
 	void changeState (){ //функция изменения состояния
 		if (!F_secPhaseChangeState){ //первая фаза (уменьшение кнопок)
+			bool tmpB = true;
 			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> state == whichStateWas){
-					if (button [i] -> F_transformation == false){ //уменьшaем покa доконца не уменьшили одну кнопку
-						F_secPhaseChangeState = true; state = whichStateWill;
+				if (button [i] -> subtype == whichStateWas){
+					if (button [i] -> F_transformation == false && tmpB){ //уменьшaем покa доконца не уменьшили одну кнопку
+						F_secPhaseChangeState = true; F_reduceWholeType = false;
+						subtype = whichStateWill; type = findType (subtype);
 						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == whichStateWill){
+							if (button [i] -> subtype == whichStateWill){
 								button [i] -> F_draw  = true;
 								button [i] -> clear ();
 							}
-						else
-							button [i] -> F_draw  = false;
+							else
+								button [i] -> F_draw  = false;
 
-						if (whichStateWas == adminListLVL){ //мы создали динамически кнопки, надо их удалить когда закрываем список
+						if (whichStateWas == listLVL){ //мы создали динамически кнопки, надо их удалить когда закрываем список
 							for (int k = NumButton - 1; k > NumButton - NumListLVL - 1; k--)
 								delete button [k];
 							NumButton -= NumListLVL;
 							NumListLVL = 0;
 						}
-						break;
 					}
+
 					button [i] -> EFF_reduce ();
 				}
+				else if (F_reduceWholeType && button [i] -> subtype == wholeType)
+					button [i] -> EFF_reduce (); 
 		}
 		else{ //вторя фаза (увелечение кнопок)
-			for (int i = 0; i < NumButton; i++)
-				if (button [i] -> state == whichStateWill){
+			bool tmpB = true;
+			for (int i = 0; i < NumButton; i++){
+				if (button [i] -> subtype == whichStateWill){
 					button [i] -> EFF_enlarge (); 
-					if (button [i] -> F_transformation == false){ //увеличиваем пока одну доконца не увеличили
-						F_changeStates = false; F_secPhaseChangeState = false;
-						state = whichStateWill;
+					if (button [i] -> F_transformation == false && tmpB){ //увеличиваем пока одну доконца не увеличили
+						F_changeStates = false; F_secPhaseChangeState = false; F_enlargeWholeType = false; tmpB = false;
 						for (int i = 0; i < NumButton; i++)
-							if (button [i] -> state == state)
+							if (button [i] -> subtype == subtype)
 								button [i] -> F_draw = true;
 							else
 								button [i] -> F_draw = false;
 					}
 				}
+				else if (F_enlargeWholeType && button [i] -> subtype == wholeType)
+					button [i] -> EFF_enlarge (); 
+			}
 		}
 	}
 
-	void startChangeState (StateList tmpS){ //вспомогательная функция для изменения состояния
+	void startChangeState (SubtypeState tmpS){ //вспомогательная функция для изменения состояния
 		sndClickButt.play ();
 		F_changeStates = true; 
-		whichStateWas = state; whichStateWill = tmpS;
+		whichStateWas = subtype; whichStateWill = tmpS;
+		TypeState tmpT = findType (tmpS);
+		if ((tmpT == player && type == unknown) || (tmpT == player && type == menu))
+			F_enlargeWholeType = true;
+		else if (tmpT == menu && type == player)
+			F_reduceWholeType = true;
 		for (int i = 0; i < NumButton; i++){
-			if (button [i] -> state == whichStateWas )
+			if (button [i] -> subtype == whichStateWas)
 				button [i] -> F_transformation = true;
-			else if (button [i] -> state == whichStateWill )
+			else if (button [i] -> subtype == whichStateWill)
+				button [i] -> F_transformation = true;
+			else if (button [i] -> subtype == wholeType && F_enlargeWholeType){
+				button [i] -> F_transformation = true; button [i] -> F_draw = true; button [i] -> clear ();
+			}
+			else if (button [i] -> subtype == wholeType && F_reduceWholeType)
 				button [i] -> F_transformation = true;
 		}
 	}
@@ -1130,7 +1186,7 @@ public:
 						indexStart = 0;
 						indexFinish = 1;
 						whichWall = wall;
-						startChangeState (admin);
+						startChangeState (editLVL);
 						backgroundMusic.pause ();
 					}
 					if (AdOrPlMode == "PlayerMode"){  
@@ -1155,7 +1211,7 @@ public:
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "BackToMenu") || F_escapeReleased) && !F_changeStates){
-					startChangeState (menu); break;
+					startChangeState (launcher); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "AdminMode" && !F_changeStates){
 					 sndClickButt.play ();
@@ -1177,13 +1233,13 @@ public:
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> F_click && button [i] -> name == "SaveAd" && !F_changeStates){
-					startChangeState (adminSaveLVL); break;
+					startChangeState (saveLVL); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "OpenAd" && !F_changeStates){
-					startChangeState (adminOpenLVL); break;
+					startChangeState (openLVL); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "DeleteAd" && !F_changeStates){
-					startChangeState (adminDeleteLVL); break;
+					startChangeState (deleteLVL); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "ListAd" && !F_changeStates){
 					Font font;
@@ -1191,7 +1247,7 @@ public:
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					char tmpC [50];
 					int tmpI;
-					StateList tmpS = adminListLVL;
+					SubtypeState tmpS = listLVL;
 					inF >> tmpI;
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC;
@@ -1203,12 +1259,12 @@ public:
 					button [NumButton++] = new Static ("List of LVLs:", "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
 					NumListLVL++;
 
-					startChangeState (adminListLVL); 
+					startChangeState (listLVL); 
 
 					break;
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToMenuAd") || F_escapeReleased) && !F_changeStates){
-					startChangeState (menu); timer = 0; 
+					startChangeState (launcher); timer = 0; 
 					backgroundMusic.play ();
 					break;
 				}
@@ -1227,42 +1283,46 @@ public:
 	void StatePlayer (){
 		if (F_changeStates)
 			changeState ();
-		else
+		if (!F_changeStates) //именно так, без else!!
 			pl -> update ();
 		pl -> EFF_enlarge ();
 
-		Coordinate tmp;
-		int tmpIndex;
-		tmp.x = (pl -> x - GLOB_IND_W) / EDGE;
-		tmp.y = (pl -> y - GLOB_IND_H) / EDGE;
-		tmpIndex = binSearch (0, NumWall - 1, ArrWall, tmp);
 
-		if (tmpIndex != -1 && pl -> x == pl -> xx && pl -> y == pl -> yy){
-			if ((ArrWall [tmpIndex] -> name == "Rectangle" && pl -> state != rectangle) || (ArrWall [tmpIndex] -> name == "Circle" && pl -> state != circle) || (ArrWall [tmpIndex] -> name == "Triangle" && pl -> state != triangle)){
-				if (!pl -> F_teleportation){
-					sndTeleport.play (); timer = 0;
-				}
-				pl -> EFF_teleportation (Start.x, Start.y); 
-				timer += time;
+		if (((float) pl -> x == pl -> xx) && ((float) pl -> y == pl -> yy) && !F_changeStates && !pl -> F_move){
+			Coordinate tmp;
+			int tmpIndex;
+			tmp.x = (pl -> x - GLOB_IND_W) / EDGE;
+			tmp.y = (pl -> y - GLOB_IND_H) / EDGE;
+			tmpIndex = binSearch (0, NumWall - 1, ArrWall, tmp);
+			if (tmpIndex != -1){
+				if ((ArrWall [tmpIndex] -> name == "Rectangle" && pl -> state != rectangle) || (ArrWall [tmpIndex] -> name == "Circle" && pl -> state != circle) || (ArrWall [tmpIndex] -> name == "Triangle" && pl -> state != triangle)){
+					if (!pl -> F_teleportation){
+						sndTeleport.play (); timer = 0;
+					}
+					pl -> EFF_teleportation (Start.x, Start.y); 
+					timer += time;
 				
-				if (!pl -> F_teleportation){
-					startChangeState (startLVL);
-					NumLVLDeath++;
+					if (!pl -> F_teleportation){
+						startChangeState (startLVL);
+						NumLVLDeath++;
+						char tmpC [30]; //обновление времени и количества смертей
+						button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC, 10));
+						createWay ();
+					}
+				}
+				else if (ArrWall [tmpIndex] -> name == "Save"){
+					Start.x = ArrWall [tmpIndex] -> x * EDGE + GLOB_IND_W;
+					Start.y = ArrWall [tmpIndex] -> y * EDGE + GLOB_IND_H;
 					createWay ();
 				}
 			}
-			else if (ArrWall [tmpIndex] -> name == "Save"){
-				Start.x = ArrWall [tmpIndex] -> x * EDGE + GLOB_IND_W;
-				Start.y = ArrWall [tmpIndex] -> y * EDGE + GLOB_IND_H;
-				createWay ();
-			}
 		}
 
-		
-		char tmpC [30]; //обновление времени и количества смертей
-		button [indexTimePlBut] -> updateText (_itoa ((int) lvlTime, tmpC, 10));
-		button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC, 10));
-		lvlTime += time;
+		if (!F_changeStates){
+			char tmpC [30]; //обновление времени и количества смертей
+			button [indexTimePlBut] -> updateText (_itoa ((int) lvlTime, tmpC, 10));
+			lvlTime += time;
+		}
 
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
@@ -1287,7 +1347,7 @@ public:
 							Start.y = ArrWall [indexStart] -> y;
 							Start.x = Start.x * EDGE + GLOB_IND_W;
 							Start.y = Start.y * EDGE + GLOB_IND_H;
-							saveLVL (lvlOpenByPlayer);
+							saveLVL_AD (lvlOpenByPlayer);
 							char tmpC [30], *tmpC2;
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
 							char nameFile [30] = "Resources/LVLs/lvl";
@@ -1306,7 +1366,7 @@ public:
 							Start.y = ArrWall [indexStart] -> y;
 							Start.x = Start.x * EDGE + GLOB_IND_W;
 							Start.y = Start.y * EDGE + GLOB_IND_H;
-							saveLVL (lvlOpenByPlayer);
+							saveLVL_AD (lvlOpenByPlayer);
 							PassedLVL = 8;
 							writeInfo ();
 							startChangeState (selectLVL);
@@ -1319,7 +1379,7 @@ public:
 						Start.y = ArrWall [indexStart] -> y;
 						Start.x = Start.x * EDGE + GLOB_IND_W;
 						Start.y = Start.y * EDGE + GLOB_IND_H;
-						saveLVL (lvlOpenByPlayer);
+						saveLVL_AD (lvlOpenByPlayer);
 						startChangeState (selectLVL);
 					}
 				}
@@ -1334,7 +1394,7 @@ public:
 				if (((button [i] -> F_click && button [i] -> name == "BackToMenuSet") || F_escapeReleased) && !F_changeStates){
 					writeInfo ();
 					if (!F_inSetingIntoPause)
-						startChangeState (menu);
+						startChangeState (launcher);
 					else{
 						startChangeState (pause);
 						F_inSetingIntoPause = false;
@@ -1371,7 +1431,7 @@ public:
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "QuitNo") || F_escapeReleased) && !F_changeStates){
-					startChangeState (menu); break;
+					startChangeState (launcher); break;
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "QuitYes") || F_enterReleased) && !F_changeStates){
 					sndClickButt.play (); 
@@ -1406,11 +1466,11 @@ public:
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToMenuSel") || F_escapeReleased) && !F_changeStates){
-					startChangeState (menu); break;
+					startChangeState (launcher); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "My lvls" && !F_changeStates){
 					readInfo ();
-					startChangeState (myLVLs); break;
+					startChangeState (playerLVL); break;
 				}
 			}
 	}
@@ -1424,7 +1484,7 @@ public:
 				if (button [i] -> name == "EditLVL" && !F_changeStates)
 					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "EditLVL") || F_enterReleased) && !F_changeStates){
-					startChangeState (admin);
+					startChangeState (editLVL);
 					char tmpC [100] = "Resources/LVLs/";
 					ifstream inF ("Resources/LVLs/listLVLs.txt");
 					char tmpC2 [30];
@@ -1441,7 +1501,7 @@ public:
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminSel") || F_escapeReleased) && !F_changeStates)
-					startChangeState (admin);
+					startChangeState (editLVL);
 			}
 	}
 	void StateAdminSaveLVL (){
@@ -1454,7 +1514,7 @@ public:
 				if (button [i] -> name == "AdSaveLVL" && !F_changeStates)
 					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "AdSaveLVL") || F_enterReleased) && !F_changeStates){
-					startChangeState (admin);
+					startChangeState (editLVL);
 
 					int tmpI; 
 					char tmpC2 [100][30]; 
@@ -1489,11 +1549,11 @@ public:
 						Start.y = ArrWall [indexStart] -> y;
 						Start.x = Start.x * EDGE + GLOB_IND_W;
 						Start.y = Start.y * EDGE + GLOB_IND_H;
-						saveLVL (tmpC);
+						saveLVL_AD (tmpC);
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminSave") || F_escapeReleased) && !F_changeStates)
-					startChangeState (admin);
+					startChangeState (editLVL);
 			}
 	}
 	void StateAdminDeleteLVL (){
@@ -1506,7 +1566,7 @@ public:
 				if (button [i] -> name == "AdDeleteLVL" && !F_changeStates)
 					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "AdDeleteLVL") || F_enterReleased) && !F_changeStates){
-					startChangeState (admin);
+					startChangeState (editLVL);
 					if (strstr (lvlOpenByAdmin, "lvl") == NULL || strpbrk (lvlOpenByAdmin, "12345678") == NULL || strlen (lvlOpenByAdmin) > 4){
 						int tmpI; 
 						char tmpC2 [100][30]; 
@@ -1536,7 +1596,7 @@ public:
 					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminDelete") || F_escapeReleased) && !F_changeStates)
-					startChangeState (admin);
+					startChangeState (editLVL);
 			}
 	}
 	void StateAdminListLVL (){
@@ -1546,7 +1606,7 @@ public:
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "BackToAdminList") || F_escapeReleased) && !F_changeStates){
-					startChangeState (admin); break;
+					startChangeState (editLVL); break;
 				}
 			}
 	}
@@ -1554,22 +1614,22 @@ public:
 		if (F_changeStates)
 			changeState ();
 		for (int i = 0; i < NumButton; i++)
-			if (button [i] -> state == pause){
+			if (button [i] -> subtype == pause){
 				button [i] -> checkCursor ();
 				if (((button [i] -> F_click && button [i] -> name == "LeaveToSel") || F_enterReleased) && !F_changeStates){
 					AllTime += lvlTime;
 					lvlTime = 0;
 					NumAnsw = 0;
 					writeInfo ();
-					saveLVL (lvlOpenByPlayer);
+					saveLVL_AD (lvlOpenByPlayer);
 					startChangeState (selectLVL);
 					F_lvlComplete = false;
-					button [indexTimePlBut] -> updateText ("0");
-					button [indexDeathPlayerBut] -> updateText ("0");
+					//button [indexTimePlBut] -> updateText ("0");
+					//button [indexDeathPlayerBut] -> updateText ("0");
 					break;
 				}
 				if (((button [i] -> F_click && button [i] -> name == "BackToPlPause") || F_escapeReleased) && !F_changeStates){
-					startChangeState (player); break;
+					startChangeState (play); break;
 				}
 				if (((button [i] -> F_click && button [i] -> name == "SettingsIntoPause") || F_escapeReleased) && !F_changeStates){
 					startChangeState (settings); F_inSetingIntoPause = true; break;
@@ -1581,16 +1641,17 @@ public:
 			changeState ();
 		pl -> changeFigureKey ();
 		pl -> EFF_enlarge ();
+		F_loadLVL = false;
 		if (F_anyKeyReleased && !F_changeStates && !F_escapeReleased){
 			if (event.key.code != key [0] && event.key.code != key [1] && event.key.code != key [2])
-				startChangeState (player);
+				startChangeState (play);
 		}
 		else if (F_escapeReleased && !F_changeStates){
 			AllTime += lvlTime; lvlTime = 0;
 			NumAnsw = 0; writeInfo ();
-			saveLVL (lvlOpenByPlayer); 
-			button [indexTimePlBut] -> updateText ("0");
-			button [indexDeathPlayerBut] -> updateText ("0");
+			saveLVL_AD (lvlOpenByPlayer); 
+			//button [indexTimePlBut] -> updateText ("0");
+			//button [indexDeathPlayerBut] -> updateText ("0");
 			startChangeState (selectLVL);
 			F_lvlComplete = false;
 		}
@@ -1680,6 +1741,7 @@ public:
 						button [i] -> updateText (tmpC);
 						whatButChange = -1;
 						key [button [i] -> value - 1] = event.key.code;
+						button [indexControlBut [button [i] -> value - 1]] -> updateText (tmpC);
 					}
 					else if (event.key.code >= 26 && event.key.code <= 35 && tmpB){
 						tmpC [0] = event.key.code + 22;
@@ -1687,6 +1749,7 @@ public:
 						button [i] -> updateText (tmpC);
 						whatButChange = -1;
 						key [button [i] -> value - 1] = event.key.code;
+						button [indexControlBut [button [i] -> value - 1]] -> updateText (tmpC);
 					}
 					break;
 				}
@@ -1712,12 +1775,21 @@ public:
 	void StateLoadingLVL (){
 		if (F_changeStates)
 			changeState ();
-		
+
 		timer += time;
 		if (timer >= 0.5 && timer < 1.5){
-			openLVL_PL (lvlOpenByPlayer);
-			pl -> changeLocation (Start.x, Start.y);
-			createWay ();			
+			if (!F_loadLVL){
+				F_loadLVL = true;
+				openLVL_PL (lvlOpenByPlayer);
+				char tmpC2 [30]; //обновление времени и количества смертей
+				button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC2, 10));
+				button [indexDeathPlayerBut] -> clear ();
+				button [indexTimePlBut] -> updateText ("0");
+				button [indexTimePlBut] -> clear ();
+				pl -> changeLocation (Start.x, Start.y);
+				createWay ();		
+				F_playerOnStart = true;
+			}
 		}
 		else if (timer >= 2.5){
 			timer = 0;
@@ -1726,18 +1798,12 @@ public:
 	}
 
 	void update (){
-		switch (state){
+		switch (subtype){
 		case menu:
 			StateMenu ();
 			break;
 		case mode:
 			StateMode ();
-			break;
-		case admin:
-			StateAdmin ();
-			break;
-		case player:
-			//StatePlayer ();
 			break;
 		case settings:
 			StateSettings ();
@@ -1748,33 +1814,42 @@ public:
 		case selectLVL:
 			StateSelectLVL ();
 			break;
-		case adminOpenLVL:
-			StateAdminOpenLVL ();
-			break;
-		case adminSaveLVL:
-			StateAdminSaveLVL ();
-			break;
-		case adminDeleteLVL:
-			StateAdminDeleteLVL ();
-			break;
-		case adminListLVL:
-			StateAdminListLVL ();
-			break;
-		case pause:
-			StatePause ();
-			break;
-		case startLVL:
-			StateStartLVL ();
-			break;
-		case myLVLs:
-			StateMyLVLs ();
-			break;
 		case audioSetting:
 			StateAudioSeting ();
 			break;
 		case controlSeting:
 			StateControlSeting ();
 			break;
+		case playerLVL:
+			StateMyLVLs ();
+			break;
+		
+		case editLVL:
+			StateAdmin ();
+			break;
+		case openLVL:
+			StateAdminOpenLVL ();
+			break;
+		case saveLVL:
+			StateAdminSaveLVL ();
+			break;
+		case deleteLVL:
+			StateAdminDeleteLVL ();
+			break;
+		case listLVL:
+			StateAdminListLVL ();
+			break;
+
+		//case play:
+		//	StatePlayer ();
+		//	break;
+		case pause:
+			StatePause ();
+			break;
+		case startLVL:
+			StateStartLVL ();
+			break;
+
 		case loadingLVL:
 			StateLoadingLVL ();
 			break;
@@ -1830,7 +1905,7 @@ int main (){
 		}
 		
 		isUpdate = false;
-		if (game.state == player)
+		if (game.subtype == play)
 			game.StatePlayer ();
 		system.keyCodePressed = -1;
 

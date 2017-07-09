@@ -6,8 +6,11 @@ using namespace std;
 using namespace sf;
 
 
-enum StateList {menu, mode, admin, player, settings, exitt, selectLVL, adminOpenLVL, adminSaveLVL, adminDeleteLVL, adminListLVL, completeLVL, pause, startLVL, myLVLs, allState,
-	audioSetting, controlSeting, loadingLVL}; //основное перечесление которое отвечает за состояние игры
+enum TypeState {unknown = -1, menu = 0, player, admin}; //типы игры
+enum SubtypeState {launcher = 0, mode, settings, exitt, selectLVL, audioSetting, controlSeting, playerLVL, //0-7 //подтипы игры
+	               editLVL,  openLVL, saveLVL, deleteLVL, listLVL, // 8-12
+	               play, pause, startLVL, completeLVL,  //13-16
+	               wholeType, allState, loadingLVL}; //17-19
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
@@ -64,8 +67,8 @@ public:
 	System (){
 		GLOBAL_W = 4000; //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
 		GLOBAL_H = 3000; //1280 //высота
-		W_WIN = GetSystemMetrics (0); //GetSystemMetrics (0) // самое маленькое 1366 разрешение на котором пойдет игра, ширина
-		H_WIN = GetSystemMetrics (1); //GetSystemMetrics(1) // самое маленькое 768, высота
+		W_WIN = GetSystemMetrics (0); H_WIN = GetSystemMetrics (1); //разрешение
+		//W_WIN = 1366; H_WIN = 768; //разрешение
 		EDGE = 10; //размер одной клетки
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
@@ -87,5 +90,12 @@ public:
 
 		speed = (float) 3 * EDGE; //сколько игрок пройдет за 1 секунду
 		speedChangeSt = 200; //на сколько процентов уменьшится кнопка за 1 секунду
+	}
+
+	TypeState findType (SubtypeState tmpS){
+		if (tmpS > -1 && tmpS <= 7)       return menu;
+		else if (tmpS > 7 && tmpS <= 12)  return admin;
+		else if (tmpS > 12 && tmpS <= 16) return player;
+		else                              return unknown;
 	}
 };
