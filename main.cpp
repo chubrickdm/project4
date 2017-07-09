@@ -474,6 +474,7 @@ public:
 	int indexDeathPlayerBut; //индекс кнопки на которой выводится количество смертей на уровне
 	int indexFPSBut; //индекс кнопки на которой выводится значение фпс
 	int indexTimePlBut; //индекс кнопки на которой выводится время игрока
+	int indexControlBut [4];
 
 	Image wallImage; //изображение стен
 	Image wallImagePL; //изображение игрока
@@ -541,6 +542,8 @@ public:
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
 			button [indexDeathPlayerBut] -> draw (); //рисую кнопку где отображается количество смертей на уровне
+			for (int i = 0; i < 3; i++)
+				button [indexControlBut [i]] -> draw ();
 		}
 		else if (state != admin && state != adminOpenLVL && state != adminSaveLVL && state!= completeLVL && state != adminDeleteLVL && state != adminListLVL) //рисуем логотип в большинстве состояний
 			logo -> draw ();
@@ -644,12 +647,18 @@ public:
 		button [NumButton++] = new PictureButton (buttonImage, "Save",      font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
 
 		tmpS = player;
+		indexTimePlBut = NumButton + 1;
+		indexDeathPlayerBut = NumButton + 2;
+		indexControlBut [0] = NumButton + 3;
+		indexControlBut [1] = NumButton + 4;
+		indexControlBut [2] = NumButton + 5;
 		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Button (buttonImage, "Pause",    "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Static (             "Time: 0",  "TimePlayer",   font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
-		indexTimePlBut = NumButton - 1;
-		button [NumButton++] = new Static (             "Death: 0", "DeathPlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
-		indexDeathPlayerBut = NumButton - 1;
+		button [NumButton++] = new Button (buttonImage,    "Pause",       "BackToMenuPl", font, tmpS, GLOBAL_W / 2 + tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static ("Time: 0",      "TimePlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
+		button [NumButton++] = new Static ("Death: 0",     "DeathPlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
+		button [NumButton++] = new Static ("Rectangle: 1", "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 2 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Triangle: 2",  "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 3 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Circle: 3",    "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 4 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;

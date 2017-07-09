@@ -331,8 +331,6 @@ public:
 			text -> clear ();
 			text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
 			text -> add (buttText, color);
-			if (name == "Edit")
-				text -> clear ();
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
 			enlargePrecent += speedChangeSt * time; //когда прекратится изменение формы
@@ -346,8 +344,6 @@ public:
 				text -> clear ();
 				text -> changeSize (SIZE_TEXT); //размер текста
 				text -> add (buttText, color);
-				if (name == "Edit")
-					text -> clear ();
 				text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 			}
 		}

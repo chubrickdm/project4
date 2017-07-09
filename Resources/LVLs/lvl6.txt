@@ -1,5 +1,5 @@
 7
-3 1
+0 0
 5
 0 0 Start
 7 0 Finish
