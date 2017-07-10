@@ -1,0 +1,8 @@
+5
+0 0
+2
+0 0 Start
+12 0 Finish
+4 0 Triangle
+6 0 Save
+8 0 Circle

@@ -69,6 +69,7 @@ private:
 public:
 	bool F_move; //флаг, который показывает движется ли игрок
 	bool F_teleportation; //флаг, который показывает игрок телепортируется ли
+	bool F_reduce;
 	bool F_enlarge; //флаг, который идет ли эффект начала игры
 	float xx, yy; //нужны, потому что скорость не целое число, и коорд игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
 	int currDirection; //текущее направление
@@ -84,7 +85,7 @@ private:
 		reducePrecent -= speedChangeSt * time / 3; //когда прекратится изменение формы 
 		if (reducePrecent < speedChangeSt * time / 3){
 			reducePrecent = 100; F_lvlComplete = true;
-			rotation = 0;
+			rotation = 0; F_reduce = false;
 		}
 	}
 
@@ -119,7 +120,7 @@ public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
 	    xx = (float) x; yy = (float) y; 
 		tmpX = x; tmpY = y;
-		F_move = false; 
+		F_move = false; F_reduce = false;
 		F_teleportation = false; F_transformation = false; F_secPhaseTransformation = false;
 		reducePrecent = 100; rotation = 0; enlargePrecent = 1; F_enlarge = false;
 
@@ -180,7 +181,8 @@ public:
 
 	void update (){
 		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
-			EFF_reduce (); F_transformation = false; F_secPhaseTransformation = false;
+			EFF_reduce (); F_transformation = false; 
+			F_secPhaseTransformation = false; F_reduce = true;
 		}
 		else if (!F_teleportation){
 			if (currDirection < NumMoves && !F_move){
@@ -196,7 +198,6 @@ public:
 			changeFigureKey ();
 
 			if (F_move){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-				//cout << xx << " " << yy << " -xx & yy" << endl;
 				if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
 					F_move = false; 
 					xx = (float) tmpX; yy = (float) tmpY;
