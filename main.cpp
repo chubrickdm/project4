@@ -108,6 +108,8 @@ public:
 	}
 
 	void updateText (char *Pass){ }
+
+	void updateSlider (){ }
 };
 
 class EditButton : public BodyButton{
@@ -160,6 +162,8 @@ public:
 		tmp /= 2;
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
+
+	void updateSlider (){ }
 };
 
 class Static : public BodyButton{
@@ -212,6 +216,8 @@ public:
 		buttText = tmpC;
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
+
+	void updateSlider (){ }
 };
 
 class HorizontScrollBar : public BodyButton{
@@ -222,8 +228,8 @@ private:
 	int hBground;
 	int x2, y2;
 public:
-	HorizontScrollBar (Image &image, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int tmpBordL, int tmpBordR, int WTexture, int HTexture, int WBground, int HBground) : 
-		    BodyButton (image, "", Name, Font, Subtype, X, Y, W, H, WTexture, HTexture){ 
+	HorizontScrollBar (Image &image, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int tmpBordL, int tmpBordR, int WTexture, int HTexture, int WBground, int HBground) : 
+		    BodyButton (image, Name, Subtype, X, Y, W, H, WTexture, HTexture){ 
         leftBorder = tmpBordL; rightBorder = tmpBordR;
 		wBground = WBground; hBground = HBground;
 		x2 = x; y2 = y;
@@ -248,6 +254,17 @@ public:
 	void draw (){
 		window -> draw (backgroundd);
 		window -> draw (shape);
+	}
+
+	void updateSlider (){
+		if (name == "MusicSlider"){ //считываем с файла данные об настройках игрока, и устанавливаем кнопку в нужное пложение
+			shape.setPosition ((float) leftBorder + volumeMusic * (rightBorder - leftBorder) / 100, (float) y);
+			x = leftBorder + (int) volumeMusic * (rightBorder - leftBorder) / 100;
+		}
+		if (name == "SoundSlider"){
+			shape.setPosition ((float) leftBorder + volumeSound * (rightBorder - leftBorder) / 100, (float) y);
+			x = leftBorder + (int) volumeSound * (rightBorder - leftBorder) / 100;
+		}
 	}
 
 	void checkCursor (){ 
@@ -347,8 +364,8 @@ private:
 	int hPicture;
 	CreateWall typeWall;
 public:
-	PictureButton (Image &image, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture, Image &Ipicture, int WPicture, int HPicture) : 
-		    BodyButton (image, "", Name, Font, Subtype, X, Y, W, H, WTexture, HTexture){
+	PictureButton (Image &image, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture, Image &Ipicture, int WPicture, int HPicture) : 
+		    BodyButton (image, Name, Subtype, X, Y, W, H, WTexture, HTexture){
 		
 		shape.setTextureRect (IntRect (0, 120, wTexture, hTexture));
         texturePicture.loadFromImage (Ipicture);
@@ -445,6 +462,89 @@ public:
 		shape.setSize (Vector2f (1, 1));
 		picture.setSize (Vector2f (1, 1));
 	}
+
+	void updateSlider (){ }
+};
+
+class CheckButton : public BodyButton{
+private:
+	bool F_chekIn;
+public:
+	CheckButton (Image &image, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
+		    BodyButton (image, Name, Subtype, X, Y, W, H, WTexture, HTexture){
+		F_chekIn = true;
+		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+	}
+
+	void draw (){
+		window -> draw (shape);
+	}
+
+	void checkCursor (){ //функция проверки на нажатие кнопки или наведением курсора на кнопку
+		F_click = false;
+		if ((posMouse.x >= x - w / 2) && (posMouse.x <= x + w / 2) && (posMouse.y >= y - h / 2) && (posMouse.y <= y + h / 2)){ //если курсор мыши находится на кнопке
+			if (Mouse::isButtonPressed (Mouse::Left)) //и если нажали на нее
+				F_pressed = true;
+			else{
+				if (F_pressed){ //если же курсор на кнопке и кнопка была нажата, а сейчас не нажата-значит мы кликнули по ней
+					F_click = true; changeBool (F_chekIn); 
+				}
+				F_pressed = false;
+			}
+			if (F_chekIn) shape.setTextureRect (IntRect (wTexture * 1, 6 * hTexture, wTexture, hTexture));
+			else          shape.setTextureRect (IntRect (wTexture * 3, 6 * hTexture, wTexture, hTexture));
+		}
+		else{ //если курсор не на кнопке
+			F_pressed = false; //если курсор не на мыши то кнопка обычного вида
+			if (F_chekIn) shape.setTextureRect (IntRect (wTexture * 0, 6 * hTexture, wTexture, hTexture));
+			else          shape.setTextureRect (IntRect (wTexture * 2, 6 * hTexture, wTexture, hTexture));
+		}
+	}
+
+	void EFF_reduce (){
+		if (F_transformation){
+			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
+			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+
+			reducePrecent -= speedChangeSt * time;
+			if (reducePrecent < speedChangeSt * time){
+				reducePrecent = 100;
+				F_transformation = false;
+			}
+		}
+	}
+
+	void EFF_enlarge (){
+		if (F_transformation){
+			shape.setSize (Vector2f ((float) w * enlargePrecent / 100, (float) h * enlargePrecent / 100));
+			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
+			shape.setPosition ((float) x, (float) y);
+
+			enlargePrecent += speedChangeSt * time;
+			if (enlargePrecent > 100 - speedChangeSt * time){
+				enlargePrecent = 1;
+				F_transformation = false;
+			}
+		}
+	}
+
+	virtual void clear (){ //функция очищения кнопки, нужна что б начать кнопки увеличивать (вторая фаза)
+		shape.setSize (Vector2f (1, 1));
+	}
+
+	void updateText (char *Pass){ 
+		if (name == "SwitchMusic"){
+			if (volumeMusic == 0)
+				F_chekIn = false;
+		}
+		else if (name == "SwitchSound"){
+			if (volumeSound == 0)
+				F_chekIn = false;
+		}
+	}
+
+	void updateSlider (){ }
 };
 
 
@@ -482,6 +582,7 @@ public:
 	bool F_secPhaseChangeState; //флаг, который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
 	bool F_inSetingIntoPause; //флаг, который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
 	
+	int indexSwitchSound; //индекс кнопки переключателя звука
 	int indexFinish; //индекс финиша (что б долго не искать)
 	int indexStart; //индекс старта (что б долго не искать)
 	int indexDeathPlayerBut; //индекс кнопки на которой выводится количество смертей на уровне
@@ -492,7 +593,7 @@ public:
 	Image wallImage; //изображение стен
 	Image wallImagePL; //изображение игрока
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
-	Sprite cursor; //курсор
+	RectangleShape cursor; //курсор
 	Texture textureCursor; //текстура курсора 
 	
 	Player *pl; //игрок
@@ -566,7 +667,7 @@ public:
 				button [i] -> draw ();
 		button [indexFPSBut] -> draw ();
 
-		cursor.setPosition (posMouse.x, posMouse.y); //рисую спрайт курсора где должен быть курсор
+		cursor.setPosition ((float) posMouse.x, (float) posMouse.y);	
 		window -> draw (cursor);
 
 		window -> display ();
@@ -649,12 +750,15 @@ public:
 		
 		tmpS = audioSetting;
 		tmpI = H_BUTTON + INTERVAL;
-		button [NumButton++] = new Static (             "Sound:",  "VolSound",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 2 * tmpI);
-		button [NumButton++] = new Static (             "Music:",  "VolMusic",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2, GLOBAL_H / 2 - 1 * tmpI);
-		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,                GLOBAL_H / 2 - 0 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider",    font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 2 * tmpI, 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 47, 45, 188, 45);
-		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider",    font, tmpS, GLOBAL_W / 2 + W_BUTTON / 2, GLOBAL_H / 2 - 1 * tmpI, 20, H_BUTTON, GLOBAL_W / 2 + 10, GLOBAL_W / 2 + W_BUTTON - 10, 47, 45, 188, 45);
-
+		button [NumButton++] = new Static (             "Sound:",  "VolSound",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2 - tmpI, GLOBAL_H / 2 - 2 * tmpI);
+		button [NumButton++] = new Static (             "Music:",  "VolMusic",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2 - tmpI, GLOBAL_H / 2 - 1 * tmpI);
+		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,                       GLOBAL_H / 2 - 0 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		indexSwitchSound = NumButton;
+		button [NumButton++] = new CheckButton (buttonImage,       "SwitchSound", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 + 3 * tmpI / 2, GLOBAL_H / 2 - 2 * tmpI,     H_BUTTON, H_BUTTON, 47, 45);
+		button [NumButton++] = new CheckButton (buttonImage,       "SwitchMusic", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 + 3 * tmpI / 2, GLOBAL_H / 2 - 1 * tmpI,     H_BUTTON, H_BUTTON, 47, 45);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 - tmpI,         GLOBAL_H / 2 - 2 * tmpI, 20, H_BUTTON - 4, GLOBAL_W / 2 - tmpI + 13, GLOBAL_W / 2 + W_BUTTON - tmpI - 13, 47, 45, 188, 45);
+		button [NumButton++] = new HorizontScrollBar (buttonImage, "MusicSlider", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 - tmpI,         GLOBAL_H / 2 - 1 * tmpI, 20, H_BUTTON - 4, GLOBAL_W / 2 - tmpI + 13, GLOBAL_W / 2 + W_BUTTON - tmpI - 13, 47, 45, 188, 45);
+		
 		tmpS = mode;
 		tmpI = H_BUTTON + INTERVAL;
 		button [NumButton++] = new Button (buttonImage, "Player", "PlayerMode", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 - 3 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
@@ -693,13 +797,13 @@ public:
 		button [NumButton++] = new Button (buttonImage, "List lvl", "ListAd",       font, tmpS, GLOBAL_W / 2 + 2 * W_BUTTON + 6 * EDGE, tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 		pictureImage.loadFromFile ("Resources/Textures/button2.png"); 
 		tmpI = GLOBAL_H / 2 - (H_WIN + NUM_CELL_Y * EDGE) / 4;
-		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", font, tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Triangle",  font, tmpS, GLOBAL_W / 2 - 6 - H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Circle",    font, tmpS, GLOBAL_W / 2 - 3 - H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Wall",      font, tmpS, GLOBAL_W / 2,                    tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Start",     font, tmpS, GLOBAL_W / 2 + 3 + H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30); 
-		button [NumButton++] = new PictureButton (buttonImage, "Finish",    font, tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
-		button [NumButton++] = new PictureButton (buttonImage, "Save",      font, tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Rectangle", tmpS, GLOBAL_W / 2 - 9 - H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Triangle",  tmpS, GLOBAL_W / 2 - 6 - H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Circle",    tmpS, GLOBAL_W / 2 - 3 - H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Wall",      tmpS, GLOBAL_W / 2,                    tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Start",     tmpS, GLOBAL_W / 2 + 3 + H_BUTTON,     tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30); 
+		button [NumButton++] = new PictureButton (buttonImage, "Finish",    tmpS, GLOBAL_W / 2 + 6 + H_BUTTON * 2, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
+		button [NumButton++] = new PictureButton (buttonImage, "Save",      tmpS, GLOBAL_W / 2 + 9 + H_BUTTON * 3, tmpI, H_BUTTON, H_BUTTON, 47, 45, pictureImage, 30, 30);
 
 		tmpS = openLVL;
 		tmpI = (H_WIN + NUM_CELL_Y * EDGE) / 4;
@@ -776,10 +880,11 @@ public:
 		sndTeleport.setVolume (volumeSound);
 
 		Image tmpI; //работа со спрайтом курсора
-		tmpI.loadFromFile ("Resources/Textures/cursor.png");
+		tmpI.loadFromFile ("Resources/Textures/cursor2.png");
 		textureCursor.loadFromImage (tmpI);
-		cursor.setTexture (textureCursor);
-		cursor.setTextureRect (IntRect (0, 0, 23, 27));
+		cursor.setTexture (&textureCursor);
+		cursor.setTextureRect (IntRect (0, 0, 46, 54));
+		cursor.setSize (Vector2f ((float) 23 * (3 * H_BUTTON / 5) / 27, (float) 3 * H_BUTTON / 5));
 
 		char tmpC [2];
 		for (int i = 0; i < 3; i++){
@@ -1317,6 +1422,10 @@ public:
 	void StateAudioSeting (){
 		if (F_changeStates)
 			changeState ();
+
+		button [indexSwitchSound + 1] -> updateText ("");
+			
+
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
@@ -1329,6 +1438,17 @@ public:
 					sndClickButt.play (); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "SoundSlider" && !F_changeStates){
+					sndClickButt.play (); break;
+				}
+				else if (button [i] -> F_click && button [i] -> name == "SwitchMusic" && !F_changeStates){
+					sndClickButt.play (); updateVolumeMusic (0);
+					for (int i = 0; i < NumButton; i++)
+						if (button [i] -> name == "MusicSlider"){
+							button [i] -> updateSlider (); break;
+						}
+					break;
+				}
+				else if (button [i] -> F_click && button [i] -> name == "SwitchSound" && !F_changeStates){
 					sndClickButt.play (); break;
 				}
 			}

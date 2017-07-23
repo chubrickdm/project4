@@ -98,4 +98,14 @@ public:
 		else if (tmpS > 12 && tmpS <= 16) return player;
 		else                              return unknown;
 	}
+protected:
+	void changeBool (bool &tmpB){
+		if (tmpB) tmpB = false;
+		else      tmpB = true;
+	}
+
+	void updateVolumeMusic (float tmpV){
+		volumeMusic = tmpV;
+		backgroundMusic.setVolume (tmpV);
+	}
 };

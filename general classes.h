@@ -285,6 +285,15 @@ public:
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
+	BodyButton (Image &image, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : //для пикчер баттон, чек баттон и горизонтал скрол бар
+		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
+		subtype = Subtype; type = findType (subtype); 
+		F_draw = false; F_click = false; F_pressed = false; 
+		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
+
+		shape.setOrigin ((float) w / 2, (float) h / 2);
+	}
+
 	BodyButton (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y) : //для статика сделана перегрузка
 		    Body (Name, X, Y, 1, 1, 1, 1){
 	    font = Font; buttText = Text;
@@ -304,6 +313,8 @@ public:
 	virtual void checkCursor () = 0;
 
 	virtual void updateText (char *Pass) = 0;
+
+	virtual void updateSlider () = 0;
 
 	virtual void EFF_reduce (){ //уменьшение кнопки
 		if (F_transformation){
