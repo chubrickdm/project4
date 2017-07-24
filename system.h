@@ -27,6 +27,8 @@ public:
 	static int          FPS; //значение ФПС
 	static Clock        clock; //время
 	
+	static bool         F_musicOff; //флаг, который показывает выключена ли музыка
+	static bool         F_soundOff; //флаг, который показывает выключены ли звуки
 	static float        volumeMusic; //громокость фоновой музыки
 	static float        volumeSound; //громкость звука
 	static Music        backgroundMusic; //фоновая музыка
@@ -104,8 +106,12 @@ protected:
 		else      tmpB = true;
 	}
 
-	void updateVolumeMusic (float tmpV){
-		volumeMusic = tmpV;
+	void changeMusicVolume (float tmpV){
 		backgroundMusic.setVolume (tmpV);
+	}
+
+	void changeSoundVolume (float tmpV){
+		sndClickButt.setVolume (tmpV);
+		sndTeleport.setVolume (tmpV);
 	}
 };

@@ -314,8 +314,6 @@ public:
 
 	virtual void updateText (char *Pass) = 0;
 
-	virtual void updateSlider () = 0;
-
 	virtual void EFF_reduce (){ //уменьшение кнопки
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));

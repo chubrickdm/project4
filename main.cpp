@@ -25,7 +25,9 @@ float         System::time;
 int           System::FPS;
 Clock         System::clock;
 
-float         System::volumeSound; //переменные связанные с музыкой и звуками
+bool          System::F_musicOff; //переменные связанные с музыкой и звуками
+bool          System::F_soundOff; 
+float         System::volumeSound;
 float         System::volumeMusic;
 Music         System::backgroundMusic;
 SoundBuffer   System::bufferClickButt;
@@ -108,8 +110,6 @@ public:
 	}
 
 	void updateText (char *Pass){ }
-
-	void updateSlider (){ }
 };
 
 class EditButton : public BodyButton{
@@ -158,12 +158,8 @@ public:
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT); //размер текста
 		text -> add (buttText);
-		float tmp = (float) buttText.getSize (); //получаем длинну текста в символах
-		tmp /= 2;
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
-
-	void updateSlider (){ }
 };
 
 class Static : public BodyButton{
@@ -216,8 +212,6 @@ public:
 		buttText = tmpC;
 		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 	}
-
-	void updateSlider (){ }
 };
 
 class HorizontScrollBar : public BodyButton{
@@ -256,17 +250,6 @@ public:
 		window -> draw (shape);
 	}
 
-	void updateSlider (){
-		if (name == "MusicSlider"){ //считываем с файла данные об настройках игрока, и устанавливаем кнопку в нужное пложение
-			shape.setPosition ((float) leftBorder + volumeMusic * (rightBorder - leftBorder) / 100, (float) y);
-			x = leftBorder + (int) volumeMusic * (rightBorder - leftBorder) / 100;
-		}
-		if (name == "SoundSlider"){
-			shape.setPosition ((float) leftBorder + volumeSound * (rightBorder - leftBorder) / 100, (float) y);
-			x = leftBorder + (int) volumeSound * (rightBorder - leftBorder) / 100;
-		}
-	}
-
 	void checkCursor (){ 
 		if (posMouse.x >= leftBorder && posMouse.x <= rightBorder) //если мышка находится в доступном для кнопки месте
 			if (posMouse.y >= y - h / 2 && posMouse.y <= y + h / 2){
@@ -275,12 +258,13 @@ public:
 					x = (int) posMouse.x; F_pressed = true;
 					if (name == "MusicSlider"){ //меняем значение грмоксоти музыки
 						volumeMusic = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						backgroundMusic.setVolume (volumeMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						if (!F_musicOff) changeMusicVolume (volumeMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						else             changeMusicVolume (0);
 					}
 					if (name == "SoundSlider"){ //меняем значение громкости звуков
 						volumeSound = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						sndClickButt.setVolume (volumeSound); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
-						sndTeleport.setVolume (volumeSound);
+						if (!F_soundOff) changeSoundVolume (volumeSound);
+						else             changeSoundVolume (0);
 					}
 				}
 				if (F_pressed){ //если кнопка зажата
@@ -288,12 +272,13 @@ public:
 					x = (int) posMouse.x; 
 					if (name == "MusicSlider"){ //меняем значение грмоксоти музыки
 						volumeMusic = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						backgroundMusic.setVolume (volumeMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						if (!F_musicOff) changeMusicVolume (volumeMusic); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
+						else             changeMusicVolume (0);
 					}
 					if (name == "SoundSlider"){ //меняем значение громкости звуков
 						volumeSound = (posMouse.x - leftBorder) / (rightBorder - leftBorder) * 100;
-						sndClickButt.setVolume (volumeSound); //значение громкости устанавливаем в процентом соотношении, считая от левой границы
-						sndTeleport.setVolume (volumeSound);
+						if (!F_soundOff) changeSoundVolume (volumeSound);
+						else             changeSoundVolume (0);
 					}
 				}
 
@@ -462,18 +447,18 @@ public:
 		shape.setSize (Vector2f (1, 1));
 		picture.setSize (Vector2f (1, 1));
 	}
-
-	void updateSlider (){ }
 };
 
 class CheckButton : public BodyButton{
 private:
-	bool F_chekIn;
+	bool F_switchOff;
 public:
 	CheckButton (Image &image, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    BodyButton (image, Name, Subtype, X, Y, W, H, WTexture, HTexture){
-		F_chekIn = true;
-		shape.setTextureRect (IntRect (0, 0, wTexture, hTexture));
+		F_switchOff = false;
+		shape.setTextureRect (IntRect (wTexture * 2, 6 * hTexture, wTexture, hTexture));
+		if (F_musicOff && name == "SwitchMusic")      F_switchOff = true;
+		else if (F_soundOff && name == "SwitchSound") F_switchOff = true;
 	}
 
 	void draw (){
@@ -487,16 +472,24 @@ public:
 				F_pressed = true;
 			else{
 				if (F_pressed){ //если же курсор на кнопке и кнопка была нажата, а сейчас не нажата-значит мы кликнули по ней
-					F_click = true; changeBool (F_chekIn); 
+					F_click = true; changeBool (F_switchOff); 
+					if (F_switchOff){
+						if (name == "SwitchMusic")      F_musicOff = true;
+						else if (name == "SwitchSound") F_soundOff = true;
+					}
+					else{
+						if (name == "SwitchMusic")      F_musicOff = false;
+						else if (name == "SwitchSound") F_soundOff = false;
+					}
 				}
 				F_pressed = false;
 			}
-			if (F_chekIn) shape.setTextureRect (IntRect (wTexture * 1, 6 * hTexture, wTexture, hTexture));
+			if (!F_switchOff) shape.setTextureRect (IntRect (wTexture * 1, 6 * hTexture, wTexture, hTexture));
 			else          shape.setTextureRect (IntRect (wTexture * 3, 6 * hTexture, wTexture, hTexture));
 		}
 		else{ //если курсор не на кнопке
 			F_pressed = false; //если курсор не на мыши то кнопка обычного вида
-			if (F_chekIn) shape.setTextureRect (IntRect (wTexture * 0, 6 * hTexture, wTexture, hTexture));
+			if (!F_switchOff) shape.setTextureRect (IntRect (wTexture * 0, 6 * hTexture, wTexture, hTexture));
 			else          shape.setTextureRect (IntRect (wTexture * 2, 6 * hTexture, wTexture, hTexture));
 		}
 	}
@@ -533,18 +526,7 @@ public:
 		shape.setSize (Vector2f (1, 1));
 	}
 
-	void updateText (char *Pass){ 
-		if (name == "SwitchMusic"){
-			if (volumeMusic == 0)
-				F_chekIn = false;
-		}
-		else if (name == "SwitchSound"){
-			if (volumeSound == 0)
-				F_chekIn = false;
-		}
-	}
-
-	void updateSlider (){ }
+	void updateText (char *Pass){ }
 };
 
 
@@ -582,7 +564,6 @@ public:
 	bool F_secPhaseChangeState; //флаг, который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
 	bool F_inSetingIntoPause; //флаг, который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
 	
-	int indexSwitchSound; //индекс кнопки переключателя звука
 	int indexFinish; //индекс финиша (что б долго не искать)
 	int indexStart; //индекс старта (что б долго не искать)
 	int indexDeathPlayerBut; //индекс кнопки на которой выводится количество смертей на уровне
@@ -606,13 +587,13 @@ public:
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
-		inF >> PassedLVL >> volumeMusic >> volumeSound >> AllTime >> key [0] >> key [1] >> key [2]; //последние 3-номера клавиш на которые меняется фигура игрока
+		inF >> PassedLVL >> volumeMusic >> volumeSound >> AllTime >> key [0] >> key [1] >> key [2] >> F_musicOff >> F_soundOff; //последние 3-номера клавиш на которые меняется фигура игрока
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
 		ofstream outF ("Resources/Info/Player.txt");
 		outF << PassedLVL << " " << volumeMusic << " " << volumeSound  << " " << AllTime;
-		outF << " " << key [0] << " " << key [1] << " " << key [2] << endl; //последние 3-номера клавиш на которые меняется фигура игрока
+		outF << " " << key [0] << " " << key [1] << " " << key [2] << " " << F_musicOff << " " << F_soundOff << endl; //последние 3-номера клавиш на которые меняется фигура игрока
 	}
 
 	void draw (){ //главная и единственная функция рисования
@@ -753,7 +734,7 @@ public:
 		button [NumButton++] = new Static (             "Sound:",  "VolSound",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2 - tmpI, GLOBAL_H / 2 - 2 * tmpI);
 		button [NumButton++] = new Static (             "Music:",  "VolMusic",       font, tmpS, GLOBAL_W / 2 - W_BUTTON / 2 - tmpI, GLOBAL_H / 2 - 1 * tmpI);
 		button [NumButton++] = new Button (buttonImage, "Back",    "BackToSetAudio", font, tmpS, GLOBAL_W / 2,                       GLOBAL_H / 2 - 0 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
-		indexSwitchSound = NumButton;
+
 		button [NumButton++] = new CheckButton (buttonImage,       "SwitchSound", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 + 3 * tmpI / 2, GLOBAL_H / 2 - 2 * tmpI,     H_BUTTON, H_BUTTON, 47, 45);
 		button [NumButton++] = new CheckButton (buttonImage,       "SwitchMusic", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 + 3 * tmpI / 2, GLOBAL_H / 2 - 1 * tmpI,     H_BUTTON, H_BUTTON, 47, 45);
 		button [NumButton++] = new HorizontScrollBar (buttonImage, "SoundSlider", tmpS, GLOBAL_W / 2 + W_BUTTON / 2 - tmpI,         GLOBAL_H / 2 - 2 * tmpI, 20, H_BUTTON - 4, GLOBAL_W / 2 - tmpI + 13, GLOBAL_W / 2 + W_BUTTON - tmpI - 13, 47, 45, 188, 45);
@@ -869,15 +850,15 @@ public:
 		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
-		backgroundMusic.setVolume (volumeMusic);
+		if (!F_musicOff) changeMusicVolume (volumeMusic);
+		else             changeMusicVolume (0);
 
 		bufferClickButt.loadFromFile ("Resources/Sounds/button-30.wav"); //звук нажатия на кнопку
 		sndClickButt.setBuffer (bufferClickButt);
-		sndClickButt.setVolume (volumeSound);
-
 		bufferTeleport.loadFromFile ("Resources/Sounds/teleportation.wav"); //звук телепортации игрока
 		sndTeleport.setBuffer (bufferTeleport);
-		sndTeleport.setVolume (volumeSound);
+		if (F_soundOff) changeSoundVolume (0);
+		else            changeSoundVolume (volumeSound);
 
 		Image tmpI; //работа со спрайтом курсора
 		tmpI.loadFromFile ("Resources/Textures/cursor2.png");
@@ -1162,8 +1143,14 @@ public:
 		indexFinish = binSearch (0, NumWall - 1, ArrWall, tmp2);
 	}
 
-	void inputKeyboard (char *tmpC, bool fictiv){ //ввод с клавиатуры
+	void inputKeyboard (char *tmpC){ //ввод с клавиатуры
 		if (event.type == Event::KeyPressed){
+			mcText *text;
+			Font font;
+			font.loadFromFile ("Resources/Fonts/modeka.otf");
+			text = new mcText (&font); //создаем текст который будет отображаться на кнопке
+			text -> changeSize (SIZE_TEXT); //размер текста
+			text -> add (tmpC);
 			if (Keyboard::isKeyPressed (Keyboard::BackSpace)){ //если нажата кнопка стереть     
 				int i = strlen (tmpC);
 				if (i > 0){
@@ -1173,7 +1160,7 @@ public:
 					tmpC [i - 1] = '\0';
 				}
 			}
-			else if ((strlen (tmpC) < 8 && !fictiv) || (strlen (tmpC) < 4 && fictiv)){
+			else if (text -> w < (W_BUTTON - SIZE_TEXT)){
 				char tmpC2 [2];
 				if (event.key.code >= 0 && event.key.code <= 25){ //буквы от А до Z
 					tmpC2 [0] = event.key.code + 97;
@@ -1421,10 +1408,7 @@ public:
 	}
 	void StateAudioSeting (){
 		if (F_changeStates)
-			changeState ();
-
-		button [indexSwitchSound + 1] -> updateText ("");
-			
+			changeState ();	
 
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
@@ -1441,15 +1425,16 @@ public:
 					sndClickButt.play (); break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "SwitchMusic" && !F_changeStates){
-					sndClickButt.play (); updateVolumeMusic (0);
-					for (int i = 0; i < NumButton; i++)
-						if (button [i] -> name == "MusicSlider"){
-							button [i] -> updateSlider (); break;
-						}
+					sndClickButt.play ();
+					if (F_musicOff) changeMusicVolume (0);
+					else            changeMusicVolume (volumeMusic);
 					break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "SwitchSound" && !F_changeStates){
-					sndClickButt.play (); break;
+					sndClickButt.play (); 
+					if (F_soundOff) changeSoundVolume (0);
+					else            changeSoundVolume (volumeSound);
+					break;
 				}
 			}
 	}
@@ -1507,7 +1492,7 @@ public:
 	void StatePlayerLVL (){
 		if (F_changeStates)
 			changeState ();
-		inputKeyboard (playerLVLOpenByPlayer, 0);
+		inputKeyboard (playerLVLOpenByPlayer);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
@@ -1610,7 +1595,7 @@ public:
 	void StateOpenLVL (){
 		if (F_changeStates)
 			changeState ();
-		inputKeyboard (lvlOpenByAdmin, 0);
+		inputKeyboard (lvlOpenByAdmin);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
@@ -1640,7 +1625,7 @@ public:
 	void StateSaveLVL (){
 		if (F_changeStates)
 			changeState ();
-		inputKeyboard (lvlOpenByAdmin, 0);
+		inputKeyboard (lvlOpenByAdmin);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
@@ -1692,7 +1677,7 @@ public:
 	void StateDeleteLVL (){
 		if (F_changeStates)
 			changeState ();
-		inputKeyboard (lvlOpenByAdmin, 0);
+		inputKeyboard (lvlOpenByAdmin);
 		for (int i = 0; i < NumButton; i++)
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
