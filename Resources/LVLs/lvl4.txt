@@ -1,6 +1,6 @@
-355
-23 24
-209
+356
+18 29
+255
 0 31 Start
 24 19 Finish
 0 18 Wall
@@ -268,6 +268,7 @@
 20 29 Rectangle
 20 30 Rectangle
 20 31 Triangle
+21 18 Wall
 21 19 Wall
 21 20 Circle
 21 21 Wall
