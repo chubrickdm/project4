@@ -1,4 +1,15 @@
-﻿  main.cpp
-  Создание кода
-  Создание кода завершено
-  myProject4.vcxproj -> D:\Димона\Универ\Прога\Projects\Game\myProject4\Release\myProject4.exe
+﻿Построение начато 26.07.2017 13:59:25.
+     1>Проект "D:\Проекты\Visual Studio\Game\myProject4\myProject4\myProject4.vcxproj" в узле 2 (целевые объекты Build).
+     1>ClCompile:
+         D:\Программы\Visual Studio 2012 Express\VC\bin\CL.exe /c /I"D:\Программы\Для программ\SFML-2.4.1\include" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D SFML_DYNAMIC /D _CRT_SECURE_NO_WARNINGS /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         main.cpp
+       Link:
+         D:\Программы\Visual Studio 2012 Express\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Проекты\Visual Studio\Game\myProject4\Release\myProject4.exe" /NOLOGO /LIBPATH:"D:\Программы\Для программ\SFML-2.4.1\lib" "sfml-graphics.lib" "sfml-window.lib" "sfml-system.lib" "sfml-audio.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\Проекты\Visual Studio\Game\myProject4\Release\myProject4.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Проекты\Visual Studio\Game\myProject4\Release\myProject4.lib" /MACHINE:X86 /SAFESEH Release\main.obj
+         Создание кода
+         Создание кода завершено
+         myProject4.vcxproj -> D:\Проекты\Visual Studio\Game\myProject4\Release\myProject4.exe
+     1>Построение проекта "D:\Проекты\Visual Studio\Game\myProject4\myProject4\myProject4.vcxproj" завершено (целевые объекты Build).
+
+Построение успешно завершено.
+
+Затраченное время: 00:00:03.28

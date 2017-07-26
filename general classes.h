@@ -190,16 +190,16 @@ public:
 				else if (Direction [currDirection] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
 				else if (Direction [currDirection] == 2)   tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
 				else if (Direction [currDirection] == 3)   tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
-				currDirection++; F_move = true;
+				currDirection++; F_move = true; cout << "direction" << endl;
 				xx = (float) x; yy = (float) y;
 			}
-
 
 			changeFigureKey ();
 
 			if (F_move){ //проверяем, нет ли стены на том месте куда мы хотим перейти
 				if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
 					F_move = false; 
+					cout << "dima" << endl;
 					xx = (float) tmpX; yy = (float) tmpY;
 					x = tmpX; y = tmpY;
 				}
