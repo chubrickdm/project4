@@ -1,5 +1,6 @@
 #pragma once
 #include "body.h"
+int num = 0;
 
 class Wall : public Body{ //класс стены
 public:

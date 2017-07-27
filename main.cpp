@@ -598,7 +598,7 @@ public:
 
 	void draw (){ //главна€ и единственна€ функци€ рисовани€
 		window -> setView (view); //обновл€ем камеру
-		window -> clear (Color (40, 36, 62));
+		window -> clear (Color (117, 152, 175)); 
 
 		if (type == admin && subtype != listLVL){
 			window -> draw (lines); //рисую вспомогательные линии дл€ админа
@@ -661,8 +661,8 @@ public:
 		plBackground -> changeLocation (GLOBAL_W / 2, GLOBAL_H / 2);
 
 		backgroundImage.loadFromFile ("Resources/Textures/logo2.png"); //логотип
-		logo = new Background (backgroundImage, "Logo", 0, 0, W_BUTTON * 2, H_BUTTON * 2, 392, 91); 
-		logo -> changeLocation (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + 6)); 
+		logo = new Background (backgroundImage, "Logo", 0, 0, W_BUTTON * 3, H_BUTTON * 3, 392, 91); 
+		logo -> changeLocation (GLOBAL_W / 2, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL)); 
 	}
 
 	void initializeButtons (){
@@ -828,7 +828,7 @@ public:
 		lines = VertexArray (Lines, (NUM_CELL_Y + NUM_CELL_X + 4) * 2); //массив линий
 		int i = 0; //i-счетчик линий занесенных в массив
 		for (int k = 0; k < (NUM_CELL_Y + NUM_CELL_X + 2) * 2; k++)
-			lines [k].color = Color (128, 128, 128); //30, 30, 30//79,75,5
+			lines [k].color = Color (43, 34, 65); //30, 30, 30//79,75,5
 		for (; i < (NUM_CELL_X + 1) * 2; i += 2){ //создание вертикальных линий
 			lines [i].position = Vector2f ((float) GLOB_IND_W + i * EDGE / 2, (float) GLOB_IND_H);
 			lines [i + 1].position = Vector2f ((float) GLOB_IND_W + i * EDGE / 2, (float) GLOB_IND_H + NUM_CELL_Y * EDGE);
