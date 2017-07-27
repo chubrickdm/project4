@@ -58,7 +58,6 @@ public:
 
 class Player : public Body{ //класс игрока
 private:
-	
 	bool F_transformation; //флаг, который показывается трансформируется ли игрок
 	bool F_secPhaseTransformation; //флаг, который показывает вторая ли фаза трансформации игрока сейчас
 	float reducePrecent; //процент уменьшения
@@ -190,16 +189,17 @@ public:
 				else if (Direction [currDirection] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
 				else if (Direction [currDirection] == 2)   tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
 				else if (Direction [currDirection] == 3)   tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
-				currDirection++; F_move = true; cout << "direction" << endl;
+				currDirection++; F_move = true;
 				xx = (float) x; yy = (float) y;
 			}
 
 			changeFigureKey ();
 
 			if (F_move){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-				if (abs (xx - (float) tmpX) < speed * time && abs (yy - (float) tmpY) < speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
+				//cout << xx << "-xx   " << yy << "-yy\n" << tmpX << "-tmpX   " << tmpY << "-tmpY\n" << speed * time << "-speed * time\n" << abs (xx - (float) tmpX) << "-xx - tmpX   " << abs (yy - (float) tmpY) << "-yy - tmpY\n" << endl;
+
+				if (abs (xx - (float) tmpX) <= speed * time && abs (yy - (float) tmpY) <= speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
 					F_move = false; 
-					cout << "dima" << endl;
 					xx = (float) tmpX; yy = (float) tmpY;
 					x = tmpX; y = tmpY;
 				}
@@ -208,6 +208,10 @@ public:
 					else if (x > tmpX)   xx -= speed * time; 
 					else if (y < tmpY)   yy += speed * time; //движениепо вертикали
 					else if (y > tmpY)   yy -= speed * time;  
+					else{
+						yy = (float) tmpY; xx = (float) tmpX; //мб ситуация когда у = tmpY, а yy - tmpY больше чем speed * time, тогда
+						//происходит зависание игрока, пока не будет такое время, что speed * time будет больше
+					}
 					x = (int) xx; y = (int) yy;
 				}
 			}
