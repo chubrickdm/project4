@@ -685,15 +685,15 @@ public:
 		indexTimePlBut = NumButton + 4;
 		indexDeathPlayerBut = NumButton + 5;
 		tmpI = NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static ("Rectangle: 1", "ControlRec",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 2 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-		button [NumButton++] = new Static ("Triangle: 2",  "ControlTri",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 3 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-		button [NumButton++] = new Static ("Circle: 3",    "ControlCir",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 4 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-		button [NumButton++] = new Static ("Control",      "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Rectangle: 1", "ControlRec",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 2 * (H_BUTTON + INTERVAL), Color (25, 36, 68));
+		button [NumButton++] = new Static ("Triangle: 2",  "ControlTri",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 3 * (H_BUTTON + INTERVAL), Color (25, 36, 68));
+		button [NumButton++] = new Static ("Circle: 3",    "ControlCir",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 4 * (H_BUTTON + INTERVAL), Color (25, 36, 68));
+		button [NumButton++] = new Static ("Control",      "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
 		button [NumButton++] = new Static ("Time: 0",      "TimePlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
 		button [NumButton++] = new Static ("Death: 0",     "DeathPlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
 
 		tmpS = loadingLVL;
-		button [NumButton++] = new Static ("Loading...", "LoadingLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2, Color (193, 180, 180));
+		button [NumButton++] = new Static ("Loading...", "LoadingLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2, Color (6, 10, 25));
 
 		tmpS = allState;
 		indexFPSBut = NumButton;
@@ -812,15 +812,15 @@ public:
 
 		tmpS = pause;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static (             "Pause",    "Pause",             font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static (             "Pause",    "Pause",             font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + INTERVAL), Color (25, 36, 68));
 		button [NumButton++] = new Button (buttonImage, "Leave",    "LeaveToSel",        font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Settings", "SettingsIntoPause", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Continue", "BackToPlPause",     font, tmpS, tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + INTERVAL), W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = startLVL;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static ("Press Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
-		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), Color (193, 180, 180));
+		button [NumButton++] = new Static ("Press Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
+		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
 	}
 
 	void initializeLines (){
@@ -1388,9 +1388,6 @@ public:
 						strcat (nameFile, ".txt");
 						strcpy (lvlOpenByPlayer, nameFile);
 						
-						pl -> state = rectangle;
-						pl -> changeFigureStatic ();
-						pl -> F_enlarge = true;
 						F_isPlayerLVL = false;
 						timer = 0;
 						startChangeState (loadingLVL);
@@ -1513,9 +1510,7 @@ public:
 								strcat (tmpC, playerLVLOpenByPlayer);
 								strcat (tmpC, ".txt");
 								strcpy (lvlOpenByPlayer, tmpC);
-								pl -> state = rectangle;
-								pl -> changeFigureStatic ();
-								pl -> F_enlarge = true;
+								
 
 								timer = 0;
 								F_isPlayerLVL = true;
@@ -1734,8 +1729,6 @@ public:
 			changeState ();
 		if (!F_changeStates) //именно так, без else!!
 			pl -> update ();
-		pl -> EFF_enlarge ();
-
 
 		if (((float) pl -> x == pl -> xx) && ((float) pl -> y == pl -> yy))
 			if (!F_changeStates && !pl -> F_move && !pl -> F_reduce){
@@ -1803,16 +1796,10 @@ public:
 							char nameFile [40] = "Resources/LVLs/lvl";
 							strcat (nameFile, tmpC2);
 							strcat (nameFile, ".txt");
-							openLVL_PL (nameFile); 
 							strcpy (lvlOpenByPlayer, nameFile);
-							pl -> changeLocation (Start.x, Start.y);
-							pl -> F_enlarge = true;
+							
 							pl -> F_reduce = false;
-							button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC2, 10));
-							button [indexTimePlBut] -> updateText ("0");
-							createWay ();
-							F_enterReleased = false;
-							startChangeState (startLVL);
+							startChangeState (loadingLVL);
 						}
 						else{
 							pl -> F_reduce = false;
@@ -1854,8 +1841,6 @@ public:
 					saveLVL_AD (lvlOpenByPlayer);
 					startChangeState (selectLVL);
 					F_lvlComplete = false;
-					//button [indexTimePlBut] -> updateText ("0");
-					//button [indexDeathPlayerBut] -> updateText ("0");
 					break;
 				}
 				if (((button [i] -> F_click && button [i] -> name == "BackToPlPause") || F_escapeReleased) && !F_changeStates){
@@ -1873,7 +1858,7 @@ public:
 		pl -> EFF_enlarge ();
 		F_loadLVL = false;
 		if (F_anyKeyReleased && !F_changeStates && !F_escapeReleased){
-			if (event.key.code != key [0] && event.key.code != key [1] && event.key.code != key [2])
+			if (event.key.code != key [0] && event.key.code != key [1] && event.key.code != key [2] && !pl -> F_enlarge)
 				startChangeState (play);
 		}
 		else if (F_escapeReleased && !F_changeStates){
@@ -1900,6 +1885,9 @@ public:
 				button [indexTimePlBut] -> updateText ("0");
 				button [indexTimePlBut] -> clear ();
 				pl -> changeLocation (Start.x, Start.y);
+				pl -> F_enlarge = true;
+				pl -> state = rectangle;
+				pl -> changeFigureStatic ();
 				createWay ();		
 				F_playerOnStart = true;
 			}
@@ -1976,11 +1964,20 @@ int main (){
 	view.reset (FloatRect (0, 0, (float) system.W_WIN, (float) system.H_WIN)); //создание камеры
 	setCoordinateForView ((float) system.GLOBAL_W / 2, (float) system.GLOBAL_H / 2); //двигаем камеру
 
+	vector <VideoMode> modes = VideoMode::getFullscreenModes ();
+	/*for (std::size_t i = 0; i < modes.size (); ++i){
+		VideoMode mode = modes [i];
+		cout << "Mode #" << i << ": "
+			<< mode.width << "x" << mode.height << " - "
+			<< mode.bitsPerPixel << " bpp" << endl;
+	}*/
+	VideoMode mode = modes [0];
 	
 	Game game;
-	//system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
-	system.window = new RenderWindow (VideoMode (system.W_WIN, system.H_WIN), "LABYRINTH PRO"); //создание окна
+	//system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	system.window = new RenderWindow (mode, "Figure"); //создание окна
 	system.window -> setMouseCursorVisible (false); //не рисуем курсор
+	system.window -> setFramerateLimit (60);
 	bool isUpdate = false;
 
 	while (system.window -> isOpen ()){

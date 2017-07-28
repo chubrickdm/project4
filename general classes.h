@@ -180,8 +180,8 @@ public:
 	}
 
 	void update (){
-		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша, то будет показана кнопка, свидетельствующая об этом
-			EFF_reduce (); F_transformation = false; 
+		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша
+			EFF_reduce (); F_transformation = false;
 			F_secPhaseTransformation = false; F_reduce = true;
 		}
 		else if (!F_teleportation){
@@ -212,6 +212,7 @@ public:
 					else{
 						yy = (float) tmpY; xx = (float) tmpX; //мб ситуация когда у = tmpY, а yy - tmpY больше чем speed * time, тогда
 						//происходит зависание игрока, пока не будет такое время, что speed * time будет больше
+						//cout << "dima" << endl;
 					}
 					x = (int) xx; y = (int) yy;
 				}
