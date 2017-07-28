@@ -530,6 +530,10 @@ public:
 };
 
 
+class Message{
+
+};
+
 class Game : public System{ //вся механика и инициализация игры в этом классе
 public:
 	TypeState type; //текущий тип
@@ -1974,8 +1978,8 @@ int main (){
 	VideoMode mode = modes [0];
 	
 	Game game;
-	//system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
-	system.window = new RenderWindow (mode, "Figure"); //создание окна
+	system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	//system.window = new RenderWindow (mode, "Figure"); //создание окна
 	system.window -> setMouseCursorVisible (false); //не рисуем курсор
 	system.window -> setFramerateLimit (60);
 	bool isUpdate = false;
