@@ -17,6 +17,7 @@ enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
 class System{ //основной класс игры, в котором хранится все самое выжное
 public:
+	static bool         F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
 	static Vector2i     mousePosWin; //координаты мыши относ. окна
 	static Vector2f     posMouse; //координаты мыши относ. карты
 	static RenderWindow *window; //окно, в котором запускается игра
@@ -38,6 +39,7 @@ public:
 	static Sound        sndTeleport; //звук телепорта игрока к сохранению
 	
 	static bool         F_lvlComplete; //показывает завершен уровень
+	static bool         F_showMessage;
 	static float        speedChangeSt; //скорость изменения размера кнопок при изменении состояния
 	static float        speed; //скорость с которой движется игрок по уровню
 	static int          keyCodePressed; //какая клавиша была нажата
