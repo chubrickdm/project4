@@ -567,20 +567,20 @@ public:
 };
 
 
-class Message : public System{
+class Message : public System{ //класс сообщения
 private:
-	float messageTimer;
+	float messageTimer; //сколько по времени будет показываться сообщение (не считая увелечение и уменьшение кнопки)
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
-	int y;
-	int x;
-	int phase;
+	int x; //координата по горизонтали
+	int y; //координата по вертикали
+	int phase; //фаза сообщения (0-увелечение, 1-показ, 2-уменьшение)
 	Font font; //шрифт
 	Color color; //цвет текста кнопки
 	mcText *text; //текст который выводится на кнопке
 	String messageText; //текст который будет отображаться на кнопке
 private:
-	void EFF_reduce (){ //уменьшение кноif (F_transformation){
+	void EFF_reduce (){ //уменьшение сообщения
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT * (int) reducePrecent / 100); //размер текста
 		text -> add (messageText, color);
@@ -594,7 +594,7 @@ private:
 		
 	}
 
-	void EFF_enlarge (){ //увелечение кнопки
+	void EFF_enlarge (){ //увелечение сообщения
 		text -> clear ();
 		text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
 		text -> add (messageText, color);
@@ -605,14 +605,14 @@ private:
 			enlargePrecent = 1;
 			phase = 1;
 
-			text -> clear ();
-			text -> changeSize (SIZE_TEXT); //размер текста
+			text -> clear (); //увеличиться может не до конца, поэтому доводим до 100% размера
+			text -> changeSize (SIZE_TEXT); 
 			text -> add (messageText, color);
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
 		}
 	}
 public:
-	void initialize (Font &tmpFont){
+	void initialize (Font &tmpFont){ //инициализация сообщения
 		font = tmpFont;
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
 		text -> changeSize (SIZE_TEXT); //размер текста
@@ -621,11 +621,11 @@ public:
 		phase = 0;
 	}
 
-	void setColor (Color &tmpColor){
+	void setColor (Color &tmpColor){ //установить цвет
 		color = tmpColor;
 	}
 
-	void showMessage (int tmpX, int tmpY, String tmpText, Color tmpColor, float tmpTimer){
+	void showMessage (int tmpX, int tmpY, String tmpText, Color tmpColor, float tmpTimer){ //показ сообщения с цветом
 		if (!F_showMessage){
 			x = tmpX; y = tmpY;
 			F_showMessage = true;
@@ -640,7 +640,7 @@ public:
 		}
 	}
 
-	void showMessage (int tmpX, int tmpY, String tmpText, float tmpTimer){
+	void showMessage (int tmpX, int tmpY, String tmpText, float tmpTimer){ //сообщение без цвета
 		if (!F_showMessage){
 			x = tmpX; y = tmpY;
 			F_showMessage = true;
@@ -675,8 +675,8 @@ public:
 
 class Game : public System{ //вся механика и инициализация игры в этом классе
 public:
-	TypeState     type; //текущий тип
-	SubtypeState  subtype; //текущий подтип
+	TypeState type; //текущий тип
+	SubtypeState subtype; //текущий подтип
 	SubtypeState whichStateWas; //какое состояние было, нужно для изменения состояний
 	SubtypeState whichStateWill; //какое состояние должно стать, нужно для изменения состояний
 
@@ -2144,7 +2144,6 @@ int main (){
 	System system;
 	view.reset (FloatRect (0, 0, (float) system.W_WIN, (float) system.H_WIN)); //создание камеры
 	setCoordinateForView ((float) system.GLOBAL_W / 2, (float) system.GLOBAL_H / 2); //двигаем камеру
-
 	vector <VideoMode> modes = VideoMode::getFullscreenModes ();
 	/*for (std::size_t i = 0; i < modes.size (); ++i){
 		VideoMode mode = modes [i];
@@ -2158,16 +2157,16 @@ int main (){
 	system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
 	//system.window = new RenderWindow (mode, "Figure"); //создание окна
 	system.window -> setMouseCursorVisible (false); //не рисуем курсор
-	system.window -> setFramerateLimit (60);
-	bool isUpdate = false;
+	system.window -> setFramerateLimit (60); //устанваливаем предел для ФПС
+	bool isUpdate = false; //флаг, который показывает обновлялась ли игра
 
 	while (system.window -> isOpen ()){
 		system.time = system.clock.getElapsedTime().asSeconds(); //время каждый раз обновляется
 		system.clock.restart ().asSeconds ();
-		system.FPS = (int) (1.0 / system.time);
+		system.FPS = (int) (1.0 / system.time); //значение ФПС получаем
 		char tmpC [30];
 		_itoa (system.FPS, tmpC, 10);
-		game.button [game.indexFPSBut] -> updateText (tmpC);
+		game.button [game.indexFPSBut] -> updateText (tmpC); //обновляем кнопку, которая выводит значение ФПС
 
 		system.mousePosWin = Mouse::getPosition (system.window [0]); //координаты мыши относ. окна
 		system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
@@ -2177,12 +2176,12 @@ int main (){
 			if (system.event.type == Event::Closed) //окно закрывается когда нажали крестик
 				system.window -> close (); 
 			isUpdate = true;
-			game.update ();
+			game.update (); //обновляем игру
 
 			if (system.event.type == Event::KeyReleased && system.event.key.code == 36) game.F_escapeReleased = true; //флаг, о том нажат ли ескейп
 			else game.F_escapeReleased = false;
 			if (system.event.type == Event::KeyReleased && system.event.key.code == 58) game.F_enterReleased = true; //флаг, о том нажат ли ентер
-			else game.F_enterReleased = false; 
+			else game.F_enterReleased = false;
 			if (system.event.type == Event::KeyReleased) game.F_anyKeyReleased = true; //флаг, о том нажата ли какая-либо кнопка
 			else game.F_anyKeyReleased = false;
 
@@ -2197,11 +2196,11 @@ int main (){
 		}
 		
 		isUpdate = false;
-		if (game.subtype == play)
+		if (game.subtype == play) //всегда обновляем состояние игрока
 			game.StatePlay ();
 		system.keyCodePressed = -1;
 
-		game.draw ();
+		game.draw (); //рисуем всё
 	}
 	return 0;
 }

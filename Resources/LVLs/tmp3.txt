@@ -1,9 +1,11 @@
-1928
+2048
 63 31
 0
 63 31 Start
-0 1 Finish
-0 0 Wall
+0 0 Finish
+0 1 Wall
+0 2 Wall
+0 3 Wall
 0 4 Wall
 0 5 Wall
 0 6 Wall
@@ -35,6 +37,7 @@
 1 0 Wall
 1 1 Wall
 1 2 Wall
+1 3 Wall
 1 4 Wall
 1 5 Wall
 1 6 Wall
@@ -66,6 +69,7 @@
 2 0 Wall
 2 1 Wall
 2 2 Wall
+2 3 Wall
 2 4 Wall
 2 5 Wall
 2 6 Wall
@@ -95,6 +99,9 @@
 2 30 Wall
 2 31 Wall
 3 0 Wall
+3 1 Wall
+3 2 Wall
+3 3 Wall
 3 4 Wall
 3 5 Wall
 3 6 Wall
@@ -124,6 +131,7 @@
 3 30 Wall
 3 31 Wall
 4 0 Wall
+4 1 Wall
 4 2 Wall
 4 3 Wall
 4 4 Wall
@@ -155,6 +163,7 @@
 4 30 Wall
 4 31 Wall
 5 0 Wall
+5 1 Wall
 5 2 Wall
 5 3 Wall
 5 4 Wall
@@ -186,6 +195,8 @@
 5 30 Wall
 5 31 Wall
 6 0 Wall
+6 1 Wall
+6 2 Wall
 6 3 Wall
 6 4 Wall
 6 5 Wall
@@ -217,6 +228,8 @@
 6 31 Wall
 7 0 Wall
 7 1 Wall
+7 2 Wall
+7 3 Wall
 7 4 Wall
 7 5 Wall
 7 6 Wall
@@ -248,6 +261,8 @@
 8 0 Wall
 8 1 Wall
 8 2 Wall
+8 3 Wall
+8 4 Wall
 8 5 Wall
 8 6 Wall
 8 7 Wall
@@ -279,6 +294,8 @@
 9 1 Wall
 9 2 Wall
 9 3 Wall
+9 4 Wall
+9 5 Wall
 9 6 Wall
 9 7 Wall
 9 8 Wall
@@ -310,6 +327,8 @@
 10 2 Wall
 10 3 Wall
 10 4 Wall
+10 5 Wall
+10 6 Wall
 10 7 Wall
 10 8 Wall
 10 9 Wall
@@ -341,6 +360,8 @@
 11 3 Wall
 11 4 Wall
 11 5 Wall
+11 6 Wall
+11 7 Wall
 11 8 Wall
 11 9 Wall
 11 10 Wall
@@ -372,6 +393,8 @@
 12 4 Wall
 12 5 Wall
 12 6 Wall
+12 7 Wall
+12 8 Wall
 12 9 Wall
 12 10 Wall
 12 11 Wall
@@ -403,6 +426,8 @@
 13 5 Wall
 13 6 Wall
 13 7 Wall
+13 8 Wall
+13 9 Wall
 13 10 Wall
 13 11 Wall
 13 12 Wall
@@ -434,6 +459,8 @@
 14 6 Wall
 14 7 Wall
 14 8 Wall
+14 9 Wall
+14 10 Wall
 14 11 Wall
 14 12 Wall
 14 13 Wall
@@ -465,6 +492,8 @@
 15 7 Wall
 15 8 Wall
 15 9 Wall
+15 10 Wall
+15 11 Wall
 15 12 Wall
 15 13 Wall
 15 14 Wall
@@ -496,6 +525,8 @@
 16 8 Wall
 16 9 Wall
 16 10 Wall
+16 11 Wall
+16 12 Wall
 16 13 Wall
 16 14 Wall
 16 15 Wall
@@ -527,6 +558,7 @@
 17 9 Wall
 17 10 Wall
 17 11 Wall
+17 12 Wall
 17 13 Wall
 17 14 Wall
 17 15 Wall
@@ -558,6 +590,7 @@
 18 9 Wall
 18 10 Wall
 18 11 Wall
+18 12 Wall
 18 13 Wall
 18 14 Wall
 18 15 Wall
@@ -588,6 +621,8 @@
 19 8 Wall
 19 9 Wall
 19 10 Wall
+19 11 Wall
+19 12 Wall
 19 13 Wall
 19 14 Wall
 19 15 Wall
@@ -617,6 +652,8 @@
 20 7 Wall
 20 8 Wall
 20 9 Wall
+20 10 Wall
+20 11 Wall
 20 12 Wall
 20 13 Wall
 20 14 Wall
@@ -646,6 +683,8 @@
 21 6 Wall
 21 7 Wall
 21 8 Wall
+21 9 Wall
+21 10 Wall
 21 11 Wall
 21 12 Wall
 21 13 Wall
@@ -675,6 +714,8 @@
 22 5 Wall
 22 6 Wall
 22 7 Wall
+22 8 Wall
+22 9 Wall
 22 10 Wall
 22 11 Wall
 22 12 Wall
@@ -704,6 +745,8 @@
 23 4 Wall
 23 5 Wall
 23 6 Wall
+23 7 Wall
+23 8 Wall
 23 9 Wall
 23 10 Wall
 23 11 Wall
@@ -733,6 +776,8 @@
 24 3 Wall
 24 4 Wall
 24 5 Wall
+24 6 Wall
+24 7 Wall
 24 8 Wall
 24 9 Wall
 24 10 Wall
@@ -762,6 +807,8 @@
 25 2 Wall
 25 3 Wall
 25 4 Wall
+25 5 Wall
+25 6 Wall
 25 7 Wall
 25 8 Wall
 25 9 Wall
@@ -791,6 +838,8 @@
 26 1 Wall
 26 2 Wall
 26 3 Wall
+26 4 Wall
+26 5 Wall
 26 6 Wall
 26 7 Wall
 26 8 Wall
@@ -820,6 +869,8 @@
 27 0 Wall
 27 1 Wall
 27 2 Wall
+27 3 Wall
+27 4 Wall
 27 5 Wall
 27 6 Wall
 27 7 Wall
@@ -849,6 +900,8 @@
 27 31 Wall
 28 0 Wall
 28 1 Wall
+28 2 Wall
+28 3 Wall
 28 4 Wall
 28 5 Wall
 28 6 Wall
@@ -878,6 +931,8 @@
 28 30 Wall
 28 31 Wall
 29 0 Wall
+29 1 Wall
+29 2 Wall
 29 3 Wall
 29 4 Wall
 29 5 Wall
@@ -907,6 +962,8 @@
 29 29 Wall
 29 30 Wall
 29 31 Wall
+30 0 Wall
+30 1 Wall
 30 2 Wall
 30 3 Wall
 30 4 Wall
@@ -937,6 +994,7 @@
 30 29 Wall
 30 30 Wall
 30 31 Wall
+31 0 Wall
 31 1 Wall
 31 2 Wall
 31 3 Wall
@@ -968,6 +1026,8 @@
 31 29 Wall
 31 30 Wall
 31 31 Wall
+32 0 Wall
+32 1 Wall
 32 2 Wall
 32 3 Wall
 32 4 Wall
@@ -999,6 +1059,8 @@
 32 30 Wall
 32 31 Wall
 33 0 Wall
+33 1 Wall
+33 2 Wall
 33 3 Wall
 33 4 Wall
 33 5 Wall
@@ -1030,6 +1092,8 @@
 33 31 Wall
 34 0 Wall
 34 1 Wall
+34 2 Wall
+34 3 Wall
 34 4 Wall
 34 5 Wall
 34 6 Wall
@@ -1061,6 +1125,8 @@
 35 0 Wall
 35 1 Wall
 35 2 Wall
+35 3 Wall
+35 4 Wall
 35 5 Wall
 35 6 Wall
 35 7 Wall
@@ -1092,6 +1158,8 @@
 36 1 Wall
 36 2 Wall
 36 3 Wall
+36 4 Wall
+36 5 Wall
 36 6 Wall
 36 7 Wall
 36 8 Wall
@@ -1123,6 +1191,8 @@
 37 2 Wall
 37 3 Wall
 37 4 Wall
+37 5 Wall
+37 6 Wall
 37 7 Wall
 37 8 Wall
 37 9 Wall
@@ -1154,6 +1224,8 @@
 38 3 Wall
 38 4 Wall
 38 5 Wall
+38 6 Wall
+38 7 Wall
 38 8 Wall
 38 9 Wall
 38 10 Wall
@@ -1185,6 +1257,8 @@
 39 4 Wall
 39 5 Wall
 39 6 Wall
+39 7 Wall
+39 8 Wall
 39 9 Wall
 39 10 Wall
 39 11 Wall
@@ -1216,6 +1290,8 @@
 40 5 Wall
 40 6 Wall
 40 7 Wall
+40 8 Wall
+40 9 Wall
 40 10 Wall
 40 11 Wall
 40 12 Wall
@@ -1247,6 +1323,8 @@
 41 6 Wall
 41 7 Wall
 41 8 Wall
+41 9 Wall
+41 10 Wall
 41 11 Wall
 41 12 Wall
 41 13 Wall
@@ -1278,6 +1356,8 @@
 42 7 Wall
 42 8 Wall
 42 9 Wall
+42 10 Wall
+42 11 Wall
 42 12 Wall
 42 13 Wall
 42 14 Wall
@@ -1309,6 +1389,8 @@
 43 8 Wall
 43 9 Wall
 43 10 Wall
+43 11 Wall
+43 12 Wall
 43 13 Wall
 43 14 Wall
 43 15 Wall
@@ -1340,6 +1422,8 @@
 44 9 Wall
 44 10 Wall
 44 11 Wall
+44 12 Wall
+44 13 Wall
 44 14 Wall
 44 15 Wall
 44 16 Wall
@@ -1371,6 +1455,8 @@
 45 10 Wall
 45 11 Wall
 45 12 Wall
+45 13 Wall
+45 14 Wall
 45 15 Wall
 45 16 Wall
 45 17 Wall
@@ -1402,6 +1488,8 @@
 46 11 Wall
 46 12 Wall
 46 13 Wall
+46 14 Wall
+46 15 Wall
 46 16 Wall
 46 17 Wall
 46 18 Wall
@@ -1433,6 +1521,8 @@
 47 12 Wall
 47 13 Wall
 47 14 Wall
+47 15 Wall
+47 16 Wall
 47 17 Wall
 47 18 Wall
 47 19 Wall
@@ -1464,6 +1554,8 @@
 48 13 Wall
 48 14 Wall
 48 15 Wall
+48 16 Wall
+48 17 Wall
 48 18 Wall
 48 19 Wall
 48 20 Wall
@@ -1495,6 +1587,8 @@
 49 14 Wall
 49 15 Wall
 49 16 Wall
+49 17 Wall
+49 18 Wall
 49 19 Wall
 49 20 Wall
 49 21 Wall
@@ -1526,6 +1620,8 @@
 50 15 Wall
 50 16 Wall
 50 17 Wall
+50 18 Wall
+50 19 Wall
 50 20 Wall
 50 21 Wall
 50 22 Wall
@@ -1557,6 +1653,8 @@
 51 16 Wall
 51 17 Wall
 51 18 Wall
+51 19 Wall
+51 20 Wall
 51 21 Wall
 51 22 Wall
 51 23 Wall
@@ -1588,6 +1686,8 @@
 52 17 Wall
 52 18 Wall
 52 19 Wall
+52 20 Wall
+52 21 Wall
 52 22 Wall
 52 23 Wall
 52 24 Wall
@@ -1619,6 +1719,8 @@
 53 18 Wall
 53 19 Wall
 53 20 Wall
+53 21 Wall
+53 22 Wall
 53 23 Wall
 53 24 Wall
 53 25 Wall
@@ -1650,6 +1752,8 @@
 54 19 Wall
 54 20 Wall
 54 21 Wall
+54 22 Wall
+54 23 Wall
 54 24 Wall
 54 25 Wall
 54 26 Wall
@@ -1681,6 +1785,8 @@
 55 20 Wall
 55 21 Wall
 55 22 Wall
+55 23 Wall
+55 24 Wall
 55 25 Wall
 55 26 Wall
 55 27 Wall
@@ -1712,6 +1818,8 @@
 56 21 Wall
 56 22 Wall
 56 23 Wall
+56 24 Wall
+56 25 Wall
 56 26 Wall
 56 27 Wall
 56 28 Wall
@@ -1743,6 +1851,8 @@
 57 22 Wall
 57 23 Wall
 57 24 Wall
+57 25 Wall
+57 26 Wall
 57 27 Wall
 57 28 Wall
 57 29 Wall
@@ -1774,6 +1884,8 @@
 58 23 Wall
 58 24 Wall
 58 25 Wall
+58 26 Wall
+58 27 Wall
 58 28 Wall
 58 29 Wall
 58 30 Wall
@@ -1805,6 +1917,8 @@
 59 24 Wall
 59 25 Wall
 59 26 Wall
+59 27 Wall
+59 28 Wall
 59 29 Wall
 59 30 Wall
 59 31 Wall
@@ -1836,6 +1950,8 @@
 60 25 Wall
 60 26 Wall
 60 27 Wall
+60 28 Wall
+60 29 Wall
 60 30 Wall
 60 31 Wall
 61 0 Wall
@@ -1867,6 +1983,8 @@
 61 26 Wall
 61 27 Wall
 61 28 Wall
+61 29 Wall
+61 30 Wall
 61 31 Wall
 62 0 Wall
 62 1 Wall
@@ -1898,6 +2016,8 @@
 62 27 Wall
 62 28 Wall
 62 29 Wall
+62 30 Wall
+62 31 Wall
 63 0 Wall
 63 1 Wall
 63 2 Wall
