@@ -7,10 +7,10 @@ using namespace sf;
 
 
 enum TypeState {unknown = -1, menu = 0, player, admin}; //типы игры
-enum SubtypeState {launcher = 0, mode, settings, exitt, selectLVL, audioSetting, controlSeting, playerLVL, //0-7 //подтипы игры
-	               editLVL,  openLVL, saveLVL, deleteLVL, listLVL, // 8-12
-	               play, pause, startLVL, completeLVL,  //13-16
-	               wholeType, allState, loadingLVL}; //17-19
+enum SubtypeState {launcher = 0, mode, settings, exitt, selectLVL, audioSetting, controlSeting, playerLVL, about, //0-8 //подтипы игры
+	               editLVL,  openLVL, saveLVL, deleteLVL, listLVL, // 9-13
+	               play, pause, startLVL, completeLVL,  //14-17
+	               wholeType, allState, loadingLVL}; //18-20
 enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
@@ -97,9 +97,9 @@ public:
 	}
 
 	TypeState findType (SubtypeState tmpS){
-		if (tmpS > -1 && tmpS <= 7)       return menu;
-		else if (tmpS > 7 && tmpS <= 12)  return admin;
-		else if (tmpS > 12 && tmpS <= 16) return player;
+		if (tmpS > -1 && tmpS <= 8)       return menu;
+		else if (tmpS > 8 && tmpS <= 13)  return admin;
+		else if (tmpS > 13 && tmpS <= 17) return player;
 		else                              return unknown;
 	}
 protected:
