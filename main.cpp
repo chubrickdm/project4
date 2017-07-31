@@ -15,40 +15,41 @@ using namespace sf;
 
 
 //инициализируем всё, нужно что б если переменная менялась где-то, то она менялась и во всех классах наследниках
-TileMap       System::map;
-bool          System::F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
-Vector2i      System::mousePosWin; //системные переменные
-Vector2f      System::posMouse;
-RenderWindow* System::window;
-Event         System::event;
+bool         System::F_musicOff; //флаг, который показывает выключена ли музыка
+bool         System::F_soundOff; //флаг, который показывает выключены ли звуки
+bool         System::F_lvlComplete; //показывает завершен уровень
+bool         System::F_showMessage; //флаг, который показывает видно ли сообщение
+bool         System::F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
 
-float         System::timer; //переменные связанные со временем
-float         System::time;
-int           System::FPS;
-Clock         System::clock;
+float        System::speedChangeSt; //скорость изменения размера кнопок при изменении состояния
+float        System::speed; //скорость с которой движется игрок по уровню
+float        System::timer; //таймер
+float        System::time; //время
+float        System::volumeMusic; //громокость фоновой музыки
+float        System::volumeSound; //громкость звука
 
-bool          System::F_musicOff; //переменные связанные с музыкой и звуками
-bool          System::F_soundOff; 
-float         System::volumeSound;
-float         System::volumeMusic;
-Music         System::backgroundMusic;
-SoundBuffer   System::bufferClickButt;
-Sound         System::sndClickButt;
-SoundBuffer   System::bufferTeleport;
-Sound         System::sndTeleport;
+int          System::FPS; //значение ФПС
+int          System::keyCodePressed; //какая клавиша была нажата
+int          System::key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
+int          System::whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
+int          System::PassedLVL; //сколько пройдено уровней
+int*         System::levelArray; //массив в котором хранится карта
 
-bool          System::F_lvlComplete; //внтуригровая логика
-bool          System::F_showMessage;
-float         System::speedChangeSt;
-float         System::speed;
-int           System::keyCodePressed;
-int           System::key [3];
-int           System::whatButChange;
-int           System::PassedLVL;
-CreateWall    System::whichWall;
-String        System::AdOrPlMode;
-Coordinate    System::Start;
-Coordinate    System::Finish;
+RenderWindow *System::window; //окно, в котором запускается игра
+Event        System::event; //событие
+Clock        System::clock; //время
+Sound        System::sndTeleport; //звук телепорта игрока к сохранению
+Sound        System::sndClickButt; //звук нажатия на кнопку
+Music        System::backgroundMusic; //фоновая музыка
+SoundBuffer  System::bufferClickButt; //буфер для звука нажатия на кнопки
+SoundBuffer  System::bufferTeleport; //буфер для звука телепорта игрока к сохранению
+String       System::AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
+Vector2i     System::mousePosWin; //координаты мыши относ. окна
+Vector2f     System::posMouse; //координаты мыши относ. карты
+TileMap      System::map; //карта
+CreateWall   System::whichWall; //какая стена выбрана админом в данный момент
+Coordinate   System::Start; //координаты старта (откуда игрок стартует) 
+Coordinate   System::Finish; //координаты финиша (куда должен придти)
 
 
 class Button : public BodyButton{
@@ -676,24 +677,6 @@ public:
 
 class Game : public System{ //вся механика и инициализация игры в этом классе
 public:
-	TypeState type; //текущий тип
-	SubtypeState subtype; //текущий подтип
-	SubtypeState whichStateWas; //какое состояние было, нужно для изменения состояний
-	SubtypeState whichStateWill; //какое состояние должно стать, нужно для изменения состояний
-
-	float lvlTime; //время проведенное игроком на уровне
-	float AllTime; //общее время игрока проведенного в игре
-	int CurrentLVL; //текущий уровень
-	int NumLVLDeath; //количествэо смертей на уровне
-	int NumWall; //количество стен
-	int NumButton; //количество кнопок
-	int NumListLVL; //количество уровней в списке (что б потом знать сколько удалять последних кнопок)
-
-	char Pass [30]; //пароль
-	char playerLVLOpenByPlayer [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
-	char lvlOpenByAdmin [50]; //имя файла открытого админом
-	char lvlOpenByPlayer [70]; //имя файла открытого игроком
-
 	bool F_playerOnStart; //флаг, который показывает игрок находится ли на старте
 	bool F_loadLVL; //флаг, который показывает загружен ли уровень
 	bool F_reduceWholeType; //флаг, который показывает уменьшаются ли кнопки которые относятся к типо, а не подтипу (время, кол-во смертей, управление)
@@ -705,31 +688,45 @@ public:
 	bool F_changeKey; //флаг, который показывает, вводится ли сейчас какая клавиша (когда меняем клавишу на которую меняется фигура)
 	bool F_secPhaseChangeState; //флаг, который показывает, вторая ли сейчас фаза изменение состояний (увелечение)
 	bool F_inSetingIntoPause; //флаг, который показывает, вошли ли мы в настройки через игрока (нужно что б когда выходили из настроек возвращались к игре)
-	
+
+	char Pass [30]; //пароль
+	char playerLVLOpenByPlayer [50];  //имя файла открытого игроком, и уровень при этом созданный игроком
+	char lvlOpenByAdmin [50]; //имя файла открытого админом
+	char lvlOpenByPlayer [70]; //имя файла открытого игроком
+
+	float lvlTime; //время проведенное игроком на уровне
+	float AllTime; //общее время игрока проведенного в игре
+
 	int indexFinish; //индекс финиша (что б долго не искать)
 	int indexStart; //индекс старта (что б долго не искать)
 	int indexDeathPlayerBut; //индекс кнопки на которой выводится количество смертей на уровне
 	int indexFPSBut; //индекс кнопки на которой выводится значение фпс
 	int indexTimePlBut; //индекс кнопки на которой выводится время игрока
 	int indexControlBut [4]; //индексы кнопок, на котором изображено управление
+	int CurrentLVL; //текущий уровень
+	int NumWall; //количество стен
+	int NumButton; //количество кнопок
+	int NumListLVL; //количество уровней в списке (что б потом знать сколько удалять последних кнопок)
+	int NumLVLDeath; //количествэо смертей на уровне
+
+	TypeState type; //текущий тип
+	SubtypeState subtype; //текущий подтип
+	SubtypeState whichStateWas; //какое состояние было, нужно для изменения состояний
+	SubtypeState whichStateWill; //какое состояние должно стать, нужно для изменения состояний
 
 	Image wallImage; //изображение стен
 	Image wallImagePL; //изображение игрока
+	Background *plBackground; //фоновое изображение, которые закрывает лабаринт
+	Background *logo; //логотип
+	Background *SFML; //знак SFML
 	VertexArray lines; //линии которые в админ моде рисуются, что б легче было создавтаь уровни
 	RectangleShape cursor; //курсор
 	Texture textureCursor; //текстура курсора 
-	
+	Message message; //сообщение
 	Player *pl; //игрок
 	BodyButton *button [120]; //массив кнопок
 	Wall *ArrWall [2500]; //массив стен
 	bool **wallCoordinate; //координаты стен
-	Background *plBackground; //фоновое изображение, которые закрывает лабаринт
-	Background *logo; //логотип
-	Background *SFML; //знак SFML
-
-	Message message;
-
-	
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
@@ -749,7 +746,7 @@ public:
 		if (type == admin && subtype != listLVL){
 			window -> draw (lines); //рисую вспомогательные линии для админа
 			for (int i = 0; i < NumWall; i++) //рисую стены
-					ArrWall [i] -> draw ();
+				ArrWall [i] -> draw ();
 		}
 
 		if (type == player){
@@ -956,8 +953,9 @@ public:
 
 		tmpS = startLVL;
 		tmpI = GLOBAL_W / 2 + NUM_SQUARE * SQUARE / 2 + (W_WIN - NUM_SQUARE * SQUARE) / 4;
-		button [NumButton++] = new Static ("Press Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
-		button [NumButton++] = new Static ("Press any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
+		button [NumButton++] = new Static ("Press",            "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 2 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
+		button [NumButton++] = new Static ("Escape to leave",  "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 1 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
+		button [NumButton++] = new Static ("Any key to start", "StartLVL", font, tmpS, tmpI, GLOBAL_H / 2 - 0 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
 	}
 
 	void initializeLines (){
@@ -976,8 +974,8 @@ public:
 	}
 
 	void initializeSomething (){
-		Start.x = GLOB_IND_H; Start.y = GLOB_IND_H + NUM_CELL_Y * EDGE; //инициализируем стартовую точку
-		Finish.x = GLOB_IND_W + NUM_CELL_X * EDGE; Finish.y = GLOB_IND_H; //инициализируем финиш
+		Start.x = 0; Start.y = 0; //инициализируем стартовую точку
+		Finish.x = 0; Finish.y = 0; //инициализируем финиш
 
 		Font font;
 		font.loadFromFile ("Resources/Fonts/modeka.otf");
@@ -1020,6 +1018,8 @@ public:
 			}
 			button [indexControlBut [i]] -> updateText (tmpC);
 		}
+
+		levelArray = new int [(NUM_CELL_X + 2) * (NUM_CELL_Y + 2)];
 	}
 
 	void initializeWalls (){
@@ -1052,12 +1052,14 @@ public:
 		F_reduceWholeType = false;
 		F_loadLVL = false;
 		F_playerOnStart = false;
+		F_enterReleased = false;
 		type = menu;
 		subtype = launcher;
 		whichWall = wall;
 		key [0] = 27;
 		key [1] = 28;
 		key [2] = 29;
+		lvlTime = 0;
 		CurrentLVL = 1;
 		timer = 0;
 		NumWall = 0;
@@ -1173,7 +1175,7 @@ public:
 		ofstream outF (tmpC);
 		int tmp = 0;
 		outF << NumWall << endl;
-		outF << (Start.x - GLOB_IND_W) / EDGE << " " << (Start.y - GLOB_IND_H) / EDGE << endl; //координаты старта, надо перевести
+		outF << Start.x << " " << Start.y << endl; //координаты старта, надо перевести
 		outF << NumLVLDeath << endl;
 		outF << ArrWall [indexStart] -> x << " " << ArrWall [indexStart] -> y << " Start" << endl;
 		outF << ArrWall [indexFinish] -> x << " " << ArrWall [indexFinish] -> y << " Finish" << endl;
@@ -1199,14 +1201,11 @@ public:
 		for (int i = 0; i < NUM_CELL_X; i++)
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				wallCoordinate [i][j] = false;
-		NumAnsw = 0;
 
 		ifstream inF (tmpC);
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
 		inF >> NumLVLDeath;
-		Start.x = Start.x * EDGE + GLOB_IND_W; //координаты старта, надо перевести
-		Start.y = Start.y * EDGE + GLOB_IND_H;
 
 		for (int i = 0; i < NumWall; i++){
 			inF >> tmpX >> tmpY >> tmpC;
@@ -1217,8 +1216,8 @@ public:
 			else if (strcmp (tmpC, "Start") == 0)
 				indexStart = i;
 			else if (strcmp (tmpC, "Finish") == 0){
-				Finish.x = tmpX * EDGE + GLOB_IND_W; 
-				Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i;
+				Finish.x = tmpX; Finish.y = tmpY;
+				indexFinish = i;
 			}
 		}
 
@@ -1244,13 +1243,10 @@ public:
 		for (int i = 0; i < NUM_CELL_X; i++)
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				wallCoordinate [i][j] = false;
-		NumAnsw = 0;
 
 		ifstream inF (tmpC);
 		inF >> NumWall; 
 		inF >> Start.x >> Start.y;
-		Start.x = Start.x * EDGE + GLOB_IND_W; //координаты старта, надо перевести
-		Start.y = Start.y * EDGE + GLOB_IND_H;
 		inF >> NumLVLDeath;
 
 		for (int i = 0; i < NumWall; i++){
@@ -1262,8 +1258,8 @@ public:
 			else if (strcmp (tmpC, "Start") == 0)
 				indexStart = i;
 			else if (strcmp (tmpC, "Finish") == 0){
-				Finish.x = tmpX * EDGE + GLOB_IND_W; 
-				Finish.y = tmpY * EDGE + GLOB_IND_H; indexFinish = i;
+				Finish.x = tmpX; 
+				Finish.y = tmpY; indexFinish = i;
 			}
 		}
 
@@ -1313,10 +1309,10 @@ public:
 
 	void createWay (){ //функция создания выхода из лабиринта
 		Coordinate fn, sizeMap, st;
-		st.x = (Start.x - GLOB_IND_W) / EDGE;
-		st.y = (Start.y - GLOB_IND_H) / EDGE;
-		fn.x = (Finish.x - GLOB_IND_W) / EDGE;
-		fn.y = (Finish.y - GLOB_IND_H) / EDGE;
+		st.x = Start.x;
+		st.y = Start.y;
+		fn.x = Finish.x;
+		fn.y = Finish.y;
 		pl -> currDirection = 0;
 		sizeMap.x = NUM_CELL_X;
 		sizeMap.y = NUM_CELL_Y;
@@ -1395,9 +1391,8 @@ public:
 	}
 
 	void createMap (){
-		int *level = new int [(NUM_CELL_X + 2) * (NUM_CELL_Y + 2)];
-		for (int i = 0; i < NUM_CELL_X * NUM_CELL_Y; i++)
-			level [i] = 7;
+		for (int i = 0; i < (NUM_CELL_X + 2) * (NUM_CELL_Y + 2); i++)
+			levelArray [i] = 7;
 		int tmpI;
 		for (int i = 0; i < NumWall; i++){
 			if (ArrWall [i] -> name == "Save")             tmpI = 0;
@@ -1407,18 +1402,18 @@ public:
 			else if (ArrWall [i] -> name == "Circle")      tmpI = 4;
 			else if (ArrWall [i] -> name == "Rectangle")   tmpI = 5;
 			else if (ArrWall [i] -> name == "Triangle")    tmpI = 6;	
-			level [1 + ArrWall [i] -> x + (ArrWall [i] -> y + 1) * (NUM_CELL_X + 2)] = tmpI;
+			levelArray [1 + ArrWall [i] -> x + (ArrWall [i] -> y + 1) * (NUM_CELL_X + 2)] = tmpI;
 		}
 		for (int i = 0; i < 2; i++)
 			for (int j = 0; j < NUM_CELL_X + 2; j++)
-				level [i * (NUM_CELL_Y + 1) * (NUM_CELL_X + 2) + j] = 1;
+				levelArray [i * (NUM_CELL_Y + 1) * (NUM_CELL_X + 2) + j] = 1;
 		for (int i = 0; i < 2; i++)
 			for (int j = 0; j < NUM_CELL_Y + 2; j++)
-				level [i * (NUM_CELL_X + 1) + j * (NUM_CELL_X + 2)] = 1;
+				levelArray [i * (NUM_CELL_X + 1) + j * (NUM_CELL_X + 2)] = 1;
 
 		
-		map.load("Resources/Textures/wall2.png", Vector2u (40, 40), level, NUM_CELL_X + 2, NUM_CELL_Y + 2, Vector2i (SQUARE, SQUARE));
-		map.setOrigin ((float) SQUARE * (Start.x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (Start.y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
+		map.load("Resources/Textures/wall2.png", Vector2u (40, 40), levelArray, NUM_CELL_X + 2, NUM_CELL_Y + 2, Vector2i (SQUARE, SQUARE));
+		map.setOrigin ((float) SQUARE * Start.x + 3 * SQUARE / 2, (float) SQUARE * Start.y + 3 * SQUARE / 2);
 		map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 	}
 
@@ -1535,7 +1530,14 @@ public:
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "QuitYes") || F_enterReleased) && !F_changeStates){
 					sndClickButt.play (); 
-					window -> close (); break;
+					for (int i = 0; i < NUM_CELL_X; i++)
+						delete [] wallCoordinate [i];
+					delete [] wallCoordinate;
+					delete pl;
+					delete plBackground;
+					delete [] levelArray;
+					window -> close (); 
+					break;
 				}
 			}
 	}
@@ -1744,7 +1746,6 @@ public:
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC;
 						if (strstr (tmpC, "lvl") == NULL || strpbrk (tmpC, "12345678") == NULL || strlen (tmpC) > 4){
-							cout << tmpC << endl;
 							button [NumButton++] = new Static (tmpC, "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
 							NumListLVL++;
 						}
@@ -1857,8 +1858,6 @@ public:
 						strcat (tmpC, ".txt");
 						Start.x = ArrWall [indexStart] -> x;
 						Start.y = ArrWall [indexStart] -> y;
-						Start.x = Start.x * EDGE + GLOB_IND_W;
-						Start.y = Start.y * EDGE + GLOB_IND_H;
 						saveLVL_AD (tmpC);
 					}
 				}
@@ -1947,39 +1946,33 @@ public:
 			pl -> update ();
 			
 
-		if (((float) pl -> x == pl -> xx) && ((float) pl -> y == pl -> yy))
+		if (map.getPosition ().x == GLOBAL_W / 2 && map.getPosition ().y == GLOBAL_H / 2){
 			if (!F_changeStates && !pl -> F_move && !pl -> F_reduce){
-				Coordinate tmp;
-				int tmpIndex;
-				tmp.x = (pl -> x - GLOB_IND_W) / EDGE;
-				tmp.y = (pl -> y - GLOB_IND_H) / EDGE;
-				tmpIndex = binSearch (0, NumWall - 1, ArrWall, tmp);
-				if (tmpIndex != -1){
-					if ((ArrWall [tmpIndex] -> name == "Rectangle" && pl -> state != rectangle) || (ArrWall [tmpIndex] -> name == "Circle" && pl -> state != circle) || (ArrWall [tmpIndex] -> name == "Triangle" && pl -> state != triangle)){
-						if (!pl -> F_teleportation){
-							sndTeleport.play (); timer = 0;
-						}
-						pl -> EFF_teleportation (Start.x, Start.y); 
-						timer += time;
-				
-						if (!pl -> F_teleportation){
-							map.setOrigin ((float) SQUARE * (Start.x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (Start.y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
-							map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
-
-							startChangeState (startLVL);
-							NumLVLDeath++;
-							char tmpC [30]; //обновление времени и количества смертей
-							button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC, 10));
-							createWay ();
-						}
+				if ((levelArray [1 + pl -> x + (pl -> y + 1) * (NUM_CELL_X + 2)] == 5 && pl -> state != rectangle) || (levelArray [1 + pl -> x + (pl -> y + 1) * (NUM_CELL_X + 2)] == 4 && pl -> state != circle) || (levelArray [1 + pl -> x + (pl -> y + 1) * (NUM_CELL_X + 2)] == 6 && pl -> state != triangle)){
+					if (!pl -> F_teleportation){
+						sndTeleport.play (); timer = 0;
 					}
-					else if (ArrWall [tmpIndex] -> name == "Save"){
-						Start.x = ArrWall [tmpIndex] -> x * EDGE + GLOB_IND_W;
-						Start.y = ArrWall [tmpIndex] -> y * EDGE + GLOB_IND_H;
+					pl -> EFF_teleportation (Start.x, Start.y); 
+					timer += time;
+
+					if (!pl -> F_teleportation){
+						map.setOrigin ((float) SQUARE * Start.x + 3 * SQUARE / 2, (float) SQUARE * Start.y + 3 * SQUARE / 2);
+						map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+
+						startChangeState (startLVL);
+						NumLVLDeath++;
+						char tmpC [30]; //обновление количества смертей
+						button [indexDeathPlayerBut] -> updateText (_itoa (NumLVLDeath, tmpC, 10));
 						createWay ();
 					}
 				}
+				else if (levelArray [1 + pl -> x + (pl -> y + 1) * (NUM_CELL_X + 2)] == 0){
+					Start.x = pl -> x;
+					Start.y = pl -> y;
+					createWay ();
+				}
 			}
+		}
 
 		if (!F_changeStates){
 			char tmpC [30]; //обновление времени и количества смертей
@@ -2001,15 +1994,13 @@ public:
 					sndClickButt.play (); 
 					F_lvlComplete = false;
 					if (!F_isPlayerLVL){
-						if (CurrentLVL < 2){ //////////////////////////////////////////////исправить!!!////////////////////////////////////////////////////
+						if (CurrentLVL < 8){ //////////////////////////////////////////////исправить!!!////////////////////////////////////////////////////
 							if (PassedLVL < 8 && CurrentLVL - 1 == PassedLVL)
 								PassedLVL++;
 							writeInfo ();
 							CurrentLVL++; 
 							Start.x = ArrWall [indexStart] -> x;
 							Start.y = ArrWall [indexStart] -> y;
-							Start.x = Start.x * EDGE + GLOB_IND_W;
-							Start.y = Start.y * EDGE + GLOB_IND_H;
 							saveLVL_AD (lvlOpenByPlayer);
 							char tmpC [40], *tmpC2;
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
@@ -2025,8 +2016,6 @@ public:
 							pl -> F_reduce = false;
 							Start.x = ArrWall [indexStart] -> x;
 							Start.y = ArrWall [indexStart] -> y;
-							Start.x = Start.x * EDGE + GLOB_IND_W;
-							Start.y = Start.y * EDGE + GLOB_IND_H;
 							saveLVL_AD (lvlOpenByPlayer);
 							PassedLVL = 8;
 							writeInfo ();
@@ -2036,11 +2025,8 @@ public:
 					else{
 						F_isPlayerLVL = false;
 						pl -> F_reduce = false;
-						NumAnsw = 0;
 						Start.x = ArrWall [indexStart] -> x;
 						Start.y = ArrWall [indexStart] -> y;
-						Start.x = Start.x * EDGE + GLOB_IND_W;
-						Start.y = Start.y * EDGE + GLOB_IND_H;
 						saveLVL_AD (lvlOpenByPlayer);
 						startChangeState (selectLVL);
 					}
@@ -2056,7 +2042,6 @@ public:
 				if (((button [i] -> F_click && button [i] -> name == "LeaveToSel") || F_enterReleased) && !F_changeStates){
 					AllTime += lvlTime;
 					lvlTime = 0;
-					NumAnsw = 0;
 					writeInfo ();
 					saveLVL_AD (lvlOpenByPlayer);
 					startChangeState (selectLVL);
@@ -2083,7 +2068,7 @@ public:
 		}
 		else if (F_escapeReleased && !F_changeStates){
 			AllTime += lvlTime; lvlTime = 0;
-			NumAnsw = 0; writeInfo ();
+			writeInfo ();
 			saveLVL_AD (lvlOpenByPlayer); 
 			startChangeState (selectLVL);
 			F_lvlComplete = false;
@@ -2196,8 +2181,8 @@ int main (){
 	VideoMode mode = modes [0];
 	
 	Game game;
-	//system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
-	system.window = new RenderWindow (mode, "Figure"); //создание окна
+	system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	//system.window = new RenderWindow (mode, "Figure"); //создание окна
 	//system.window = new RenderWindow (VideoMode (805, 644), "Figure"); //создание окна
 	system.window -> setMouseCursorVisible (false); //не рисуем курсор
 	//system.window -> setFramerateLimit (60); //устанваливаем предел для ФПС

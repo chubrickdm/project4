@@ -32,9 +32,8 @@ struct Coordinate{
 	}
 };
 
-int NumAnsw = 0;
-Coordinate Arr [1000];
-int Direction [1000];
+
+int Direction [2000];
 int NumMoves = 0;
 
 class Queue{
@@ -103,8 +102,7 @@ public:
 };
 
 void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish, const Coordinate &size){
-	NumAnsw = 0;
-	NumMoves = 0;
+	NumMoves = 0; 
 	int **dir;
 	dir = new int* [size.x];
 	for (int i = 0; i < size.x; i++){
@@ -123,19 +121,19 @@ void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish
 	while (tmpc != finish){
 	    if ((tmpc.y != 0) && (dir [tmpc.x][tmpc.y - 1] == 0) && (!labyrinth [tmpc.x][tmpc.y - 1])){
 			dir [tmpc.x][--tmpc.y] = -1;
-			q.addLast(tmpc); tmpc.y++;
+			q.addLast (tmpc); tmpc.y++;
     	}
     	if ((tmpc.y != size.y - 1) && (dir [tmpc.x][tmpc.y + 1] == 0) && (!labyrinth [tmpc.x][tmpc.y + 1])){
 			dir [tmpc.x][++tmpc.y] = 1;
-		    q.addLast(tmpc); tmpc.y--;
+		    q.addLast (tmpc); tmpc.y--;
     	}
     	if ((tmpc.x != 0) && (dir[tmpc.x - 1][tmpc.y] == 0) && (!labyrinth [tmpc.x - 1][tmpc.y])){
 			dir [--tmpc.x][tmpc.y] = -2;
-			q.addLast(tmpc); tmpc.x++;
+			q.addLast (tmpc); tmpc.x++;
     	}
     	if ((tmpc.x != size.x - 1) && (dir [tmpc.x + 1][tmpc.y] == 0) && (!labyrinth [tmpc.x + 1][tmpc.y])){
 			dir [++tmpc.x][tmpc.y] = 2;
-			q.addLast(tmpc); tmpc.x--;
+			q.addLast (tmpc); tmpc.x--;
     	}
 		tmpc = q.delFirst (); 
 		if ((tmpc.x == -1) && (tmpc.y == -1)){
@@ -146,15 +144,14 @@ void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish
 	if (answer != -1){
     	tmpc = finish;
 	    while (tmpc != start){
-			if (dir [tmpc.x][tmpc.y] == -1){ Arr [NumAnsw++] = tmpc; tmpc.y++; Direction [NumMoves++] = 1; }
+			if (dir [tmpc.x][tmpc.y] == -1){ tmpc.y++; Direction [NumMoves++] = 1; }
 	    	else
-				if (dir [tmpc.x][tmpc.y] == 1){ Arr [NumAnsw++] = tmpc; tmpc.y--; Direction [NumMoves++] = 4; }
+				if (dir [tmpc.x][tmpc.y] == 1){ tmpc.y--; Direction [NumMoves++] = 4; }
 	    		else
-					if (dir [tmpc.x][tmpc.y] == -2){ Arr [NumAnsw++] = tmpc; tmpc.x++; Direction [NumMoves++] = 3; }
+					if (dir [tmpc.x][tmpc.y] == -2){ tmpc.x++; Direction [NumMoves++] = 3; }
 		    		else
-						if (dir [tmpc.x][tmpc.y] == 2){ Arr [NumAnsw++] = tmpc; tmpc.x--; Direction [NumMoves++] = 2; }
+						if (dir [tmpc.x][tmpc.y] == 2){ tmpc.x--; Direction [NumMoves++] = 2; }
 	    	answer++;
 	    }
 	}
-	Arr [NumAnsw++] = start;
 }

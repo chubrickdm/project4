@@ -64,14 +64,13 @@ private:
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
 	float rotation; //угол на который поворачивается игрок при эффекте конца уровня и начале игры
-	int tmpX, tmpY; //переменные которые хранят место куда мы хотим попасть, нажав клавишу
+	int dir; //направление, в котором движется игрок в данный момент
 	StatePlayer stateWill; //хранит состояние в которое трансформируется игрок
 public:
 	bool F_move; //флаг, который показывает движется ли игрок
 	bool F_teleportation; //флаг, который показывает игрок телепортируется ли
 	bool F_reduce; //флаг, который показывает уменьшается ли игрок в данный момент
 	bool F_enlarge; //флаг, который показывает идет ли эффект начала игры
-	float xx, yy; //нужны, потому что скорость не целое число, и координаты игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
 	int currDirection; //текущее направление
 	StatePlayer state; //состояние игрока соотвествует фигуре
 private:
@@ -118,8 +117,6 @@ private:
 	}
 public:
 	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
-	    xx = (float) x; yy = (float) y; 
-		tmpX = x; tmpY = y;
 		F_move = false; F_reduce = false;
 		F_teleportation = false; F_transformation = false; F_secPhaseTransformation = false;
 		reducePrecent = 100; rotation = 0; enlargePrecent = 1; F_enlarge = false;
@@ -180,46 +177,56 @@ public:
 	}
 
 	void update (){
-		if (x == Finish.x && y == Finish.y){ //есди мы достигли финиша
-			EFF_reduce (); F_transformation = false;
-			F_secPhaseTransformation = false; F_reduce = true;
-		}
-		else if (!F_teleportation){
+		if (!F_teleportation){
 			if (currDirection < NumMoves && !F_move){
-				if (Direction [currDirection] == 4)        tmpY = y - EDGE; //запоминаем координаты куда мы должы придти
-				else if (Direction [currDirection] == 1)   tmpY = y + EDGE; //запоминаем координаты куда мы должы придти
-				else if (Direction [currDirection] == 2)   tmpX = x - EDGE; //запоминаем координаты куда мы должы придти 
-				else if (Direction [currDirection] == 3)   tmpX = x + EDGE; //запоминаем координаты куда мы должы придти
+				if (Direction [currDirection] == 4)      { y--; dir = 4; }
+				else if (Direction [currDirection] == 1) { y++; dir = 1; }
+				else if (Direction [currDirection] == 2) { x--; dir = 2; }
+				else if (Direction [currDirection] == 3) { x++; dir = 3; }
 				currDirection++; F_move = true;
-				xx = (float) x; yy = (float) y;
 			}
 
 			changeFigureKey ();
 
-			if (F_move){ //проверяем, нет ли стены на том месте куда мы хотим перейти
-				//cout << xx << "-xx   " << yy << "-yy\n" << tmpX << "-tmpX   " << tmpY << "-tmpY\n" << speed * time << "-speed * time\n" << abs (xx - (float) tmpX) << "-xx - tmpX   " << abs (yy - (float) tmpY) << "-yy - tmpY\n" << endl;
-
-				if (abs (xx - (float) tmpX) <= speed * time && abs (yy - (float) tmpY) <= speed * time){ //по разности понимаем когда игрок достиг следующей клетки, округляем координаты и дальше движемся
-					F_move = false; 
-					xx = (float) tmpX; yy = (float) tmpY;
-					x = tmpX; y = tmpY;
-					map.setOrigin ((float) SQUARE * (x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
-					map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
-				}
-				else{ //само движение игрока
-					if (x < tmpX){        xx += speed * time; map.move (-3 * SQUARE * time, 0); } //движение по горизонтали
-					else if (x > tmpX){   xx -= speed * time; map.move (3 * SQUARE * time, 0); }
-					else if (y < tmpY){   yy += speed * time; map.move (0, -3 * SQUARE * time); } //движениепо вертикали
-					else if (y > tmpY){   yy -= speed * time; map.move (0, +3 * SQUARE * time); } 
-					else{
-						yy = (float) tmpY; xx = (float) tmpX; //мб ситуация когда у = tmpY, а yy - tmpY больше чем speed * time, тогда
-						map.setOrigin ((float) SQUARE * (x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
+			if (F_move){
+				if (dir == 3){ 
+					map.move (-3 * SQUARE * time, 0); 
+					if (map.getPosition ().x - (GLOBAL_W / 2 - SQUARE) < 3 * SQUARE * time || map.getPosition ().x < GLOBAL_W / 2 - SQUARE){
+						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
 						map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
-						//происходит зависание игрока, пока не будет такое время, что speed * time будет больше
+						F_move = false; 
 					}
-					x = (int) xx; y = (int) yy;
 				}
+				else if (dir == 2){
+					map.move (3 * SQUARE * time, 0); 
+					if ((GLOBAL_W / 2 + SQUARE - map.getPosition ().x < 3 * SQUARE * time) || map.getPosition ().x > GLOBAL_W / 2 + SQUARE){
+						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
+						map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+						F_move = false; 
+					}
+				}
+
+				else if (dir == 1){
+					map.move (0, -3 * SQUARE * time); 
+					if ((map.getPosition ().y - (GLOBAL_H / 2 - SQUARE) < 3 * SQUARE * time) || map.getPosition ().y < GLOBAL_H / 2 - SQUARE){
+						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
+						map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+						F_move = false; 
+					}
+				}
+				else if (dir == 4){
+					map.move (0, 3 * SQUARE * time); 
+					if ((GLOBAL_H / 2 + SQUARE - map.getPosition ().y < 3 * SQUARE * time) || map.getPosition ().y > GLOBAL_H / 2 + SQUARE){
+						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
+						map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+						F_move = false; 
+					}
+				} 
 			}
+		}
+		if (x == Finish.x && y == Finish.y && !F_move){ //есди мы достигли финиша
+			EFF_reduce (); F_transformation = false;
+			F_secPhaseTransformation = false; F_reduce = true;
 		}
 	}
 
@@ -232,8 +239,8 @@ public:
 		rotation = 360 - ((FPS * (100 / speedChangeSt) * 3) * (float) (speedChangeSt * time * 1.5));
 
 		x = x2; y = y2; 
-		xx = (float) x; yy = (float) y;
-		tmpX = x; tmpY = y; 
+		map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
+		map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 	}
 
 	void EFF_teleportation (int x2, int y2){ //эффект телепортации игрока
@@ -245,8 +252,6 @@ public:
 		if (timer > 0.3){
 			timer = 0;
 			x = x2; y = y2; 
-			xx = (float) x; yy = (float) y;
-			tmpX = x; tmpY = y; 
 
 			F_teleportation = false; F_transformation = false; F_secPhaseTransformation = false;
 			shape.setSize (Vector2f ((float) w, (float) h));

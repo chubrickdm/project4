@@ -64,38 +64,39 @@ public:
 
 class System{ //основной класс игры, в котором хранится все самое выжное
 public:
-	static TileMap      map;
-	static bool         F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
-	static Vector2i     mousePosWin; //координаты мыши относ. окна
-	static Vector2f     posMouse; //координаты мыши относ. карты
-	static RenderWindow *window; //окно, в котором запускается игра
-	static Event        event; //событие
-
-	static float        timer; //таймер
-	static float        time; //время
-	static int          FPS; //значение ФПС
-	static Clock        clock; //время
-	
 	static bool         F_musicOff; //флаг, который показывает выключена ли музыка
 	static bool         F_soundOff; //флаг, который показывает выключены ли звуки
-	static float        volumeMusic; //громокость фоновой музыки
-	static float        volumeSound; //громкость звука
-	static Music        backgroundMusic; //фоновая музыка
-	static SoundBuffer  bufferClickButt; //буфер для звука нажатия на кнопки
-	static Sound        sndClickButt; //звук нажатия на кнопку
-	static SoundBuffer  bufferTeleport; //буфер для звука телепорта игрока к сохранению
-	static Sound        sndTeleport; //звук телепорта игрока к сохранению
-	
 	static bool         F_lvlComplete; //показывает завершен уровень
-	static bool         F_showMessage;
+	static bool         F_showMessage; //флаг, который показывает видно ли сообщение
+	static bool         F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
+
 	static float        speedChangeSt; //скорость изменения размера кнопок при изменении состояния
 	static float        speed; //скорость с которой движется игрок по уровню
+	static float        timer; //таймер
+	static float        time; //время
+	static float        volumeMusic; //громокость фоновой музыки
+	static float        volumeSound; //громкость звука
+
+	static int          FPS; //значение ФПС
 	static int          keyCodePressed; //какая клавиша была нажата
 	static int          key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
 	static int          whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
 	static int          PassedLVL; //сколько пройдено уровней
-	static CreateWall   whichWall; //какая стена выбрана админом в данный момент
+	static int*         levelArray; //массив в котором хранится карта
+
+	static RenderWindow *window; //окно, в котором запускается игра
+	static Event        event; //событие
+	static Clock        clock; //время
+	static Sound        sndTeleport; //звук телепорта игрока к сохранению
+	static Sound        sndClickButt; //звук нажатия на кнопку
+	static Music        backgroundMusic; //фоновая музыка
+	static SoundBuffer  bufferClickButt; //буфер для звука нажатия на кнопки
+	static SoundBuffer  bufferTeleport; //буфер для звука телепорта игрока к сохранению
 	static String       AdOrPlMode; //строка хранящая имя текущего мода игры (игрок или админ)
+	static Vector2i     mousePosWin; //координаты мыши относ. окна
+	static Vector2f     posMouse; //координаты мыши относ. карты
+	static TileMap      map; //карта
+	static CreateWall   whichWall; //какая стена выбрана админом в данный момент
 	static Coordinate   Start; //координаты старта (откуда игрок стартует) 
 	static Coordinate   Finish; //координаты финиша (куда должен придти)
 	
