@@ -15,6 +15,7 @@ using namespace sf;
 
 
 //инициализируем всё, нужно что б если переменная менялась где-то, то она менялась и во всех классах наследниках
+TileMap       System::map;
 bool          System::F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
 Vector2i      System::mousePosWin; //системные переменные
 Vector2f      System::posMouse;
@@ -685,7 +686,6 @@ public:
 	int CurrentLVL; //текущий уровень
 	int NumLVLDeath; //количествэо смертей на уровне
 	int NumWall; //количество стен
-	int NumBorderWall; //количество стаен границы
 	int NumButton; //количество кнопок
 	int NumListLVL; //количество уровней в списке (что б потом знать сколько удалять последних кнопок)
 
@@ -720,15 +720,16 @@ public:
 	Texture textureCursor; //текстура курсора 
 	
 	Player *pl; //игрок
-	BodyButton *button [100]; //массив кнопок
-	Wall *ArrWall [4000]; //массив стен
+	BodyButton *button [120]; //массив кнопок
+	Wall *ArrWall [2500]; //массив стен
 	bool **wallCoordinate; //координаты стен
-	Wall *BorderWall [250]; //массив стен которые будут границей для игрока (нужно для красоты)
 	Background *plBackground; //фоновое изображение, которые закрывает лабаринт
 	Background *logo; //логотип
 	Background *SFML; //знак SFML
 
 	Message message;
+
+	
 public:
 	void readInfo (){ //считать информацию об игроке
 		ifstream inF ("Resources/Info/Player.txt");
@@ -752,32 +753,8 @@ public:
 		}
 
 		if (type == player){
-			int tmpX, tmpY;
-			float tmpX2, tmpY2;
-			tmpX = pl -> x; tmpX -= GLOB_IND_W;
-			tmpY = pl -> y; tmpY -= GLOB_IND_H;
-			for (int i = 0; i < NumWall; i++){ //рисую стены которые будут видны игроку, и сдвигаю их в центр		
-				if (abs (ArrWall [i] -> x * EDGE - tmpX) < EDGE * (NUM_SQUARE + 1) / 2)
-					if ( abs (ArrWall [i] -> y * EDGE - tmpY) < EDGE * (NUM_SQUARE + 1) / 2){
-					tmpX2 = (float) ArrWall [i] -> x * EDGE - tmpX;
-					tmpY2 = (float) ArrWall [i] -> y * EDGE - tmpY;
-					tmpX2 = tmpX2 * ((float) SQUARE / (float) EDGE);
-					tmpY2 = tmpY2 * ((float) SQUARE / (float) EDGE);
-					ArrWall [i] -> changeLocation (GLOBAL_W / 2 + (int) tmpX2 - SQUARE / 2, GLOBAL_H / 2 + (int) tmpY2 - SQUARE / 2);
-					ArrWall [i] -> draw ();
-				}
-			}
-			for (int i = 0; i < NumBorderWall; i++) //рисую граничные стены которые будут видны игроку, и сдвигаю их в центр
-				if (abs (BorderWall [i] -> x * EDGE - tmpX) < EDGE * (NUM_SQUARE + 1) / 2)
-					if (abs (BorderWall [i] -> y * EDGE - tmpY) < EDGE * (NUM_SQUARE + 1) / 2){
-					tmpX2 = (float) BorderWall [i] -> x * EDGE - tmpX;
-					tmpY2 = (float) BorderWall [i] -> y * EDGE - tmpY;
-					tmpX2 = tmpX2 * ((float) SQUARE / (float) EDGE);
-					tmpY2 = tmpY2 * ((float) SQUARE / (float) EDGE);
-					BorderWall [i] -> changeLocation (GLOBAL_W / 2 + (int) tmpX2 - SQUARE / 2, GLOBAL_H / 2 + (int) tmpY2 - SQUARE / 2);
-					BorderWall [i] -> draw ();
-				}
-			
+			window -> draw (map);
+
 			plBackground -> draw (); //рисую фон, который закрывает обрубки стен которые дергаются
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
@@ -806,7 +783,7 @@ public:
 	void initializeBackground (){
 		Image backgroundImage;
 		backgroundImage.loadFromFile ("Resources/Textures/background.png"); //фон который закрывает обрубки стен когда играет игрок
-		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000 * (NUM_SQUARE) * SQUARE / 500, 1000, 1000); //не важно какие последние 2 параметра
+		plBackground = new Background (backgroundImage, "PlayerBackground", 0, 0, 3000 * (NUM_SQUARE) * SQUARE / 500, 3000 * (NUM_SQUARE) * SQUARE / 500, 3000, 3000); //не важно какие последние 2 параметра
 		plBackground -> changeLocation (GLOBAL_W / 2, GLOBAL_H / 2);
 
 		backgroundImage.loadFromFile ("Resources/Textures/logo2.png"); //логотип
@@ -842,8 +819,8 @@ public:
 		button [NumButton++] = new Static ("Triangle: 2",  "ControlTri",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 3 * (H_BUTTON + INTERVAL), Color (25, 36, 68));
 		button [NumButton++] = new Static ("Circle: 3",    "ControlCir",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 4 * (H_BUTTON + INTERVAL), Color (25, 36, 68));
 		button [NumButton++] = new Static ("Control",      "Control",     font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 + 1 * (H_BUTTON + INTERVAL), Color (6, 10, 25));
-		button [NumButton++] = new Static ("Time: 0",      "TimePlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 7 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
-		button [NumButton++] = new Static ("Death: 0",     "DeathPlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - 6 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
+		button [NumButton++] = new Static ("Time: 0",      "TimePlayer",  font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - NUM_SQUARE * SQUARE / 2 + (H_BUTTON + INTERVAL), Color (211, 25, 12));
+		button [NumButton++] = new Static ("Death: 0",     "DeathPlayer", font, tmpS, GLOBAL_W / 2 - tmpI, GLOBAL_H / 2 - NUM_SQUARE * SQUARE / 2 + 2 * (H_BUTTON + INTERVAL), Color (211, 25, 12));
 
 		tmpS = loadingLVL;
 		button [NumButton++] = new Static ("Loading...", "LoadingLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2, Color (6, 10, 25));
@@ -984,7 +961,6 @@ public:
 	}
 
 	void initializeLines (){
-		
 		lines = VertexArray (Lines, (NUM_CELL_Y + NUM_CELL_X + 4) * 2); //массив линий
 		int i = 0; //i-счетчик линий занесенных в массив
 		for (int k = 0; k < (NUM_CELL_Y + NUM_CELL_X + 2) * 2; k++)
@@ -1057,16 +1033,6 @@ public:
 			for (int j = 0; j < NUM_CELL_Y; j++)
 				wallCoordinate [i][j] = false;
 		}
-		NumBorderWall = 0; //создание граничнх стен для игрока (что б было красиво)
-		for (int i = -1; i < 65; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, -1, SQUARE, SQUARE, 40, 40);
-		for (int i = -1; i < 65; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", i, 32, SQUARE, SQUARE, 40, 40);
-		for (int i = 0; i < 32; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", -1, i, SQUARE, SQUARE, 40, 40);
-		for (int i = 0; i < 32; i++)
-			BorderWall [NumBorderWall++] = new Wall (wallImagePL, "Wall", 64, i, SQUARE, SQUARE, 40, 40);
-
 	}
 
 	Game (){ //конструктор в котором инициализируем основные параметры
@@ -1264,6 +1230,8 @@ public:
 		quickSort (0, NumWall - 1, ArrWall); //сортируем
 		indexStart = binSearch (0, NumWall - 1, ArrWall, tmp1); //после сортировки находим индексы старта и финиша
 		indexFinish = binSearch (0, NumWall - 1, ArrWall, tmp2);
+
+		createMap ();
 	}
 
 	void openLVL_AD (char *tmpName){
@@ -1424,6 +1392,34 @@ public:
 			else if (button [i] -> subtype == wholeType && F_reduceWholeType)
 				button [i] -> F_transformation = true;
 		}
+	}
+
+	void createMap (){
+		int *level = new int [(NUM_CELL_X + 2) * (NUM_CELL_Y + 2)];
+		for (int i = 0; i < NUM_CELL_X * NUM_CELL_Y; i++)
+			level [i] = 7;
+		int tmpI;
+		for (int i = 0; i < NumWall; i++){
+			if (ArrWall [i] -> name == "Save")             tmpI = 0;
+			else if (ArrWall [i] -> name == "Wall")        tmpI = 1;
+			else if (ArrWall [i] -> name == "Finish")      tmpI = 2;
+			else if (ArrWall [i] -> name == "Start")       tmpI = 3;
+			else if (ArrWall [i] -> name == "Circle")      tmpI = 4;
+			else if (ArrWall [i] -> name == "Rectangle")   tmpI = 5;
+			else if (ArrWall [i] -> name == "Triangle")    tmpI = 6;	
+			level [1 + ArrWall [i] -> x + (ArrWall [i] -> y + 1) * (NUM_CELL_X + 2)] = tmpI;
+		}
+		for (int i = 0; i < 2; i++)
+			for (int j = 0; j < NUM_CELL_X + 2; j++)
+				level [i * (NUM_CELL_Y + 1) * (NUM_CELL_X + 2) + j] = 1;
+		for (int i = 0; i < 2; i++)
+			for (int j = 0; j < NUM_CELL_Y + 2; j++)
+				level [i * (NUM_CELL_X + 1) + j * (NUM_CELL_X + 2)] = 1;
+
+		
+		map.load("Resources/Textures/wall2.png", Vector2u (40, 40), level, NUM_CELL_X + 2, NUM_CELL_Y + 2, Vector2i (SQUARE, SQUARE));
+		map.setOrigin ((float) SQUARE * (Start.x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (Start.y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
+		map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 	}
 
 
@@ -1748,6 +1744,7 @@ public:
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC;
 						if (strstr (tmpC, "lvl") == NULL || strpbrk (tmpC, "12345678") == NULL || strlen (tmpC) > 4){
+							cout << tmpC << endl;
 							button [NumButton++] = new Static (tmpC, "ListLVL", font, tmpS, GLOBAL_W / 2, GLOBAL_H / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
 							NumListLVL++;
 						}
@@ -1966,6 +1963,9 @@ public:
 						timer += time;
 				
 						if (!pl -> F_teleportation){
+							map.setOrigin ((float) SQUARE * (Start.x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (Start.y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
+							map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
+
 							startChangeState (startLVL);
 							NumLVLDeath++;
 							char tmpC [30]; //обновление времени и количества смертей
@@ -2196,10 +2196,12 @@ int main (){
 	VideoMode mode = modes [0];
 	
 	Game game;
-	system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
-	//system.window = new RenderWindow (mode, "Figure"); //создание окна
+	//system.window = new RenderWindow (mode, "Figure", Style::Fullscreen, ContextSettings (0, 0, 1)); //создание окна
+	system.window = new RenderWindow (mode, "Figure"); //создание окна
+	//system.window = new RenderWindow (VideoMode (805, 644), "Figure"); //создание окна
 	system.window -> setMouseCursorVisible (false); //не рисуем курсор
-	system.window -> setFramerateLimit (60); //устанваливаем предел для ФПС
+	//system.window -> setFramerateLimit (60); //устанваливаем предел для ФПС
+	//system.window -> setVerticalSyncEnabled (true);
 	bool isUpdate = false; //флаг, который показывает обновлялась ли игра
 
 	while (system.window -> isOpen ()){

@@ -69,9 +69,9 @@ private:
 public:
 	bool F_move; //флаг, который показывает движется ли игрок
 	bool F_teleportation; //флаг, который показывает игрок телепортируется ли
-	bool F_reduce;
-	bool F_enlarge; //флаг, который идет ли эффект начала игры
-	float xx, yy; //нужны, потому что скорость не целое число, и коорд игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
+	bool F_reduce; //флаг, который показывает уменьшается ли игрок в данный момент
+	bool F_enlarge; //флаг, который показывает идет ли эффект начала игры
+	float xx, yy; //нужны, потому что скорость не целое число, и координаты игрока тоже не целое число, и мы оставили х и у для того что б запоминать координаты куда мы хотим двигаться
 	int currDirection; //текущее направление
 	StatePlayer state; //состояние игрока соотвествует фигуре
 private:
@@ -89,13 +89,13 @@ private:
 		}
 	}
 
-	void EFF_transformation (){
-		if (F_secPhaseTransformation){
+	void EFF_transformation (){ //эффект изменения фигуры игрока
+		if (F_secPhaseTransformation){ //увелечение игрока
 			shape.setSize (Vector2f ((float) w * timer / 0.15f, (float) h * timer / 0.15f));
 			shape.setOrigin ((float) w * timer / 0.15f / 2, (float) h * timer / 0.15f / 2);
 			shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 		}
-		else{
+		else{ //уменьшение игрока
 			shape.setSize (Vector2f ((float) w * (1 - timer / 0.15f), (float) h * (1 - timer / 0.15f)));
 			shape.setOrigin ((float) w * (1 - timer / 0.15f) / 2, (float) h * (1 - timer / 0.15f) / 2);
 			shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
@@ -203,16 +203,19 @@ public:
 					F_move = false; 
 					xx = (float) tmpX; yy = (float) tmpY;
 					x = tmpX; y = tmpY;
+					map.setOrigin ((float) SQUARE * (x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
+					map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 				}
 				else{ //само движение игрока
-					if (x < tmpX)        xx += speed * time; //движение по горизонтали
-					else if (x > tmpX)   xx -= speed * time; 
-					else if (y < tmpY)   yy += speed * time; //движениепо вертикали
-					else if (y > tmpY)   yy -= speed * time;  
+					if (x < tmpX){        xx += speed * time; map.move (-3 * SQUARE * time, 0); } //движение по горизонтали
+					else if (x > tmpX){   xx -= speed * time; map.move (3 * SQUARE * time, 0); }
+					else if (y < tmpY){   yy += speed * time; map.move (0, -3 * SQUARE * time); } //движениепо вертикали
+					else if (y > tmpY){   yy -= speed * time; map.move (0, +3 * SQUARE * time); } 
 					else{
 						yy = (float) tmpY; xx = (float) tmpX; //мб ситуация когда у = tmpY, а yy - tmpY больше чем speed * time, тогда
+						map.setOrigin ((float) SQUARE * (x - GLOB_IND_W) / EDGE + 3 * SQUARE / 2, (float) SQUARE * (y - GLOB_IND_H) / EDGE + 3 * SQUARE / 2);
+						map.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
 						//происходит зависание игрока, пока не будет такое время, что speed * time будет больше
-						//cout << "dima" << endl;
 					}
 					x = (int) xx; y = (int) yy;
 				}
@@ -220,7 +223,7 @@ public:
 		}
 	}
 
-	void changeLocation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+	void changeLocation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игроком)
 		shape.setSize (Vector2f ((float) w, (float) h));
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 		shape.setPosition ((float) GLOBAL_W / 2, (float) GLOBAL_H / 2);
@@ -233,7 +236,7 @@ public:
 		tmpX = x; tmpY = y; 
 	}
 
-	void EFF_teleportation (int x2, int y2){ //функция нужна для перемещения игрока в нужную координату (нужно при открытии уровня игркоом)
+	void EFF_teleportation (int x2, int y2){ //эффект телепортации игрока
 		shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
 		shape.setSize (Vector2f ((float) w * (1 - timer / 0.3f), (float) h * (1 - timer / 0.3f)));
 		shape.setOrigin ((float) w * (1 - timer / 0.3f) / 2, (float) h * (1 - timer / 0.3f) / 2);
@@ -273,8 +276,8 @@ public:
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
 	int value; //значение кнопки
-	TypeState type;
-	SubtypeState subtype;
+	TypeState type; //тип состояния к которому принадлежит кнопка
+	SubtypeState subtype; //подтип состояния к которому принадлежит кнопка
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){

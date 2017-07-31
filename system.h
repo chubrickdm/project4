@@ -15,8 +15,56 @@ enum StatePlayer {rectangle, triangle, circle};
 enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
 
 
+class TileMap : public Drawable, public Transformable{
+private:
+	VertexArray m_vertices;
+	Texture m_tileset;
+private:
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const{
+        states.transform *= getTransform ();
+        states.texture = &m_tileset;
+        target.draw (m_vertices, states);
+    }
+public:
+    bool load(const string &tileset, Vector2u tileSize, const int *tiles, unsigned int width, unsigned int height, Vector2i size){
+        if (!m_tileset.loadFromFile (tileset))
+            return false;
+
+        m_vertices.setPrimitiveType (Quads);
+        m_vertices.resize (width * height * 4);
+
+        for (unsigned int i = 0; i < width; ++i)
+            for (unsigned int j = 0; j < height; ++j){
+                // get the current tile number
+                int tileNumber = tiles [i + j * width];
+
+                // find its position in the tileset texture
+                int tu = tileNumber / (m_tileset.getSize ().y / tileSize.y);
+                int tv = tileNumber % (m_tileset.getSize ().y / tileSize.y);
+
+                // get a pointer to the current tile's quad
+                sf::Vertex* quad = &m_vertices [(i + j * width) * 4];
+
+                // define its 4 corners
+                quad [0].position = Vector2f ((float) (i * size.x),       (float) (j * size.y));
+                quad [1].position = Vector2f ((float) ((i + 1) * size.x), (float) (j * size.y));
+                quad [2].position = Vector2f ((float) ((i + 1) * size.x), (float) ((j + 1) * size.y));
+                quad [3].position = Vector2f ((float) (i * size.x),       (float) ((j + 1) * size.y));
+
+                // define its 4 texture coordinates
+                quad [0].texCoords = Vector2f ((float) (tu * tileSize.x),       (float) (tv * tileSize.y));
+                quad [1].texCoords = Vector2f ((float) ((tu + 1) * tileSize.x), (float) (tv * tileSize.y));
+                quad [2].texCoords = Vector2f ((float) ((tu + 1) * tileSize.x), (float) ((tv + 1) * tileSize.y));
+                quad [3].texCoords = Vector2f ((float) (tu * tileSize.x),       (float) ((tv + 1) * tileSize.y));
+            }
+        return true;
+    }
+};
+
+
 class System{ //основной класс игры, в котором хранится все самое выжное
 public:
+	static TileMap      map;
 	static bool         F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
 	static Vector2i     mousePosWin; //координаты мыши относ. окна
 	static Vector2f     posMouse; //координаты мыши относ. карты
@@ -73,22 +121,25 @@ public:
 		GLOBAL_H = 4500; //1280 //высота
 		W_WIN = GetSystemMetrics (0); H_WIN = GetSystemMetrics (1); //разрешение
 		//W_WIN = 1366; H_WIN = 768; //разрешение
+		//W_WIN = 1280; H_WIN = 1024; //разрешение
 		EDGE = 10; //размер одной клетки
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
-		W_BUTTON = (int) (W_WIN / 9.6); //ширина кнопки
+		W_BUTTON = (int) (W_WIN / 8); //ширина кнопки
 		H_BUTTON = H_WIN / 19; //высота кнопки
 		INTERVAL = H_BUTTON / 10;
 		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
 
 		while (1){
-			if ((H_WIN - NUM_CELL_Y * EDGE) / 2 < H_BUTTON + 40 || (W_WIN - NUM_CELL_X * EDGE) / 2 < 60)
+			if ((H_WIN - NUM_CELL_Y * EDGE) / 2 < H_BUTTON * 2 || (W_WIN - NUM_CELL_X * EDGE) / 2 < 60)
 				break;
 			EDGE++;
 		}
+
+
 		NUM_SQUARE = 8; //количество квадратов видемых на экране когда играет игрок
 		SQUARE = EDGE * NUM_CELL_Y / NUM_SQUARE; //размер одного такого квадрата
-
+		
 		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
 		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
 
