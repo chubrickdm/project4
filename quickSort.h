@@ -21,19 +21,6 @@ void quickSort (int l, int r, Wall *ArrWall [4000]){
 		}
 	}
 
-	//while (i <= j){ //сортировка по одному признаку
-		//	while (ArrWall [i] -> x < tmp -> x)
-		//		i++;
-		//	while (ArrWall [j] -> x > tmp -> x)
-		//		j--;
-		//	if (i <= j){
-		//		Wall *tmp2 = ArrWall [i];
-		//		ArrWall [i] = ArrWall [j];
-		//		ArrWall [j] = tmp2;
-		//		i++; j--;
-		//	}
-		//}
-
 	if (l < j) //рекурсивно вызываем
 		quickSort (l, j, ArrWall);
 	if (i < r)

@@ -8,15 +8,15 @@ struct Coordinate{
 	int y; //строка row
 	int x; //столбец col
 
-	friend ostream& operator<<(ostream &os, const Coordinate &tmp){
-		os << tmp.x << "  " << tmp.y << endl;
+	friend ostream& operator<<(ostream &os, const Coordinate &tmpC){
+		os << tmpC.x << "  " << tmpC.y << endl;
 		return os;
 	}
 	
-	/*friend istream& operator>>(istream &is, Cell &tmp){
-		is >> tmp.row >> tmp.col;
+	friend istream& operator>>(istream &is, Coordinate &tmpC){
+		is >> tmpC.x >> tmpC.y;
 		return is;
-	}*/
+	}
 
 	Coordinate& operator= (const Coordinate &tmp){
 		x = tmp.x;
@@ -31,7 +31,6 @@ struct Coordinate{
 			return true;
 	}
 };
-
 
 int Direction [2000];
 int NumMoves = 0;
@@ -115,7 +114,7 @@ void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish
 	///////////////////////////////////////////////////
 	int answer = size.x * size.y; 
 	Queue q (answer); answer = 0;
-	Coordinate tmpc; //tmpc-
+	Coordinate tmpc;
 	q.addLast (start);
 	tmpc = q.delFirst ();
 	while (tmpc != finish){
@@ -140,17 +139,14 @@ void outputSearch (bool **labyrinth, Coordinate &start, const Coordinate &finish
 			answer = -1; tmpc = finish;
 		}
 	}
-    
+
 	if (answer != -1){
     	tmpc = finish;
 	    while (tmpc != start){
-			if (dir [tmpc.x][tmpc.y] == -1){ tmpc.y++; Direction [NumMoves++] = 1; }
-	    	else
-				if (dir [tmpc.x][tmpc.y] == 1){ tmpc.y--; Direction [NumMoves++] = 4; }
-	    		else
-					if (dir [tmpc.x][tmpc.y] == -2){ tmpc.x++; Direction [NumMoves++] = 3; }
-		    		else
-						if (dir [tmpc.x][tmpc.y] == 2){ tmpc.x--; Direction [NumMoves++] = 2; }
+			if      (dir [tmpc.x][tmpc.y] == -1){ tmpc.y++; Direction [NumMoves++] = 1; }
+	    	else if (dir [tmpc.x][tmpc.y] == 1){  tmpc.y--; Direction [NumMoves++] = 4; }
+			else if (dir [tmpc.x][tmpc.y] == -2){ tmpc.x++; Direction [NumMoves++] = 3; }
+			else if (dir [tmpc.x][tmpc.y] == 2){  tmpc.x--; Direction [NumMoves++] = 2; }
 	    	answer++;
 	    }
 	}

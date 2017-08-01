@@ -100,9 +100,7 @@ public:
 	static Coordinate   Start; //координаты старта (откуда игрок стартует) 
 	static Coordinate   Finish; //координаты финиша (куда должен придти)
 	
-	
-	int GLOBAL_W;
-	int GLOBAL_H;
+
 	int W_WIN;
 	int INTERVAL;
 	int H_WIN;
@@ -111,19 +109,15 @@ public:
 	int NUM_CELL_Y;
 	int W_BUTTON;
 	int H_BUTTON;
-	int GLOB_IND_W; 
-	int GLOB_IND_H;
 	int SIZE_TEXT;
 	int NUM_SQUARE;
 	int SQUARE;
 public:
 	System (){
-		GLOBAL_W = 6000; //2240 //максимальное разрешение экрана в котором игра пойдет, ширина
-		GLOBAL_H = 4500; //1280 //высота
 		W_WIN = GetSystemMetrics (0); H_WIN = GetSystemMetrics (1); //разрешение
 		//W_WIN = 1366; H_WIN = 768; //разрешение
 		//W_WIN = 1280; H_WIN = 1024; //разрешение
-		EDGE = 10; //размер одной клетки
+		EDGE = 5; //размер одной клетки
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
 		W_BUTTON = (int) (W_WIN / 8); //ширина кнопки
@@ -137,14 +131,9 @@ public:
 			EDGE++;
 		}
 
-
 		NUM_SQUARE = 8; //количество квадратов видемых на экране когда играет игрок
 		SQUARE = EDGE * NUM_CELL_Y / NUM_SQUARE; //размер одного такого квадрата
-		
-		GLOB_IND_W = (GLOBAL_W - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
-		GLOB_IND_H = (GLOBAL_H - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
-
-		speed = (float) 3 * EDGE; //сколько игрок пройдет за 1 секунду
+		speed = (float) 3 * SQUARE; //сколько игрок пройдет за 1 секунду
 		speedChangeSt = 200; //на сколько процентов уменьшится кнопка за 1 секунду
 	}
 

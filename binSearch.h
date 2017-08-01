@@ -4,6 +4,7 @@
 #include <iostream>
 using namespace std;
 
+
 int binSearch (int left, int right, Wall *ArrWall [4000], Coordinate key){
 	int midd = 0;
 	while (1){
