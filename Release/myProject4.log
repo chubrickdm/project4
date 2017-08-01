@@ -1,4 +1,4 @@
-﻿Построение начато 01.08.2017 13:00:22.
+﻿Построение начато 01.08.2017 18:14:51.
      1>Проект "D:\Проекты\Visual Studio\Game\myProject4\myProject4\myProject4.vcxproj" в узле 2 (целевые объекты Build).
      1>ClCompile:
          D:\Программы\Visual Studio 2012 Express\VC\bin\CL.exe /c /I"D:\Программы\Для программ\SFML-2.4.1\include" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D SFML_DYNAMIC /D _CRT_SECURE_NO_WARNINGS /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
@@ -12,4 +12,4 @@
 
 Построение успешно завершено.
 
-Затраченное время: 00:00:03.41
+Затраченное время: 00:00:03.38

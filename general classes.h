@@ -272,6 +272,10 @@ public:
 
 class BodyButton : public Body{ //тело кнопок
 protected:
+	int sizeText; //размер текста
+	bool F_pressed; //флаг, который показывает нажата ли кнопка
+	float reducePrecent; //процент уменьшения
+	float enlargePrecent; //процент увелечения
 	Color color; //цвет текста кнопки
 	mcText *text; //текст который выводится на кнопке
 	String buttText; //текст который будет отображаться на кнопке
@@ -279,27 +283,24 @@ private:
 	Font font; //шрифт
 public:
 	bool F_draw; //флаг, который показывает рисуется ли эта кнопка
-	bool F_pressed; //флаг, который показывает нажата ли кнопка
 	bool F_click; //флаг, который показывает кликнули ли по кнопке (клик- это нажать и отпустить кнопку когда курсор мыши на кнопке)
 	bool F_transformation; //флаг показывающий изменилась ли форма
-	float reducePrecent; //процент уменьшения
-	float enlargePrecent; //процент увелечения
 	int value; //значение кнопки
 	TypeState type; //тип состояния к которому принадлежит кнопка
 	SubtypeState subtype; //подтип состояния к которому принадлежит кнопка
 public:
 	BodyButton (Image &image, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
 		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
-	    font = Font; buttText = Text; 
+	    font = Font; buttText = Text; sizeText = SIZE_TEXT;
 		subtype = Subtype; type = findType (subtype); 
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
 
 		color = Color::Black; //по умолчанию текст черный
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
-		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> changeSize (sizeText); //размер текста
 		text -> add (buttText, color);
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
@@ -308,22 +309,23 @@ public:
 		subtype = Subtype; type = findType (subtype); 
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
+		sizeText = SIZE_TEXT;
 
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
 	BodyButton (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y) : //для статика сделана перегрузка
 		    Body (Name, X, Y, 1, 1, 1, 1){
-	    font = Font; buttText = Text;
+	    font = Font; buttText = Text; sizeText = SIZE_TEXT;
 		subtype = Subtype; type = findType (subtype);
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
 
 		color = Color::Black;
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
-		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> changeSize (sizeText); //размер текста
 		text -> add (buttText, color);
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 	}
 
 	void draw (){ }
@@ -338,9 +340,9 @@ public:
 			shape.setOrigin ((float) w * reducePrecent / 100 / 2, (float) h * reducePrecent / 100 / 2);
 			shape.setPosition ((float) x, (float) y);
 			text -> clear ();
-			text -> changeSize (SIZE_TEXT * (int) reducePrecent / 100); //размер текста
+			text -> changeSize (sizeText * (int) reducePrecent / 100); //размер текста
 			text -> add (buttText, color);
-			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
 			reducePrecent -= speedChangeSt * time; //когда прекратится изменение формы
 			if (reducePrecent < speedChangeSt * time){
@@ -356,9 +358,9 @@ public:
 			shape.setOrigin ((float) w * enlargePrecent / 100 / 2, (float) h * enlargePrecent / 100 / 2);
 			shape.setPosition ((float) x, (float) y);
 			text -> clear ();
-			text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
+			text -> changeSize (sizeText * (int) enlargePrecent / 100); //размер текста
 			text -> add (buttText, color);
-			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
 			enlargePrecent += speedChangeSt * time; //когда прекратится изменение формы
 			if (enlargePrecent > 100 - speedChangeSt * time){
@@ -369,9 +371,9 @@ public:
 				shape.setOrigin ((float) w / 2, (float) h / 2);
 				shape.setPosition ((float) x, (float) y);
 				text -> clear ();
-				text -> changeSize (SIZE_TEXT); //размер текста
+				text -> changeSize (sizeText); //размер текста
 				text -> add (buttText, color);
-				text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+				text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 			}
 		}
 	}

@@ -64,10 +64,10 @@ public:
 
 class System{ //основной класс игры, в котором хранится все самое выжное
 public:
+	static bool         F_gameIsLocked; //флаг, который показывает заблокирована ли игра (если изменили настройки)
 	static bool         F_musicOff; //флаг, который показывает выключена ли музыка
 	static bool         F_soundOff; //флаг, который показывает выключены ли звуки
 	static bool         F_lvlComplete; //показывает завершен уровень
-	static bool         F_showMessage; //флаг, который показывает видно ли сообщение
 	static bool         F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
 
 	static float        speedChangeSt; //скорость изменения размера кнопок при изменении состояния
@@ -81,7 +81,7 @@ public:
 	static int          keyCodePressed; //какая клавиша была нажата
 	static int          key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
 	static int          whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
-	static int          PassedLVL; //сколько пройдено уровней
+	static int          passedLVL; //сколько пройдено уровней
 	static int*         levelArray; //массив в котором хранится карта
 
 	static RenderWindow *window; //окно, в котором запускается игра

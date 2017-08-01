@@ -15,10 +15,10 @@ using namespace sf;
 
 
 //инициализируем всё, нужно что б если переменная менялась где-то, то она менялась и во всех классах наследниках
+bool         System::F_gameIsLocked; //флаг, который показывает заблокирована ли игра (если изменили настройки)
 bool         System::F_musicOff; //флаг, который показывает выключена ли музыка
 bool         System::F_soundOff; //флаг, который показывает выключены ли звуки
 bool         System::F_lvlComplete; //показывает завершен уровень
-bool         System::F_showMessage; //флаг, который показывает видно ли сообщение
 bool         System::F_changeStates; //флаг, который показывает, меняется ли состояние в данный момент
 
 float        System::speedChangeSt; //скорость изменения размера кнопок при изменении состояния
@@ -32,7 +32,7 @@ int          System::FPS; //значение ФПС
 int          System::keyCodePressed; //какая клавиша была нажата
 int          System::key [3]; //массив в котором хранятся номера клавиш, которые меняют фигуру
 int          System::whatButChange; //при нажатии клавиши, какая кнопка изменит своё значение (когда игрок настраивает клавиши изменения фигуры)
-int          System::PassedLVL; //сколько пройдено уровней
+int          System::passedLVL; //сколько пройдено уровней
 int*         System::levelArray; //массив в котором хранится карта
 
 RenderWindow *System::window; //окно, в котором запускается игра
@@ -76,10 +76,10 @@ public:
 
 	void checkCursor (){ //функция проверки на нажатие кнопки или наведением курсора на кнопку
 		if (name == "SelectLVL")
-			if (value > PassedLVL + 1)  F_locked = true;
+			if (value > passedLVL + 1)  F_locked = true;
 			else                        F_locked = false;
 		if (name == "My lvls")
-			if (PassedLVL != 8)         F_locked = true;
+			if (passedLVL != 8)         F_locked = true;
 			else                        F_locked = false;
 
 		F_click = false;
@@ -160,9 +160,9 @@ public:
 	void updateText (char *Pass){ //функция обновления текста
 		buttText = Pass;
 		text -> clear ();
-		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> changeSize (sizeText); //размер текста
 		text -> add (buttText);
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 	}
 };
 
@@ -171,10 +171,10 @@ public:
 	Static (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, Color ccolor) : //перегрузка для задания цвета текста
 		    BodyButton (Text, Name, Font, Subtype, X, Y){ 
 		text -> clear ();
-		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> changeSize (sizeText); //размер текста
 		color = ccolor;
 		text -> add (buttText, color);
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 
 		if (subtype == wholeType)
 			type = player;
@@ -187,6 +187,12 @@ public:
 			type = player;
 	}
 
+	Static (String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int tmpSize) : //по умолчанию цвет текста будет черный
+		    BodyButton (Text, Name, Font, Subtype, X, Y){ 
+		sizeText = tmpSize;
+		color = Color (0, 0, 0);
+	}
+
 	void draw (){
 		text -> draw (window);
 	}
@@ -194,9 +200,9 @@ public:
 	void EFF_reduce (){ //уменьшение кнопки
 		if (F_transformation){
 			text -> clear ();
-			text -> changeSize (SIZE_TEXT * (int) reducePrecent / 100); //размер текста
+			text -> changeSize (sizeText * (int) reducePrecent / 100); //размер текста
 			text -> add (buttText, color);
-			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
 			reducePrecent -= speedChangeSt * time; //когда прекратится изменение формы
 			if (reducePrecent < speedChangeSt * time){
@@ -209,9 +215,9 @@ public:
 	void EFF_enlarge (){ //увелечение кнопки
 		if (F_transformation){
 			text -> clear ();
-			text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
+			text -> changeSize (sizeText * (int) enlargePrecent / 100); //размер текста
 			text -> add (buttText, color);
-			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
 			enlargePrecent += speedChangeSt * time; //когда прекратится изменение формы
 			if (enlargePrecent > 100 - speedChangeSt * time){
@@ -219,18 +225,16 @@ public:
 				F_transformation = false;
 
 				text -> clear ();
-				text -> changeSize (SIZE_TEXT); //размер текста
+				text -> changeSize (sizeText); //размер текста
 				text -> add (buttText, color);
-				text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+				text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 			}
 		}
 	}
 
-	void checkCursor (){ }
-
 	void updateText (char *Pass){
 		text -> clear ();
-		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> changeSize (sizeText); //размер текста
 		char tmpC [40];
 
 		if (name == "TimePlayer")
@@ -249,8 +253,10 @@ public:
 		strcat (tmpC, Pass);
 		text -> add (tmpC, color);
 		buttText = tmpC;
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 	}
+
+	void checkCursor (){ }
 };
 
 class HorizontScrollBar : public BodyButton{
@@ -336,8 +342,6 @@ public:
 			shape.setTextureRect (IntRect (0, 4 * hTexture, wTexture, hTexture));
 	}
 
-	void updateText (char *Pass){ }
-
 	void EFF_reduce (){
 		if (F_transformation){
 			shape.setSize (Vector2f ((float) w * reducePrecent / 100, (float) h * reducePrecent / 100));
@@ -378,6 +382,8 @@ public:
 		shape.setSize (Vector2f (1, 1));
 		backgroundd.setSize (Vector2f (1, 1));
 	}
+
+	void updateText (char *Pass){ }
 };
 
 class PictureButton : public BodyButton{
@@ -571,6 +577,8 @@ public:
 
 class Message : public System{ //класс сообщения
 private:
+	int sizeText; //размер текста
+	bool F_showMessage; //флаг, который показывает видно ли сообщение
 	float messageTimer; //сколько по времени будет показываться сообщение (не считая увелечение и уменьшение кнопки)
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
@@ -584,9 +592,9 @@ private:
 private:
 	void EFF_reduce (){ //уменьшение сообщения
 		text -> clear ();
-		text -> changeSize (SIZE_TEXT * (int) reducePrecent / 100); //размер текста
+		text -> changeSize (sizeText * (int) reducePrecent / 100); //размер текста
 		text -> add (messageText, color);
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * reducePrecent / 100 / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
 		reducePrecent -= speedChangeSt * time; //когда прекратится изменение формы
 		if (reducePrecent < speedChangeSt * time){
@@ -598,9 +606,9 @@ private:
 
 	void EFF_enlarge (){ //увелечение сообщения
 		text -> clear ();
-		text -> changeSize (SIZE_TEXT * (int) enlargePrecent / 100); //размер текста
+		text -> changeSize (sizeText * (int) enlargePrecent / 100); //размер текста
 		text -> add (messageText, color);
-		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT * enlargePrecent / 100 / 3); //распологаем текст по кнопке
+		text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
 		enlargePrecent += speedChangeSt * time; //когда прекратится изменение формы
 		if (enlargePrecent > 100 - speedChangeSt * time){
@@ -608,19 +616,19 @@ private:
 			phase = 1;
 
 			text -> clear (); //увеличиться может не до конца, поэтому доводим до 100% размера
-			text -> changeSize (SIZE_TEXT); 
+			text -> changeSize (sizeText); 
 			text -> add (messageText, color);
-			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * SIZE_TEXT / 3); //распологаем текст по кнопке
+			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText / 3); //распологаем текст по кнопке
 		}
 	}
 public:
 	void initialize (Font &tmpFont){ //инициализация сообщения
 		font = tmpFont;
 		text = new mcText (&font); //создаем текст который будет отображаться на кнопке
-		text -> changeSize (SIZE_TEXT); //размер текста
+		text -> changeSize (sizeText); //размер текста
 		text -> add ("", color);
 		reducePrecent = 100; enlargePrecent = 1; 
-		phase = 0;
+		phase = 0; sizeText = SIZE_TEXT;
 	}
 
 	void setColor (Color &tmpColor){ //установить цвет
@@ -636,7 +644,7 @@ public:
 			color = tmpColor;
 			text -> clear ();
 			text = new mcText (&font); //создаем текст который будет отображаться на кнопке
-			text -> changeSize (SIZE_TEXT); //размер текста
+			text -> changeSize (sizeText); //размер текста
 			text -> add (messageText, color);
 			text -> setPosition ((float) x - text -> w / 2, (float) y - text -> h / 2); //распологаем текст по кнопке
 		}
@@ -650,27 +658,28 @@ public:
 			messageTimer = tmpTimer;
 			text -> clear ();
 			text = new mcText (&font); //создаем текст который будет отображаться на кнопке
-			text -> changeSize (SIZE_TEXT); //размер текста
+			text -> changeSize (sizeText); //размер текста
 			text -> add (messageText, color);
 			text -> setPosition ((float) x - text -> w / 2, (float) y - text -> h / 2); //распологаем текст по кнопке
 		}
 	}
 
 	void draw (){
-		if (F_changeStates)
-			phase = 2;
+		if (F_showMessage){
+			if (F_changeStates)
+				phase = 2;
 
-		if (phase == 0)
-			EFF_enlarge ();
-		else if (phase == 1){
-			messageTimer -= time;
-			if (messageTimer <= 0)
-			phase = 2;
+			if (phase == 0)
+				EFF_enlarge ();
+			else if (phase == 1){
+				messageTimer -= time;
+				if (messageTimer <= 0)
+				phase = 2;
+			}
+			else if (phase == 2)
+				EFF_reduce ();
+			text -> draw (window);
 		}
-		else if (phase == 2)
-			EFF_reduce ();
-		text -> draw (window);
-		
 	}
 };
 
@@ -728,14 +737,29 @@ public:
 	bool **wallCoordinate; //координаты стен
 public:
 	void readInfo (){ //считать информацию об игроке
-		ifstream inF ("Resources/Info/Player.txt");
-		inF >> PassedLVL >> volumeMusic >> volumeSound >> AllTime >> key [0] >> key [1] >> key [2] >> F_musicOff >> F_soundOff; //последние 3-номера клавиш на которые меняется фигура игрока
+		ifstream inF ("Resources/Settings/Settings.prof");
+		inF >> passedLVL >> volumeMusic >> volumeSound >> AllTime >> key [0] >> key [1] >> key [2] >> F_musicOff >> F_soundOff; //последние 3-номера клавиш на которые меняется фигура игрока
+		passedLVL -= 139;
+
+		bool tmpB = false;
+		if (F_musicOff != 0 && F_musicOff != 1)        tmpB = true;
+		else if (F_soundOff != 0 && F_soundOff != 1)   tmpB = true;
+		else if (volumeMusic > 100 || volumeMusic < 0) tmpB = true;
+		else if (volumeSound > 100 || volumeSound < 0) tmpB = true;
+		else if (passedLVL % 23 != 0 || passedLVL < 0) tmpB = true; 
+
+		if (tmpB){
+			F_gameIsLocked = true;
+			cout << "Don't change the settings" << endl;
+		}
+		passedLVL /= 23;
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
-		ofstream outF ("Resources/Info/Player.txt");
-		outF << PassedLVL << " " << volumeMusic << " " << volumeSound  << " " << AllTime;
+		ofstream outF ("Resources/Settings/Settings.prof");
+		outF << passedLVL * 23 + 139 << " " << volumeMusic << " " << volumeSound  << " " << AllTime;
 		outF << " " << key [0] << " " << key [1] << " " << key [2] << " " << F_musicOff << " " << F_soundOff << endl; //последние 3-номера клавиш на которые меняется фигура игрока
+		outF << "Close this document immediately, else this will lead to problems." << endl;
 	}
 
 	void draw (){ //главная и единственная функция рисования
@@ -750,7 +774,6 @@ public:
 
 		if (type == player){
 			window -> draw (map);
-
 			plBackground -> draw (); //рисую фон, который закрывает обрубки стен которые дергаются
 			pl -> draw (); 
 			button [indexTimePlBut] -> draw (); //рисую кнопку где отображается время (не хотелось захламлять код лишними if)
@@ -770,8 +793,7 @@ public:
 		cursor.setPosition ((float) posMouse.x, (float) posMouse.y);	
 		window -> draw (cursor);
 
-		if (F_showMessage)
-			message.draw ();
+		message.draw ();
 
 		window -> display ();
 	}
@@ -823,7 +845,7 @@ public:
 
 		tmpS = allState;
 		indexFPSBut = NumButton;
-		button [NumButton++] = new Static ("FPS: 0", "FPS", font, tmpS, W_WIN / 2 - W_WIN / 2 + W_BUTTON / 2, H_WIN / 2 + H_WIN / 2 - H_BUTTON / 2);
+		button [NumButton++] = new Static ("FPS: 0", "FPS", font, tmpS, W_BUTTON / 3, H_WIN - H_BUTTON / 3, 2 * SIZE_TEXT / 3);
 
 
 		tmpS = launcher;
@@ -988,13 +1010,13 @@ public:
 		playerImage.loadFromFile ("Resources/Textures/player2.png");
 		pl  = new Player (playerImage, Start.x, Start.y, SQUARE, SQUARE, 40, 40); //создание объекта игрок
 
-		backgroundMusic.openFromFile ("Resources/Music/DJVI_-_Dry_Out.ogg"); //музыка
+		backgroundMusic.openFromFile ("Resources/Music/Background.ogg"); //музыка
 		backgroundMusic.play (); 
 		backgroundMusic.setLoop (true);
 		if (!F_musicOff) changeMusicVolume (volumeMusic);
 		else             changeMusicVolume (0);
 
-		bufferClickButt.loadFromFile ("Resources/Sounds/button-30.wav"); //звук нажатия на кнопку
+		bufferClickButt.loadFromFile ("Resources/Sounds/button_click.wav"); //звук нажатия на кнопку
 		sndClickButt.setBuffer (bufferClickButt);
 		bufferTeleport.loadFromFile ("Resources/Sounds/teleportation.wav"); //звук телепортации игрока
 		sndTeleport.setBuffer (bufferTeleport);
@@ -1042,7 +1064,6 @@ public:
 		strcpy (Pass, "");
 		strcpy (lvlOpenByAdmin, "");
 		strcpy (playerLVLOpenByPlayer, "");
-		F_showMessage = false;
 		F_lvlComplete = false;
 		F_isPlayerLVL = false;
 		F_escapeReleased = false;
@@ -1054,6 +1075,7 @@ public:
 		F_reduceWholeType = false;
 		F_loadLVL = false;
 		F_enterReleased = false;
+		F_gameIsLocked = false;
 		type = menu;
 		subtype = launcher;
 		whichWall = wall;
@@ -1065,6 +1087,7 @@ public:
 		timer = 0;
 		NumWall = 0;
 		NumLVLDeath = 0;
+		NumListLVL = 0;
 		whatButChange = 0;
 		indexFinish = -1;
 
@@ -1407,7 +1430,8 @@ public:
 			else if (button [i] -> subtype == whichStateWill)
 				button [i] -> F_transformation = true;
 			else if (button [i] -> subtype == wholeType && F_enlargeWholeType){
-				button [i] -> F_transformation = true; button [i] -> F_draw = true; button [i] -> clear ();
+				button [i] -> F_transformation = true; button [i] -> F_draw = true; 
+				button [i] -> clear ();
 			}
 			else if (button [i] -> subtype == wholeType && F_reduceWholeType)
 				button [i] -> F_transformation = true;
@@ -1493,7 +1517,7 @@ public:
 				}
 				else if (button [i] -> F_click && button [i] -> name == "AdminMode" && !F_changeStates){
 					 sndClickButt.play ();
-					 if (PassedLVL == 8)
+					 if (passedLVL == 8)
 						 AdOrPlMode = "AdminMode"; 
 					 else
 						 message.showMessage (W_WIN / 2, H_WIN / 2 - 4 * (H_BUTTON + INTERVAL), "Finish all levels", 0.8f);
@@ -1573,13 +1597,13 @@ public:
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> F_click && button [i] -> name == "SelectLVL" && !F_changeStates){
-					if (button [i] -> value <= PassedLVL + 1){
+					if (button [i] -> value <= passedLVL + 1){
 						CurrentLVL = button [i] -> value;
 						_itoa (button [i] -> value, tmpC2, 10);
 						
 						char nameFile [30] = "Resources/LVLs/lvl";
 						strcat (nameFile, tmpC2);
-						strcat (nameFile, ".txt");
+						strcat (nameFile, ".prof");
 						strcpy (lvlOpenByPlayer, nameFile);
 						
 						F_isPlayerLVL = false;
@@ -1693,7 +1717,7 @@ public:
 					sndClickButt.play (); 
 					char tmpC [100] = "Resources/LVLs/";
 					bool findLVL = false;
-					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					ifstream inF ("Resources/LVLs/listLVLs.prof");
 					char tmpC2 [30];
 					int tmpI;
 					inF >> tmpI;
@@ -1702,7 +1726,7 @@ public:
 						if (strcmp (tmpC2, playerLVLOpenByPlayer) == 0){
 							if (strstr (playerLVLOpenByPlayer, "lvl") == NULL || strpbrk (playerLVLOpenByPlayer, "12345678") == NULL || strlen (playerLVLOpenByPlayer) > 4){
 								strcat (tmpC, playerLVLOpenByPlayer);
-								strcat (tmpC, ".txt");
+								strcat (tmpC, ".prof");
 								strcpy (lvlOpenByPlayer, tmpC);
 								
 
@@ -1762,7 +1786,7 @@ public:
 				else if (button [i] -> F_click && button [i] -> name == "ListAd" && !F_changeStates){
 					Font font;
 					font.loadFromFile ("Resources/Fonts/modeka.otf");
-					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					ifstream inF ("Resources/LVLs/listLVLs.prof");
 					char tmpC [50];
 					int tmpI;
 					SubtypeState tmpS = listLVL;
@@ -1810,7 +1834,7 @@ public:
 				if (((button [i] -> F_click && button [i] -> name == "EditLVL") || F_enterReleased) && !F_changeStates){
 					bool findLVL = false;
 					char tmpC [100] = "Resources/LVLs/";
-					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					ifstream inF ("Resources/LVLs/listLVLs.prof");
 					char tmpC2 [30];
 					int tmpI;
 					inF >> tmpI;
@@ -1818,7 +1842,7 @@ public:
 						inF >> tmpC2;
 						if (strcmp (tmpC2, lvlOpenByAdmin) == 0){
 							strcat (tmpC, lvlOpenByAdmin);
-							strcat (tmpC, ".txt");
+							strcat (tmpC, ".prof");
 							openLVL_AD (tmpC);
 							startChangeState (editLVL);
 							findLVL = true;
@@ -1854,7 +1878,7 @@ public:
 					int tmpI; 
 					char tmpC2 [100][30]; 
 					bool edit = true;
-					ifstream inF ("Resources/LVLs/listLVLs.txt");
+					ifstream inF ("Resources/LVLs/listLVLs.prof");
 					inF >> tmpI;
 					if (tmpI - 8 < 16){
 						for (int i = 0; i < tmpI; i++){
@@ -1864,7 +1888,7 @@ public:
 						}
 						inF.close ();
 
-						ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
+						ofstream outF ("Resources/LVLs/listLVLs.prof"); //создали новый уровень
 						if (edit){
 							outF << ++tmpI << endl;
 							for (int i = 0; i < tmpI - 1; i++)
@@ -1879,7 +1903,7 @@ public:
 						}
 						char tmpC [100] = "Resources/LVLs/";
 						strcat (tmpC, lvlOpenByAdmin);
-						strcat (tmpC, ".txt");
+						strcat (tmpC, ".prof");
 						Start.x = ArrWall [indexStart] -> x;
 						Start.y = ArrWall [indexStart] -> y;
 						saveLVL_AD (tmpC);
@@ -1903,7 +1927,7 @@ public:
 						int tmpI; 
 						char tmpC2 [100][30]; 
 						bool isDelete = false;
-						ifstream inF ("Resources/LVLs/listLVLs.txt");
+						ifstream inF ("Resources/LVLs/listLVLs.prof");
 						inF >> tmpI;
 					
 						for (int j = 0; j < tmpI; j++){
@@ -1917,9 +1941,9 @@ public:
 							char tmpC [50];
 							strcpy (tmpC, "Resources/LVLs/");
 							strcat (tmpC, lvlOpenByAdmin);
-							strcat (tmpC, ".txt");
+							strcat (tmpC, ".prof");
 							remove (tmpC);
-							ofstream outF ("Resources/LVLs/listLVLs.txt"); //создали новый уровень
+							ofstream outF ("Resources/LVLs/listLVLs.prof"); //создали новый уровень
 							outF << tmpI - 1 << endl;
 							for (int i = 0; i < tmpI; i++)
 								if (strcmp (tmpC2 [i], lvlOpenByAdmin) != 0)
@@ -2018,8 +2042,8 @@ public:
 					F_lvlComplete = false;
 					if (!F_isPlayerLVL){
 						if (CurrentLVL < 8){ //////////////////////////////////////////////исправить!!!////////////////////////////////////////////////////
-							if (PassedLVL < 8 && CurrentLVL - 1 == PassedLVL)
-								PassedLVL++;
+							if (passedLVL < 8 && CurrentLVL - 1 == passedLVL)
+								passedLVL++;
 							writeInfo ();
 							CurrentLVL++; 
 							Start.x = ArrWall [indexStart] -> x;
@@ -2029,7 +2053,7 @@ public:
 							tmpC2 = _itoa (CurrentLVL, tmpC, 10);
 							char nameFile [40] = "Resources/LVLs/lvl";
 							strcat (nameFile, tmpC2);
-							strcat (nameFile, ".txt");
+							strcat (nameFile, ".prof");
 							strcpy (lvlOpenByPlayer, nameFile);
 							
 							pl -> F_reduce = false;
@@ -2040,7 +2064,7 @@ public:
 							Start.x = ArrWall [indexStart] -> x;
 							Start.y = ArrWall [indexStart] -> y;
 							saveLVL_PL (lvlOpenByPlayer);
-							PassedLVL = 8;
+							passedLVL = 8;
 							writeInfo ();
 							startChangeState (selectLVL);
 						}
@@ -2190,6 +2214,7 @@ public:
 	}
 };
 
+
 int main (){
 	System system;
 	view.reset (FloatRect (0, 0, (float) system.W_WIN, (float) system.H_WIN)); //создание камеры
@@ -2220,8 +2245,10 @@ int main (){
 		_itoa (system.FPS, tmpC, 10);
 		game.button [game.indexFPSBut] -> updateText (tmpC); //обновляем кнопку, которая выводит значение ФПС
 
-		system.mousePosWin = Mouse::getPosition (system.window [0]); //координаты мыши относ. окна
-		system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
+		if (!system.F_gameIsLocked){
+			system.mousePosWin = Mouse::getPosition (system.window [0]); //координаты мыши относ. окна
+			system.posMouse = system.window -> mapPixelToCoords (system.mousePosWin); //координаты мыши относ. карты
+		}
 
 
 		while (system.window -> pollEvent (system.event)){ //заходит в цикл когда что-то происходит (игрок двигает мышкой или нажимает на клавиши)
