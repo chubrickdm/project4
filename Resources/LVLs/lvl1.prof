@@ -1,5 +1,5 @@
-1585
-55 13
+1593
+44 16
 249
 44 16 Start
 42 18 Finish
@@ -24,6 +24,7 @@
 0 24 Triangle
 0 25 Triangle
 0 26 Triangle
+0 27 Triangle
 0 30 Wall
 0 31 Rectangle
 1 0 Rectangle
@@ -61,10 +62,12 @@
 2 11 Wall
 2 12 Wall
 2 13 Triangle
+2 14 Triangle
 2 15 Wall
 2 16 Wall
 2 17 Wall
 2 19 Wall
+2 20 Rectangle
 2 21 Wall
 2 22 Wall
 2 23 Wall
@@ -132,6 +135,7 @@
 5 9 Rectangle
 5 10 Rectangle
 5 11 Wall
+5 12 Triangle
 5 15 Rectangle
 5 16 Wall
 5 17 Triangle
@@ -194,6 +198,7 @@
 7 20 Wall
 7 21 Wall
 7 23 Wall
+7 24 Triangle
 7 27 Wall
 7 28 Wall
 7 29 Triangle
@@ -215,6 +220,7 @@
 8 19 Rectangle
 8 20 Rectangle
 8 21 Rectangle
+8 22 Rectangle
 8 23 Wall
 8 24 Triangle
 8 25 Wall
@@ -266,6 +272,7 @@
 10 14 Wall
 10 15 Wall
 10 16 Wall
+10 17 Triangle
 10 18 Rectangle
 10 19 Rectangle
 10 20 Wall
@@ -279,9 +286,11 @@
 11 1 Rectangle
 11 2 Rectangle
 11 3 Wall
+11 4 Triangle
 11 5 Rectangle
 11 6 Rectangle
 11 7 Wall
+11 9 Triangle
 11 10 Triangle
 11 11 Triangle
 11 12 Wall
@@ -297,8 +306,6 @@
 11 25 Wall
 11 27 Wall
 11 28 Wall
-12 0 Wall
-12 1 Wall
 12 3 Wall
 12 4 Triangle
 12 5 Wall
@@ -334,7 +341,9 @@
 13 10 Rectangle
 13 11 Rectangle
 13 12 Wall
+13 13 Rectangle
 13 14 Wall
+13 15 Triangle
 13 16 Wall
 13 17 Triangle
 13 18 Triangle
@@ -348,8 +357,6 @@
 13 29 Rectangle
 13 30 Rectangle
 13 31 Triangle
-14 0 Wall
-14 1 Wall
 14 3 Wall
 14 4 Wall
 14 6 Wall
@@ -364,6 +371,7 @@
 14 17 Triangle
 14 18 Wall
 14 19 Wall
+14 20 Rectangle
 14 21 Wall
 14 22 Wall
 14 23 Wall
@@ -395,6 +403,7 @@
 15 21 Wall
 15 22 Triangle
 15 23 Triangle
+15 24 Triangle
 15 25 Wall
 15 26 Triangle
 15 27 Wall
@@ -416,6 +425,7 @@
 16 14 Triangle
 16 15 Triangle
 16 16 Wall
+16 17 Triangle
 16 18 Wall
 16 19 Wall
 16 20 Rectangle
@@ -453,8 +463,6 @@
 17 29 Wall
 17 30 Wall
 17 31 Triangle
-18 0 Wall
-18 1 Wall
 18 3 Wall
 18 4 Wall
 18 6 Wall
@@ -504,8 +512,6 @@
 19 29 Wall
 19 30 Wall
 19 31 Wall
-20 0 Wall
-20 1 Wall
 20 3 Wall
 20 4 Wall
 20 5 Wall
@@ -527,9 +533,9 @@
 20 24 Wall
 20 25 Wall
 20 26 Wall
-20 27 Rectangle
-20 28 Rectangle
-20 31 Triangle
+20 27 Triangle
+20 30 Rectangle
+20 31 Rectangle
 21 0 Triangle
 21 1 Triangle
 21 2 Rectangle
@@ -551,11 +557,11 @@
 21 24 Wall
 21 25 Wall
 21 26 Wall
-21 27 Rectangle
+21 27 Triangle
 21 28 Wall
 21 29 Wall
 21 30 Wall
-21 31 Triangle
+21 31 Rectangle
 22 0 Triangle
 22 1 Triangle
 22 2 Rectangle
@@ -567,16 +573,18 @@
 22 11 Wall
 22 12 Wall
 22 13 Wall
+22 16 Rectangle
 22 17 Wall
 22 18 Rectangle
 22 19 Rectangle
 22 20 Rectangle
 22 21 Wall
+22 24 Rectangle
 22 25 Wall
 22 26 Wall
-22 27 Rectangle
+22 27 Triangle
 22 28 Wall
-22 31 Triangle
+22 29 Triangle
 23 0 Triangle
 23 1 Triangle
 23 2 Rectangle
@@ -599,18 +607,16 @@
 23 19 Wall
 23 20 Wall
 23 21 Wall
-23 22 Rectangle
+23 22 Triangle
 23 23 Wall
-23 24 Triangle
+23 24 Rectangle
 23 25 Wall
 23 26 Wall
 23 27 Save
 23 28 Wall
-23 29 Rectangle
+23 29 Triangle
 23 30 Wall
 23 31 Wall
-24 0 Wall
-24 1 Wall
 24 3 Wall
 24 4 Triangle
 24 5 Wall
@@ -618,20 +624,19 @@
 24 9 Rectangle
 24 10 Rectangle
 24 11 Rectangle
-24 12 Rectangle
-24 13 Rectangle
-24 16 Triangle
-24 17 Triangle
-24 18 Triangle
-24 21 Rectangle
-24 22 Rectangle
+24 13 Triangle
+24 14 Triangle
+24 15 Triangle
+24 17 Rectangle
+24 18 Rectangle
+24 19 Rectangle
+24 21 Triangle
+24 22 Triangle
 24 23 Wall
-24 24 Triangle
-24 25 Triangle
-24 26 Triangle
+24 24 Rectangle
+24 25 Rectangle
 24 28 Wall
-24 29 Rectangle
-24 30 Rectangle
+24 29 Triangle
 25 3 Wall
 25 5 Wall
 25 6 Rectangle
@@ -659,8 +664,7 @@
 25 28 Wall
 25 29 Wall
 25 30 Wall
-26 0 Wall
-26 1 Wall
+25 31 Triangle
 26 3 Wall
 26 5 Rectangle
 26 6 Rectangle
@@ -683,6 +687,7 @@
 26 28 Wall
 26 29 Triangle
 26 30 Triangle
+26 31 Triangle
 27 0 Rectangle
 27 1 Rectangle
 27 2 Triangle
@@ -709,7 +714,6 @@
 27 26 Wall
 27 27 Rectangle
 27 28 Wall
-27 29 Triangle
 27 30 Wall
 27 31 Wall
 28 0 Rectangle
@@ -736,6 +740,8 @@
 28 26 Wall
 28 27 Rectangle
 28 28 Wall
+28 30 Rectangle
+28 31 Rectangle
 29 0 Wall
 29 1 Wall
 29 3 Wall
@@ -774,6 +780,7 @@
 30 20 Wall
 30 21 Rectangle
 30 24 Wall
+30 25 Triangle
 30 26 Wall
 30 28 Wall
 30 29 Triangle
@@ -822,10 +829,11 @@
 32 22 Wall
 32 23 Wall
 32 24 Wall
-32 25 Triangle
+32 25 Rectangle
 32 26 Wall
 32 27 Triangle
 32 28 Triangle
+32 31 Rectangle
 33 0 Wall
 33 1 Wall
 33 2 Wall
@@ -846,7 +854,7 @@
 33 22 Wall
 33 23 Wall
 33 24 Wall
-33 25 Triangle
+33 25 Rectangle
 33 26 Wall
 33 27 Wall
 33 28 Wall
@@ -872,7 +880,6 @@
 34 22 Wall
 34 23 Wall
 34 24 Wall
-34 25 Triangle
 34 26 Wall
 34 27 Wall
 34 28 Wall
@@ -1115,6 +1122,7 @@
 44 7 Wall
 44 8 Rectangle
 44 9 Rectangle
+44 10 Rectangle
 44 13 Triangle
 44 14 Wall
 44 15 Wall

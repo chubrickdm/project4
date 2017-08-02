@@ -76,11 +76,11 @@ public:
 
 	void checkCursor (){ //функция проверки на нажатие кнопки или наведением курсора на кнопку
 		if (name == "SelectLVL")
-			if (value > passedLVL + 1)  F_locked = true;
-			else                        F_locked = false;
+			if (value > passedLVL + 1)    F_locked = true;
+			else                          F_locked = false;
 		if (name == "My lvls")
-			if (passedLVL != 8)         F_locked = true;
-			else                        F_locked = false;
+			if (passedLVL >= NUM_LVL - 1) F_locked = false;
+			else                          F_locked = true;
 
 		F_click = false;
 		if (!F_locked){
@@ -751,8 +751,11 @@ public:
 		if (tmpB){
 			F_gameIsLocked = true;
 			cout << "Don't change the settings" << endl;
+			message.showMessage (W_WIN / 2, H_WIN / 2 + 3 * H_BUTTON, "Don't change the settings", 50.1f);
+			passedLVL += 139;
 		}
-		passedLVL /= 23;
+		else
+			passedLVL /= 23;
 	}
 
 	void writeInfo (){ //записать информациюю об игроке
@@ -896,19 +899,19 @@ public:
 		button [NumButton++] = new Button (buttonImage, "Back",   "BackToMenu", font, tmpS, W_WIN / 2, H_WIN / 2 - 1 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 		tmpS = selectLVL;
-		tmpI = H_WIN / 2 - 3 * (H_BUTTON + INTERVAL);
+		/*tmpI = H_WIN / 2 - 3 * (H_BUTTON + INTERVAL);
+		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL",     font, tmpS, W_WIN / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 1, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL",     font, tmpS, W_WIN / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL",     font, tmpS, W_WIN / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
+		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL",     font, tmpS, W_WIN / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);*/
+		tmpI = H_WIN / 2 - 2 * (H_BUTTON + INTERVAL);
 		button [NumButton++] = new Button (buttonImage, "1",          "SelectLVL",     font, tmpS, W_WIN / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 1, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "2",          "SelectLVL",     font, tmpS, W_WIN / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 2, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "3",          "SelectLVL",     font, tmpS, W_WIN / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 3, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "4",          "SelectLVL",     font, tmpS, W_WIN / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 4, 47,  45);
-		tmpI = H_WIN / 2 - 2 * (H_BUTTON + INTERVAL);
-		button [NumButton++] = new Button (buttonImage, "5",          "SelectLVL",     font, tmpS, W_WIN / 2 - 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 5, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "6",          "SelectLVL",     font, tmpS, W_WIN / 2 - (W_BUTTON) / 8 - 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 6, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "7",          "SelectLVL",     font, tmpS, W_WIN / 2 + (W_BUTTON) / 8 + 1, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 7, 47,  45);
-		button [NumButton++] = new Button (buttonImage, "8",          "SelectLVL",     font, tmpS, W_WIN / 2 + 3 * (W_BUTTON) / 8, tmpI,                (W_BUTTON - 4) / 4, H_BUTTON, 8, 47,  45);
 		button [NumButton++] = new Button (buttonImage, "My lvls",    "My lvls",       font, tmpS, W_WIN / 2, H_WIN / 2 - 1 * (H_BUTTON + INTERVAL), W_BUTTON,           H_BUTTON, 0, 188, 45);
 		button [NumButton++] = new Button (buttonImage, "Back",       "BackToMenuSel", font, tmpS, W_WIN / 2, H_WIN / 2 - 0 * (H_BUTTON + INTERVAL), W_BUTTON,           H_BUTTON, 0, 188, 45);
-		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, W_WIN / 2, H_WIN / 2 - 4 * (H_BUTTON + INTERVAL));
+		button [NumButton++] = new Static (             "Select LVL", "SelectStatic",  font, tmpS, W_WIN / 2, H_WIN / 2 - 3 * (H_BUTTON + INTERVAL));
 
 		tmpS = playerLVL;
 		tmpI = H_BUTTON + INTERVAL;
@@ -1001,11 +1004,6 @@ public:
 		Start.x = 0; Start.y = 0; //инициализируем стартовую точку
 		Finish.x = 0; Finish.y = 0; //инициализируем финиш
 
-		Font font;
-		font.loadFromFile ("Resources/Fonts/modeka.otf");
-		message.initialize (font);
-		message.setColor (Color (75, 30, 34));
-
 		Image playerImage; //зарузка спрайта игрока
 		playerImage.loadFromFile ("Resources/Textures/player2.png");
 		pl  = new Player (playerImage, Start.x, Start.y, SQUARE, SQUARE, 40, 40); //создание объекта игрок
@@ -1090,6 +1088,11 @@ public:
 		NumListLVL = 0;
 		whatButChange = 0;
 		indexFinish = -1;
+
+		Font font;
+		font.loadFromFile ("Resources/Fonts/modeka.otf");
+		message.initialize (font);
+		message.setColor (Color (75, 30, 34));
 
 		readInfo ();
 		initializeButtons (); //вызываем остальные инициализации
@@ -1498,7 +1501,9 @@ public:
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "Exit") || F_escapeReleased) && !F_changeStates){
 					writeInfo ();
-					startChangeState (exitt); break;
+					if (!F_gameIsLocked)
+						startChangeState (exitt); 
+					break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "About" && !F_changeStates){
 					startChangeState (about); break;
@@ -1517,10 +1522,10 @@ public:
 				}
 				else if (button [i] -> F_click && button [i] -> name == "AdminMode" && !F_changeStates){
 					 sndClickButt.play ();
-					 if (passedLVL == 8)
+					 if (passedLVL >= NUM_LVL - 1)
 						 AdOrPlMode = "AdminMode"; 
 					 else
-						 message.showMessage (W_WIN / 2, H_WIN / 2 - 4 * (H_BUTTON + INTERVAL), "Finish all levels", 0.8f);
+						 message.showMessage (W_WIN / 2, H_WIN / 2 - 4 * (H_BUTTON + INTERVAL), "Finish 3 levels", 0.8f);
 					 break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "PlayerMode" && !F_changeStates){
@@ -1597,20 +1602,17 @@ public:
 			if (button [i] -> F_draw){
 				button [i] -> checkCursor ();
 				if (button [i] -> F_click && button [i] -> name == "SelectLVL" && !F_changeStates){
-					if (button [i] -> value <= passedLVL + 1){
-						CurrentLVL = button [i] -> value;
-						_itoa (button [i] -> value, tmpC2, 10);
-						
-						char nameFile [30] = "Resources/LVLs/lvl";
-						strcat (nameFile, tmpC2);
-						strcat (nameFile, ".prof");
-						strcpy (lvlOpenByPlayer, nameFile);
-						
-						F_isPlayerLVL = false;
-						timer = 0;
-						startChangeState (loadingLVL);
-						
-					}
+					CurrentLVL = button [i] -> value;
+					_itoa (button [i] -> value, tmpC2, 10);
+
+					char nameFile [30] = "Resources/LVLs/lvl";
+					strcat (nameFile, tmpC2);
+					strcat (nameFile, ".prof");
+					strcpy (lvlOpenByPlayer, nameFile);
+
+					F_isPlayerLVL = false;
+					timer = 0;
+					startChangeState (loadingLVL);	
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToMenuSel") || F_escapeReleased) && !F_changeStates){
 					startChangeState (launcher); break;
@@ -1724,7 +1726,7 @@ public:
 					for (int j = 0; j < tmpI; j++){
 						inF >> tmpC2;
 						if (strcmp (tmpC2, playerLVLOpenByPlayer) == 0){
-							if (strstr (playerLVLOpenByPlayer, "lvl") == NULL || strpbrk (playerLVLOpenByPlayer, "12345678") == NULL || strlen (playerLVLOpenByPlayer) > 4){
+							if (strstr (playerLVLOpenByPlayer, "lvl") == NULL || strpbrk (playerLVLOpenByPlayer, "1234") == NULL || strlen (playerLVLOpenByPlayer) > 4){
 								strcat (tmpC, playerLVLOpenByPlayer);
 								strcat (tmpC, ".prof");
 								strcpy (lvlOpenByPlayer, tmpC);
@@ -1793,7 +1795,7 @@ public:
 					inF >> tmpI;
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC;
-						if (strstr (tmpC, "lvl") == NULL || strpbrk (tmpC, "12345678") == NULL || strlen (tmpC) > 4){
+						if (strstr (tmpC, "lvl") == NULL || strpbrk (tmpC, "1234") == NULL || strlen (tmpC) > 4){
 							button [NumButton++] = new Static (tmpC, "ListLVL", font, tmpS, W_WIN / 2, H_WIN / 2 + NUM_CELL_Y * EDGE / 2 - H_BUTTON * (NumListLVL + 1));
 							NumListLVL++;
 						}
@@ -1873,41 +1875,59 @@ public:
 				if (button [i] -> name == "AdSaveLVL" && !F_changeStates)
 					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "AdSaveLVL") || F_enterReleased) && !F_changeStates){
-					startChangeState (editLVL);
-
 					int tmpI; 
 					char tmpC2 [100][30]; 
-					bool edit = true;
+					bool edit = false;
 					ifstream inF ("Resources/LVLs/listLVLs.prof");
 					inF >> tmpI;
-					if (tmpI - 8 < 16){
-						for (int i = 0; i < tmpI; i++){
-							inF >> tmpC2 [i];
-							if (strcmp (tmpC2 [i], lvlOpenByAdmin) == 0)
-								edit = false;
-						}
-						inF.close ();
+					for (int i = 0; i < tmpI; i++){
+						inF >> tmpC2 [i];
+						if (strcmp (tmpC2 [i], lvlOpenByAdmin) == 0)
+							edit = true;
+					}
+					inF.close ();
 
-						ofstream outF ("Resources/LVLs/listLVLs.prof"); //создали новый уровень
-						if (edit){
+					ofstream outF ("Resources/LVLs/listLVLs.prof"); //создали новый уровень
+					if (!edit){
+						if (tmpI - NUM_LVL < 8){
 							outF << ++tmpI << endl;
 							for (int i = 0; i < tmpI - 1; i++)
 								outF << tmpC2 [i] << endl;
 							outF << lvlOpenByAdmin << endl;
 							NumLVLDeath = 0;
+							char tmpC [100] = "Resources/LVLs/";
+							strcat (tmpC, lvlOpenByAdmin);
+							strcat (tmpC, ".prof");
+							Start.x = ArrWall [indexStart] -> x;
+							Start.y = ArrWall [indexStart] -> y;
+							saveLVL_AD (tmpC);
+							startChangeState (editLVL);
 						}
-						else if (!edit){ //редактируем старый уровень
+						else{
 							outF << tmpI << endl;
-							for (int i = 0; i < tmpI; i++)
-								outF << tmpC2 [i] << endl;
+							for (int k = 0; k < tmpI; k++)
+								outF << tmpC2 [k] << endl;
+							sndClickButt.play ();
+							for (int k = 0; k < NumButton; k++)
+								if (button [k] -> name == "AdSaveLVL"){
+									strcpy (lvlOpenByAdmin, "");
+									message.showMessage (W_WIN / 2 + 2 * W_BUTTON, button [k] -> y, "You can't create more LVL", 0.7f);
+									break;
+								}
 						}
+					}
+					else{ //редактируем старый уровень
+						outF << tmpI << endl;
+						for (int k = 0; k < tmpI; k++)
+							outF << tmpC2 [k] << endl;
 						char tmpC [100] = "Resources/LVLs/";
 						strcat (tmpC, lvlOpenByAdmin);
 						strcat (tmpC, ".prof");
 						Start.x = ArrWall [indexStart] -> x;
 						Start.y = ArrWall [indexStart] -> y;
 						saveLVL_AD (tmpC);
-					}
+						startChangeState (editLVL);
+					}	
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminSave") || F_escapeReleased) && !F_changeStates)
 					startChangeState (editLVL);
@@ -1923,7 +1943,7 @@ public:
 				if (button [i] -> name == "AdDeleteLVL" && !F_changeStates)
 					button [i] -> updateText (lvlOpenByAdmin);
 				if (((button [i] -> F_click && button [i] -> name == "AdDeleteLVL") || F_enterReleased) && !F_changeStates){
-					if (strstr (lvlOpenByAdmin, "lvl") == NULL || strpbrk (lvlOpenByAdmin, "12345678") == NULL || strlen (lvlOpenByAdmin) > 4){
+					if (strstr (lvlOpenByAdmin, "lvl") == NULL || strpbrk (lvlOpenByAdmin, "1234") == NULL || strlen (lvlOpenByAdmin) > 4){
 						int tmpI; 
 						char tmpC2 [100][30]; 
 						bool isDelete = false;
@@ -2041,8 +2061,8 @@ public:
 					sndClickButt.play (); 
 					F_lvlComplete = false;
 					if (!F_isPlayerLVL){
-						if (CurrentLVL < 8){ //////////////////////////////////////////////исправить!!!////////////////////////////////////////////////////
-							if (passedLVL < 8 && CurrentLVL - 1 == passedLVL)
+						if (CurrentLVL < NUM_LVL){ //////////////////////////////////////////////исправить!!!////////////////////////////////////////////////////
+							if (passedLVL < NUM_LVL && CurrentLVL - 1 == passedLVL)
 								passedLVL++;
 							writeInfo ();
 							CurrentLVL++; 
@@ -2064,7 +2084,7 @@ public:
 							Start.x = ArrWall [indexStart] -> x;
 							Start.y = ArrWall [indexStart] -> y;
 							saveLVL_PL (lvlOpenByPlayer);
-							passedLVL = 8;
+							passedLVL = NUM_LVL;
 							writeInfo ();
 							startChangeState (selectLVL);
 						}

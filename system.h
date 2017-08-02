@@ -112,6 +112,7 @@ public:
 	int SIZE_TEXT;
 	int NUM_SQUARE;
 	int SQUARE;
+	int NUM_LVL;
 public:
 	System (){
 		W_WIN = GetSystemMetrics (0); H_WIN = GetSystemMetrics (1); //разрешение
@@ -135,6 +136,7 @@ public:
 		SQUARE = EDGE * NUM_CELL_Y / NUM_SQUARE; //размер одного такого квадрата
 		speed = (float) 3 * SQUARE; //сколько игрок пройдет за 1 секунду
 		speedChangeSt = 200; //на сколько процентов уменьшится кнопка за 1 секунду
+		NUM_LVL = 4;
 	}
 
 	TypeState findType (SubtypeState tmpS){
