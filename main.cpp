@@ -79,7 +79,7 @@ public:
 			if (value > passedLVL + 1)    F_locked = true;
 			else                          F_locked = false;
 		if (name == "My lvls")
-			if (passedLVL >= NUM_LVL - 1) F_locked = false;
+			if (passedLVL >= NUM_LVL - 2) F_locked = false;
 			else                          F_locked = true;
 
 		F_click = false;
@@ -921,9 +921,11 @@ public:
 
 		tmpS = about;
 		tmpI = H_BUTTON + INTERVAL;
-		button [NumButton++] = new Static ("Developer:  tiki",  "Developer",       font, tmpS, W_WIN / 2 - W_BUTTON / 2, H_WIN / 2 - 2 * tmpI);
-		button [NumButton++] = new Static ("Version:  beta 0.7",  "Version",         font, tmpS, W_WIN / 2 - W_BUTTON / 2, H_WIN / 2 - 1 * tmpI);
-		button [NumButton++] = new Button (buttonImage, "Back",    "BackToMenuAbout", font, tmpS, W_WIN / 2, H_WIN / 2 - 0 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
+		button [NumButton++] = new Static ("Developer:  tiki",           "Developer", font, tmpS, W_WIN / 2, H_WIN / 2 - 3 * tmpI);
+		button [NumButton++] = new Static ("Version:     1.0",             "Version", font, tmpS, W_WIN / 2, H_WIN / 2 - 2 * tmpI);
+		button [NumButton++] = new Static ("I want to thank: Blizzru, With_Drollery", "Thnaks1",  font, tmpS, W_WIN / 2, H_WIN / 2 - 1 * tmpI);
+		button [NumButton++] = new Static ("and my brother.",              "Thanks3", font, tmpS, W_WIN / 2, H_WIN / 2 - 0 * tmpI);
+		button [NumButton++] = new Button (buttonImage, "Back",    "BackToMenuAbout", font, tmpS, W_WIN / 2, H_WIN / 2 + 1 * tmpI, W_BUTTON, H_BUTTON, 0, 188, 45);
 
 
 		Image pictureImage; //загрузка спрайта стен
@@ -1522,10 +1524,10 @@ public:
 				}
 				else if (button [i] -> F_click && button [i] -> name == "AdminMode" && !F_changeStates){
 					 sndClickButt.play ();
-					 if (passedLVL >= NUM_LVL - 1)
+					 if (passedLVL >= NUM_LVL - 2)
 						 AdOrPlMode = "AdminMode"; 
 					 else
-						 message.showMessage (W_WIN / 2, H_WIN / 2 - 4 * (H_BUTTON + INTERVAL), "Finish 3 levels", 0.8f);
+						 message.showMessage (W_WIN / 2, H_WIN / 2 - 4 * (H_BUTTON + INTERVAL), "Finish 2 levels", 0.8f);
 					 break;
 				}
 				else if (button [i] -> F_click && button [i] -> name == "PlayerMode" && !F_changeStates){
@@ -1843,12 +1845,23 @@ public:
 					for (int i = 0; i < tmpI; i++){
 						inF >> tmpC2;
 						if (strcmp (tmpC2, lvlOpenByAdmin) == 0){
-							strcat (tmpC, lvlOpenByAdmin);
-							strcat (tmpC, ".prof");
-							openLVL_AD (tmpC);
-							startChangeState (editLVL);
-							findLVL = true;
-							break;
+							if (strstr (lvlOpenByAdmin, "lvl") == NULL || strpbrk (lvlOpenByAdmin, "1234") == NULL || strlen (lvlOpenByAdmin) > 4){
+								strcat (tmpC, lvlOpenByAdmin);
+								strcat (tmpC, ".prof");
+								openLVL_AD (tmpC);
+								startChangeState (editLVL);
+								findLVL = true;
+								break;
+							}
+							else{
+								sndClickButt.play ();
+								for (int k = 0; k < NumButton; k++)
+									if (button [k] -> name == "EditLVL"){
+										strcpy (lvlOpenByAdmin, "");
+										message.showMessage (W_WIN / 2 + 2 * W_BUTTON, button [k] -> y, "this level may not be opened", 1.5f);
+										break;
+									}
+							}
 						}
 					}
 					if (!findLVL){
@@ -1886,15 +1899,40 @@ public:
 							edit = true;
 					}
 					inF.close ();
-
-					ofstream outF ("Resources/LVLs/listLVLs.prof"); //создали новый уровень
-					if (!edit){
-						if (tmpI - NUM_LVL < 8){
-							outF << ++tmpI << endl;
-							for (int i = 0; i < tmpI - 1; i++)
-								outF << tmpC2 [i] << endl;
-							outF << lvlOpenByAdmin << endl;
-							NumLVLDeath = 0;
+					if (strstr (lvlOpenByAdmin, "lvl") == NULL || strpbrk (lvlOpenByAdmin, "1234") == NULL || strlen (lvlOpenByAdmin) > 4){
+						ofstream outF ("Resources/LVLs/listLVLs.prof"); //создали новый уровень
+						if (!edit){
+							if (tmpI - NUM_LVL < 8){
+								outF << ++tmpI << endl;
+								for (int i = 0; i < tmpI - 1; i++)
+									outF << tmpC2 [i] << endl;
+								outF << lvlOpenByAdmin << endl;
+								NumLVLDeath = 0;
+								char tmpC [100] = "Resources/LVLs/";
+								strcat (tmpC, lvlOpenByAdmin);
+								strcat (tmpC, ".prof");
+								Start.x = ArrWall [indexStart] -> x;
+								Start.y = ArrWall [indexStart] -> y;
+								saveLVL_AD (tmpC);
+								startChangeState (editLVL);
+							}
+							else{
+								outF << tmpI << endl;
+								for (int k = 0; k < tmpI; k++)
+									outF << tmpC2 [k] << endl;
+								sndClickButt.play ();
+								for (int k = 0; k < NumButton; k++)
+									if (button [k] -> name == "AdSaveLVL"){
+										strcpy (lvlOpenByAdmin, "");
+										message.showMessage (W_WIN / 2 + 2 * W_BUTTON, button [k] -> y, "You can't create more LVL", 0.7f);
+										break;
+									}
+							}
+						}
+						else{ //редактируем старый уровень
+							outF << tmpI << endl;
+							for (int k = 0; k < tmpI; k++)
+								outF << tmpC2 [k] << endl;
 							char tmpC [100] = "Resources/LVLs/";
 							strcat (tmpC, lvlOpenByAdmin);
 							strcat (tmpC, ".prof");
@@ -1902,32 +1940,18 @@ public:
 							Start.y = ArrWall [indexStart] -> y;
 							saveLVL_AD (tmpC);
 							startChangeState (editLVL);
-						}
-						else{
-							outF << tmpI << endl;
-							for (int k = 0; k < tmpI; k++)
-								outF << tmpC2 [k] << endl;
-							sndClickButt.play ();
-							for (int k = 0; k < NumButton; k++)
-								if (button [k] -> name == "AdSaveLVL"){
-									strcpy (lvlOpenByAdmin, "");
-									message.showMessage (W_WIN / 2 + 2 * W_BUTTON, button [k] -> y, "You can't create more LVL", 0.7f);
-									break;
-								}
-						}
+						}	
 					}
-					else{ //редактируем старый уровень
-						outF << tmpI << endl;
-						for (int k = 0; k < tmpI; k++)
-							outF << tmpC2 [k] << endl;
-						char tmpC [100] = "Resources/LVLs/";
-						strcat (tmpC, lvlOpenByAdmin);
-						strcat (tmpC, ".prof");
-						Start.x = ArrWall [indexStart] -> x;
-						Start.y = ArrWall [indexStart] -> y;
-						saveLVL_AD (tmpC);
-						startChangeState (editLVL);
-					}	
+					else{
+						sndClickButt.play ();
+						for (int k = 0; k < NumButton; k++)
+							if (button [k] -> name == "AdSaveLVL"){
+								strcpy (lvlOpenByAdmin, "");
+								message.showMessage (W_WIN / 2 + 2 * W_BUTTON, button [k] -> y, "Enter other name", 1.5f);
+								F_enterReleased = false;
+								break;
+							}
+					}
 				}
 				else if (((button [i] -> F_click && button [i] -> name == "BackToAdminSave") || F_escapeReleased) && !F_changeStates)
 					startChangeState (editLVL);
@@ -2147,7 +2171,11 @@ public:
 			changeState ();
 
 		timer += time;
-		if (timer >= 0.5 && timer < 1.5){
+		if (CurrentLVL == 4 && !F_changeStates)
+			if (timer > 0.1f && timer < 0.5f)
+				message.showMessage (W_WIN / 2, H_WIN / 2 + H_BUTTON + INTERVAL, "Good Luck!", 4.5f);
+
+		if (timer >= 1.5f && timer < 2.2f && !F_changeStates){
 			if (!F_loadLVL){
 				F_loadLVL = true;
 				openLVL_PL (lvlOpenByPlayer);
@@ -2160,12 +2188,11 @@ public:
 				pl -> F_enlarge = true;
 				pl -> state = rectangle;
 				pl -> changeFigureStatic ();
-				createWay ();		
+				createWay ();
 			}
 		}
-		else if (timer >= 2.5){
+		else if (timer >= 2.5f){
 			timer = 0;
-			
 			startChangeState (startLVL);
 		}
 	}
