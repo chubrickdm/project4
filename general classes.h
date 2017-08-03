@@ -1,14 +1,13 @@
 #pragma once
 #include "body.h"
-int num = 0;
 
 class Wall : public Body{ //класс стены
 public:
-	Wall (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ //конструктор с именем
-		int GLOB_IND_W = (W_WIN - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
-		int GLOB_IND_H = (H_WIN - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
+	Wall (Texture *tmpTexture, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (tmpTexture, Name, X, Y, W, H, WTexture, HTexture){ //конструктор с именем
+		int GLOB_IND_W = (W_WIN - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается уровень
+		int GLOB_IND_H = (H_WIN - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается уровень
 		shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
-		if (name == "Save")            shape.setTextureRect (IntRect (0, 0,            wTexture, hTexture));
+		if (name == "Save")            shape.setTextureRect (IntRect (0, 0,            wTexture, hTexture)); //определяем текстуру для каждого вида стены
 		else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture,     wTexture, hTexture));
 		else if (name == "Finish")     shape.setTextureRect (IntRect (0, hTexture * 2, wTexture, hTexture));
 		else if (name == "Start")      shape.setTextureRect (IntRect (0, hTexture * 3, wTexture, hTexture));
@@ -17,14 +16,14 @@ public:
 		else if (name == "Triangle")   shape.setTextureRect (IntRect (0, hTexture * 6, wTexture, hTexture));
 	}
 
-	Wall& operator= (const Wall& tmpW){
+	Wall& operator= (const Wall& tmpW){ //в функции класса Game есть функция createWall, там нужен оператор равно
 		if (this != &tmpW){
 			x = tmpW.x; y = tmpW.y;
 			w = tmpW.w; h = tmpW.h;  
 			name = tmpW.name; 
 			wTexture = tmpW.wTexture; hTexture = tmpW.hTexture;
-			int GLOB_IND_W = (W_WIN - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается область которую видит игрок
-			int GLOB_IND_H = (H_WIN - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается область которую видит игрок
+			int GLOB_IND_W = (W_WIN - NUM_CELL_X * EDGE) / 2; //отступ по ширине, с которого начинается уровень
+			int GLOB_IND_H = (H_WIN - NUM_CELL_Y * EDGE) / 2; //отступ по высоте, с которого начинается уровень
 			shape.setPosition ((float) x * EDGE + GLOB_IND_W, (float) y * EDGE + GLOB_IND_H);
 			if (name == "Save")            shape.setTextureRect (IntRect (0, 0,            wTexture, hTexture));
 			else if (name == "Wall")       shape.setTextureRect (IntRect (0, hTexture,     wTexture, hTexture));
@@ -48,11 +47,11 @@ public:
 
 class Background : public Body{ //класс фонового изображения
 public:
-	Background (Image &image, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, Name, X, Y, W, H, WTexture, HTexture){ 
+	Background (Texture *tmpTexture, String Name, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (tmpTexture, Name, X, Y, W, H, WTexture, HTexture){ 
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
-	void changeLocation (int x2, int y2){ //функция изменения координат черного заднего фона (центр фона находится где центр игрока)
+	void changeLocation (int x2, int y2){ //функция изменения координат
 		shape.setPosition ((float) x2, (float) y2);
 	}
 
@@ -85,9 +84,9 @@ private:
 		shape.setRotation (rotation);
 
 		rotation += speedChangeSt * time * 1.5f;
-		reducePrecent -= speedChangeSt * time / 3; //когда прекратится изменение формы 
-		if (reducePrecent < speedChangeSt * time / 3){
-			reducePrecent = 100; F_lvlComplete = true;
+		reducePrecent -= speedChangeSt * time / 3;
+		if (reducePrecent < speedChangeSt * time / 3){ //когда прекратится изменение формы 
+			reducePrecent = 100; F_lvlComplete = true; //тогда и уровень закончится
 			rotation = 0; F_reduce = false;
 		}
 	}
@@ -113,14 +112,14 @@ private:
 		else if (timer >= 0.15f && F_secPhaseTransformation){
 			timer = 0;
 			F_secPhaseTransformation = false;
-			F_transformation = false;
+			F_transformation = false; //он может вконце иметь не полный размер, поэтому приводим его к 100% размеру
 			shape.setSize (Vector2f ((float) w, (float) h));
 			shape.setOrigin ((float) w / 2, (float) h / 2);
 			shape.setPosition ((float) W_WIN / 2, (float) H_WIN / 2);
 		}
 	}
 public:
-	Player (Image &image, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (image, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
+	Player (Texture *tmpTexture, int X, int Y, int W, int H, int WTexture, int HTexture) : Body (tmpTexture, "Player", X, Y, W, H, WTexture, HTexture){ //конструктор без имени
 		F_move = false; F_reduce = false;
 		F_teleportation = false; F_transformation = false; F_secPhaseTransformation = false;
 		reducePrecent = 100; rotation = 0; enlargePrecent = 1; F_enlarge = false;
@@ -139,8 +138,8 @@ public:
 			shape.setRotation (rotation);
 
 			rotation += (float) (speedChangeSt * time * 1.5);
-			enlargePrecent += speedChangeSt * time / 3; //когда прекратится изменение формы
-			if (enlargePrecent > 100 - speedChangeSt * time / 3){
+			enlargePrecent += speedChangeSt * time / 3;
+			if (enlargePrecent > 100 - speedChangeSt * time / 3){ //когда прекратится изменение формы
 				enlargePrecent = 1; F_enlarge = false;
 				shape.setSize (Vector2f ((float) w, (float) h));
 				shape.setOrigin ((float) w / 2, (float) h / 2);
@@ -151,7 +150,7 @@ public:
 	}
 
 	void changeFigureKey (){ //изменение фигуры по нажатию клавиши
-		if (!F_secPhaseTransformation){
+		if (!F_secPhaseTransformation){ //пока идет уменьшение игрока, можно поменять фигуру в которую игрок будет увеличиваться
 			if (keyCodePressed == key [0]){
 				if (state != rectangle){
 					F_transformation = true; stateWill = rectangle;
@@ -169,7 +168,7 @@ public:
 			}
 		}
 
-		if (F_transformation){
+		if (F_transformation){ //если трансформируется
 			EFF_transformation (); timer += time;
 		}
 	}
@@ -182,8 +181,8 @@ public:
 
 	void update (){
 		if (!F_teleportation){
-			if (currDirection < NumMoves && !F_move){
-				if (Direction [currDirection] == 4)      { y--; dir = 4; }
+			if (currDirection < NumMoves && !F_move){ //в массиве хранятся направления, в которе должен двигаться игрок, что б достичь финиша
+				if (Direction [currDirection] == 4)      { y--; dir = 4; } //х и у хранят координаты на уровне! т.е. х от 0 до 31, у от 0 до 63
 				else if (Direction [currDirection] == 1) { y++; dir = 1; }
 				else if (Direction [currDirection] == 2) { x--; dir = 2; }
 				else if (Direction [currDirection] == 3) { x++; dir = 3; }
@@ -192,8 +191,8 @@ public:
 
 			changeFigureKey ();
 
-			if (F_move){
-				if (dir == 3){ 
+			if (F_move){ //начало координат в левом верхнем углу в SFML, а про движение игрока написано для глаз игрока
+				if (dir == 3){ //движение карты влево, а будет выглядеть как игрок движется вправо
 					map.move (-speed * time, 0); 
 					if (map.getPosition ().x - (W_WIN / 2 - SQUARE) < 3 * SQUARE * time || map.getPosition ().x < W_WIN / 2 - SQUARE){
 						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
@@ -201,7 +200,7 @@ public:
 						F_move = false;
 					}
 				}
-				else if (dir == 2){
+				else if (dir == 2){ //движение карты вправо, а будет выглядеть как игрок движется на лево
 					map.move (speed * time, 0); 
 					if ((W_WIN / 2 + SQUARE - map.getPosition ().x < 3 * SQUARE * time) || map.getPosition ().x > W_WIN / 2 + SQUARE){
 						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
@@ -210,7 +209,7 @@ public:
 					}
 				}
 
-				else if (dir == 1){
+				else if (dir == 1){ //движение игрока вниз
 					map.move (0, -speed * time); 
 					if ((map.getPosition ().y - (H_WIN / 2 - SQUARE) < 3 * SQUARE * time) || map.getPosition ().y < H_WIN / 2 - SQUARE){
 						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
@@ -218,7 +217,7 @@ public:
 						F_move = false;
 					}
 				}
-				else if (dir == 4){
+				else if (dir == 4){ //движение игрок вверх
 					map.move (0, speed * time); 
 					if ((H_WIN / 2 + SQUARE - map.getPosition ().y < 3 * SQUARE * time) || map.getPosition ().y > H_WIN / 2 + SQUARE){
 						map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
@@ -229,7 +228,7 @@ public:
 			}
 		}
 		if (x == Finish.x && y == Finish.y && !F_move){ //есди мы достигли финиша
-			EFF_reduce (); F_transformation = false;
+			EFF_reduce (); F_transformation = false; //начинаем уменьшение
 			F_secPhaseTransformation = false; F_reduce = true;
 		}
 	}
@@ -240,7 +239,7 @@ public:
 		shape.setPosition ((float) W_WIN / 2, (float) H_WIN / 2);
 		shape.setRotation (0);
 		enlargePrecent = 1; reducePrecent = 100;
-		rotation = 360 - ((FPS * (100 / speedChangeSt) * 3) * (float) (speedChangeSt * time * 1.5));
+		rotation = 360 - ((FPS * (100 / speedChangeSt) * 3) * (float) (speedChangeSt * time * 1.5)); //высчитываем угол на который надо повернуть игрока, что б он потом стал в нормальное положение
 
 		x = x2; y = y2; 
 		map.setOrigin ((float) SQUARE * x + 3 * SQUARE / 2, (float) SQUARE * y + 3 * SQUARE / 2);
@@ -258,7 +257,7 @@ public:
 			x = x2; y = y2; 
 
 			F_teleportation = false; F_transformation = false; F_secPhaseTransformation = false;
-			shape.setSize (Vector2f ((float) w, (float) h));
+			shape.setSize (Vector2f ((float) w, (float) h)); //доводим его размер до 100%
 			shape.setOrigin ((float) w / 2, (float) h / 2);
 			shape.setPosition ((float) W_WIN / 2, (float) H_WIN / 2);
 			changeFigureStatic ();
@@ -272,27 +271,27 @@ public:
 
 class BodyButton : public Body{ //тело кнопок
 protected:
-	int sizeText; //размер текста
+	int sizeText; //размер текста на кнопке
 	bool F_pressed; //флаг, который показывает нажата ли кнопка
 	float reducePrecent; //процент уменьшения
 	float enlargePrecent; //процент увелечения
 	Color color; //цвет текста кнопки
-	mcText *text; //текст который выводится на кнопке
+	mcText *text; //текст который выводится на кнопке (объект класса, в котором есть удобные методы для вывода текста в окно)
 	String buttText; //текст который будет отображаться на кнопке
 private:
 	Font font; //шрифт
 public:
 	bool F_draw; //флаг, который показывает рисуется ли эта кнопка
 	bool F_click; //флаг, который показывает кликнули ли по кнопке (клик- это нажать и отпустить кнопку когда курсор мыши на кнопке)
-	bool F_transformation; //флаг показывающий изменилась ли форма
-	int value; //значение кнопки
+	bool F_transformation; //флаг, который показывает изменилась ли форма
+	int value; //значение кнопки (нужно для кнопок с цифрами для выбора уровня)
 	TypeState type; //тип состояния к которому принадлежит кнопка
 	SubtypeState subtype; //подтип состояния к которому принадлежит кнопка
 public:
-	BodyButton (Image &image, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
-		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
+	BodyButton (Texture *tmpTexture, String Text, String Name, Font &Font, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : 
+		    Body (tmpTexture, Name, X, Y, W, H, WTexture, HTexture){
 	    font = Font; buttText = Text; sizeText = SIZE_TEXT;
-		subtype = Subtype; type = findType (subtype); 
+		subtype = Subtype; type = findType (subtype); //нашли тип к которому относится кнопка
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
 
@@ -304,8 +303,8 @@ public:
 		shape.setOrigin ((float) w / 2, (float) h / 2);
 	}
 
-	BodyButton (Image &image, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : //для пикчер баттон, чек баттон и горизонтал скрол бар
-		    Body (image, Name, X, Y, W, H, WTexture, HTexture){
+	BodyButton (Texture *tmpTexture, String Name, SubtypeState &Subtype, int X, int Y, int W, int H, int WTexture, int HTexture) : //для пикчер баттон, чек баттон и горизонтал скрол бар
+		    Body (tmpTexture, Name, X, Y, W, H, WTexture, HTexture){
 		subtype = Subtype; type = findType (subtype); 
 		F_draw = false; F_click = false; F_pressed = false; 
 		F_transformation = false; reducePrecent = 100; enlargePrecent = 1;
@@ -344,8 +343,8 @@ public:
 			text -> add (buttText, color);
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * reducePrecent / 100 / 3); //распологаем текст по кнопке
 
-			reducePrecent -= speedChangeSt * time; //когда прекратится изменение формы
-			if (reducePrecent < speedChangeSt * time){
+			reducePrecent -= speedChangeSt * time;
+			if (reducePrecent < speedChangeSt * time){ //когда прекратится изменение формы
 				reducePrecent = 100;
 				F_transformation = false;
 			}
@@ -362,12 +361,12 @@ public:
 			text -> add (buttText, color);
 			text -> setPosition ((float) x - text -> w / 2, (float) y - 2 * sizeText * enlargePrecent / 100 / 3); //распологаем текст по кнопке
 
-			enlargePrecent += speedChangeSt * time; //когда прекратится изменение формы
-			if (enlargePrecent > 100 - speedChangeSt * time){
+			enlargePrecent += speedChangeSt * time;
+			if (enlargePrecent > 100 - speedChangeSt * time){ //когда прекратится изменение формы
 				enlargePrecent = 1;
 				F_transformation = false;
 
-				shape.setSize (Vector2f ((float) w, (float) h));
+				shape.setSize (Vector2f ((float) w, (float) h)); //приводим к 100% размеру
 				shape.setOrigin ((float) w / 2, (float) h / 2);
 				shape.setPosition ((float) x, (float) y);
 				text -> clear ();

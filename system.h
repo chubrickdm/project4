@@ -6,16 +6,17 @@ using namespace std;
 using namespace sf;
 
 
-enum TypeState {unknown = -1, menu = 0, player, admin}; //типы игры
-enum SubtypeState {launcher = 0, mode, settings, exitt, selectLVL, audioSetting, controlSeting, playerLVL, about, //0-8 //подтипы игры
+enum TypeState {unknown = -1, menu = 0, player, admin}; //тип состояния игры
+enum SubtypeState {launcher = 0, mode, settings, exitt, selectLVL, audioSetting, controlSeting, playerLVL, about, //0-8 //подтипы состояния игры
 	               editLVL,  openLVL, saveLVL, deleteLVL, listLVL, // 9-13
 	               play, pause, startLVL, completeLVL,  //14-17
 	               wholeType, allState, loadingLVL}; //18-20
-enum StatePlayer {rectangle, triangle, circle};
-enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW};
+enum StatePlayer {rectangle, triangle, circle}; //состояние игрока
+enum CreateWall {rectangleW, triangleW, circleW, wall, finishW, startW, saveW}; //какой тип стены ставится игроком в админ моде в текущий момент
 
 
-class TileMap : public Drawable, public Transformable{
+class TileMap : public Drawable, public Transformable{ //класс для создания карты
+//ссылка на реусурс откуда был взят этот класс https://www.sfml-dev.org/tutorials/2.0/graphics-vertex-array.php#example-tile-map
 private:
 	VertexArray m_vertices;
 	Texture m_tileset;
@@ -62,7 +63,7 @@ public:
 };
 
 
-class System{ //основной класс игры, в котором хранится все самое выжное
+class System{ //основной класс игры, в котором хранится все самые важные переменные, все остальные классы наследуются от него
 public:
 	static bool         F_gameIsLocked; //флаг, который показывает заблокирована ли игра (если изменили настройки)
 	static bool         F_musicOff; //флаг, который показывает выключена ли музыка
@@ -101,61 +102,59 @@ public:
 	static Coordinate   Finish; //координаты финиша (куда должен придти)
 	
 
-	int W_WIN;
-	int INTERVAL;
-	int H_WIN;
-	int EDGE;
-	int NUM_CELL_X; 
-	int NUM_CELL_Y;
-	int W_BUTTON;
-	int H_BUTTON;
-	int SIZE_TEXT;
-	int NUM_SQUARE;
-	int SQUARE;
-	int NUM_LVL;
+	int W_WIN; //ширина разрешения экрана пользователя
+	int H_WIN; //высота разрешения экрана пользователя
+	int INTERVAL; //расстояние между кнопками
+	int EDGE; //размер одной клетки в админ моде
+	int NUM_CELL_X; //количество клеток в ширину в уровне
+	int NUM_CELL_Y; //количество клеток в высоту в уровне
+	int W_BUTTON; //ширина кнопок
+	int H_BUTTON; //высота кнопок
+	int SIZE_TEXT; //размер текста кнопок
+	int NUM_SQUARE; //количество квадратов видимых игроку
+	int SQUARE; //размер квадрата видимого игроку
+	int NUM_LVL; //количество уровней
 public:
 	System (){
-		W_WIN = GetSystemMetrics (0); H_WIN = GetSystemMetrics (1); //разрешение
-		//W_WIN = 1366; H_WIN = 768; //разрешение
-		//W_WIN = 1280; H_WIN = 1024; //разрешение
-		EDGE = 5; //размер одной клетки
+		W_WIN = GetSystemMetrics (0); H_WIN = GetSystemMetrics (1); //получаем разрешение экрана пользователя
+		EDGE = 5; //размер клетки получаем в цикле
 		NUM_CELL_X = 64; //количество клеток уровня по ширине
 		NUM_CELL_Y = 32; //количество клеток уровня по высоте
 		W_BUTTON = (int) (W_WIN / 8); //ширина кнопки
 		H_BUTTON = H_WIN / 19; //высота кнопки
-		INTERVAL = H_BUTTON / 10;
-		SIZE_TEXT = (int) 30 * H_BUTTON / 44;
+		INTERVAL = H_BUTTON / 10; //расстояние между кнопками
+		SIZE_TEXT = (int) 30 * H_BUTTON / 44; //размер текста на кнопке
 
-		while (1){
+		while (1){ //цикл в котором мы получаем оптимальный размер клетки (увеличиваем размер, пока мы не дошли до предела по высоте или ширине)
 			if ((H_WIN - NUM_CELL_Y * EDGE) / 2 < H_BUTTON * 2 || (W_WIN - NUM_CELL_X * EDGE) / 2 < 60)
 				break;
 			EDGE++;
 		}
 
-		NUM_SQUARE = 8; //количество квадратов видемых на экране когда играет игрок
+		NUM_SQUARE = 8; //количество квадратов видимых на экране когда играет игрок
 		SQUARE = EDGE * NUM_CELL_Y / NUM_SQUARE; //размер одного такого квадрата
-		speed = (float) 3 * SQUARE; //сколько игрок пройдет за 1 секунду
+		speed = (float) 3 * SQUARE; //сколько игрок пройдет за 1 секунду квадратов
 		speedChangeSt = 200; //на сколько процентов уменьшится кнопка за 1 секунду
-		NUM_LVL = 4;
+		NUM_LVL = 4; //количество уровней
 	}
 
-	TypeState findType (SubtypeState tmpS){
+	TypeState findType (SubtypeState tmpS){ //вспомогательная функция нахождения типа зная подтип
 		if (tmpS > -1 && tmpS <= 8)       return menu;
 		else if (tmpS > 8 && tmpS <= 13)  return admin;
 		else if (tmpS > 13 && tmpS <= 17) return player;
 		else                              return unknown;
 	}
 protected:
-	void changeBool (bool &tmpB){
+	void changeBool (bool &tmpB){ //вспоомгательная функция, которая меняет булевскую переменную
 		if (tmpB) tmpB = false;
 		else      tmpB = true;
 	}
 
-	void changeMusicVolume (float tmpV){
+	void changeMusicVolume (float tmpV){ //вспомогательная функция изменения громкости музыки
 		backgroundMusic.setVolume (tmpV);
 	}
 
-	void changeSoundVolume (float tmpV){
+	void changeSoundVolume (float tmpV){ //вспомогательная функция изменения громкости звуков
 		sndClickButt.setVolume (tmpV);
 		sndTeleport.setVolume (tmpV);
 	}
